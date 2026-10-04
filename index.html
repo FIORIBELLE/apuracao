@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Apuração 2026</title>
+<meta name="theme-color" content="#18212e">
+<meta name="application-name" content="Apuração 2026">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Apuração 2026">
+<link rel="manifest" href="apuracao-2026.webmanifest">
+<link rel="icon" href="apuracao-icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="apuracao-icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EDF0F3; --card:#FFFFFF; --ink:#18212E; --soft:#5B6878; --line:#D5DBE2;
+  --bar:#2C5A86; --bar2:#9AAFC4; --track:#E3E8EE; --live:#C98A00;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121821; --card:#1B2330; --ink:#E8EDF3; --soft:#9AA7B6; --line:#2C3644;
+    --bar:#6FA3D6; --bar2:#4A5D73; --track:#263040; --live:#E6B33A;
+  }
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:4px 0 14px}
+h1{font-size:1.6rem;font-weight:800;font-stretch:80%;margin:0;letter-spacing:-.01em}
+.status{font-size:.85rem;color:var(--soft);text-align:right}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--live);margin-right:6px;vertical-align:middle}
+.dot.busy{animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion: reduce){.dot.busy{animation:none}}
+nav{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:16px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+nav button{flex:1;border:0;background:transparent;color:var(--soft);font:inherit;font-weight:600;padding:10px 6px;border-radius:7px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+button:focus-visible,select:focus-visible,.uf:focus-visible{outline:3px solid var(--live);outline-offset:2px}
+
+/* medidor de apuração: o elemento principal */
+.meter{margin:0 0 18px}
+.meter-top{display:flex;justify-content:space-between;align-items:baseline}
+.meter-num{font-size:3.2rem;font-weight:800;font-stretch:75%;line-height:1;font-variant-numeric:tabular-nums}
+.meter-num small{font-size:1.2rem;font-weight:600}
+.meter-cap{color:var(--soft);font-size:.9rem;text-align:right}
+.meter-track{height:14px;background:var(--track);border-radius:3px;margin-top:8px;overflow:hidden}
+.meter-fill{height:100%;background:var(--ink);transition:width .6s ease}
+
+.block{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 14px 6px;margin-bottom:14px}
+.block h2{font-size:1.1rem;margin:0 0 4px;font-weight:700}
+.block .sub{color:var(--soft);font-size:.85rem;margin-bottom:10px}
+.row{padding:8px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.name{font-weight:600}
+.name em{font-style:normal;color:var(--soft);font-weight:400;font-size:.85rem;margin-left:4px}
+.pct{font-weight:800;font-stretch:80%;font-size:1.15rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.votes{color:var(--soft);font-size:.8rem;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--track);border-radius:2px;margin-top:5px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--bar2)}
+.row.lead .bar span{background:var(--bar)}
+.tag{display:inline-block;font-size:.75rem;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--live);color:#1A1200;margin-left:6px}
+
+.tools{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px}
+.tools label{font-size:.85rem;color:var(--soft)}
+select{font:inherit;padding:6px 8px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.uf{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer;padding:12px 14px}
+.uf-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.uf-name{font-weight:700}
+.uf-ap{font-size:.8rem;color:var(--soft);font-variant-numeric:tabular-nums}
+.uf-duel{margin-top:6px;font-size:.9rem;display:flex;justify-content:space-between;gap:8px}
+.uf-duel b{font-variant-numeric:tabular-nums}
+.split{display:flex;height:6px;border-radius:2px;overflow:hidden;background:var(--track);margin-top:6px}
+.split .a{background:var(--bar)} .split .b{background:var(--bar2)}
+.uf-body{margin-top:10px}
+.err{color:var(--soft);font-size:.9rem;padding:12px 0}
+footer{color:var(--soft);font-size:.8rem;text-align:center;padding:10px 0 24px}
+footer a{color:inherit}
+.actions{display:flex;gap:8px;justify-content:center;margin:0 0 12px}
+.refresh,.share{padding:10px 14px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer}
+.share{background:var(--ink);color:var(--bg);font-weight:700}
+.share[disabled],.refresh[disabled]{opacity:.55;cursor:default}
+.share-note{min-height:1.3em;color:var(--soft);font-size:.8rem;text-align:center;margin:-4px 0 10px}
+.install-card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:0 0 14px;text-align:center}
+.install-card h2{font-size:1rem;margin:0 0 4px}
+.install-card p{color:var(--soft);font-size:.85rem;margin:0 0 10px}
+.install-button{padding:10px 14px;border:1px solid var(--ink);border-radius:7px;background:var(--ink);color:var(--bg);font:inherit;font-weight:700;cursor:pointer}
+.install-modal[hidden]{display:none}
+.install-modal{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.55);display:grid;place-items:end center;padding:16px}
+.install-sheet{width:min(100%,520px);background:var(--card);color:var(--ink);border-radius:16px;padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.install-sheet h2{margin:0 0 8px}
+.install-sheet ol{padding-left:22px;margin:12px 0 18px}
+.install-sheet li{margin:8px 0}
+.install-close{width:100%;padding:11px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--ink);font:inherit;cursor:pointer}
+@media (display-mode:standalone){.install-card{display:none}}
+.history{padding-bottom:14px}
+.history-change{font-weight:700;margin:8px 0}
+.history-chart{display:block;width:100%;height:auto;margin:10px 0;color:var(--soft)}
+.history-table-wrap{overflow-x:auto}
+.history-table{width:100%;border-collapse:collapse;font-size:.8rem;font-variant-numeric:tabular-nums}
+.history-table th,.history-table td{padding:8px 5px;text-align:right;border-bottom:1px solid var(--line)}
+.history-table th:first-child,.history-table td:first-child{text-align:left}
+.overview{padding-bottom:14px}
+.overview-title{font-size:.85rem;color:var(--soft)}
+.overview-lead{font-size:1.35rem;font-weight:800;margin:4px 0}
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.overview-stat{padding:10px;background:var(--track);border-radius:7px}
+.overview-stat strong{display:block;font-size:1.1rem;font-variant-numeric:tabular-nums}
+.overview-stat span{color:var(--soft);font-size:.8rem}
+.gap{margin:12px 0;padding:10px;background:var(--track);border-radius:7px;font-size:.9rem}
+.cargo-tabs{display:flex;gap:6px;margin-bottom:14px}
+.cargo-tabs button{flex:1;padding:10px 4px;font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;cursor:pointer}
+.cargo-tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.region-toggle{width:100%;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;font:inherit;cursor:pointer;margin-bottom:8px}
+details.explanation{font-size:.85rem;color:var(--soft);margin-top:10px}
+details.explanation summary{cursor:pointer;padding:6px 0}
+.senators{padding-bottom:14px}
+.senators .sub:last-child{margin-top:12px}
+.region-group{margin-bottom:26px}
+.region-title{font-size:1.3rem;margin:20px 0 8px}
+.region-summary{padding-bottom:14px}
+.region-summary .scenario-result{margin-top:0}
+.region-summary .sub:last-child{margin-bottom:0}
+.scenario{padding-bottom:14px}
+.scenario-result{font-size:1.25rem;font-weight:800;margin:8px 0}
+.threshold{position:relative;height:12px;background:var(--track);border-radius:4px;margin:12px 0 6px;overflow:hidden}
+.threshold-fill{height:100%;background:var(--bar)}
+.threshold-mark{position:absolute;left:50%;top:0;height:100%;border-left:3px solid var(--ink)}
+.threshold-labels{display:flex;justify-content:space-between;color:var(--soft);font-size:.75rem;margin-bottom:12px}
+.notice{color:var(--soft);font-size:.85rem;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Apuração 2026</h1>
+    <div class="status" role="status"><span class="dot" id="dot"></span><span id="stamp">Carregando…</span></div>
+  </header>
+
+  <nav role="tablist">
+    <button role="tab" aria-selected="true" data-tab="br">Brasil</button>
+    <button role="tab" aria-selected="false" data-tab="uf">Estados</button>
+    <button role="tab" aria-selected="false" data-tab="mg">Minas</button>
+  </nav>
+
+  <section id="tab-br"></section>
+  <section id="tab-uf" hidden>
+    <p class="notice">Presidente por região: soma dos votos válidos divulgados nos estados. Cada região mostra seu líder na parcial; os horários das consultas podem diferir.</p>
+    <div class="tools">
+      <label for="ord">Ordenar por</label>
+      <select id="ord">
+        <option value="nome">Nome do estado</option>
+        <option value="apurado">Mais apurado</option>
+        <option value="eleitores">Tamanho do eleitorado</option>
+      </select>
+    </div>
+    <div id="uf-list"></div>
+  </section>
+  <section id="tab-mg" hidden></section>
+
+  <div class="actions">
+    <button class="refresh" id="refresh" type="button">Atualizar agora</button>
+    <button class="share" id="share" type="button" disabled>Compartilhar resumo</button>
+  </div>
+  <div class="share-note" id="share-note" role="status" aria-live="polite"></div>
+  <section class="install-card" id="install-card">
+    <h2>Instalar como app</h2>
+    <p>Abra pela Tela de Início com o nome Apuração 2026 e sem a barra do navegador.</p>
+    <button class="install-button" id="install-button" type="button">Adicionar à Tela de Início</button>
+  </section>
+  <div class="install-modal" id="install-modal" hidden role="dialog" aria-modal="true" aria-labelledby="install-title">
+    <div class="install-sheet">
+      <h2 id="install-title">Adicionar no iPhone</h2>
+      <ol>
+        <li>Toque em <strong>Compartilhar</strong> — o quadrado com uma seta para cima.</li>
+        <li>Role as opções e toque em <strong>Adicionar à Tela de Início</strong>.</li>
+        <li>Confirme o nome <strong>Apuração 2026</strong> e toque em <strong>Adicionar</strong>.</li>
+      </ol>
+      <button class="install-close" id="install-close" type="button">Entendi</button>
+    </div>
+  </div>
+  <footer>Painel independente com dados do <a href="https://resultados.tse.jus.br" target="_blank" rel="noopener">TSE</a>. Brasil e Minas: consultas a cada minuto; estados: a cada 2 minutos. Horários de Brasília. Parcial não é resultado final.</footer>
+</div>
+
+<script>
+const BASE = "https://resultados.tse.jus.br/oficial/ele2026";
+const TURNOS = {
+  1: {pres:"6257", est:"6259"},
+  2: {pres:"", est:""} // Preencher quando o TSE publicar os códigos oficiais do 2º turno.
+};
+const TURNO_ATIVO = 1;
+const CONFIG_TURNO = TURNOS[TURNO_ATIVO] || {};
+const PRES = CONFIG_TURNO.pres || "";
+const EST = CONFIG_TURNO.est || "";
+const CONFIG_ERROR = !PRES || !EST
+  ? `Os códigos oficiais do ${TURNO_ATIVO}º turno ainda não foram publicados pelo TSE. Preencha TURNOS[${TURNO_ATIVO}] quando eles estiverem disponíveis.`
+  : "";
+const UFS = {ac:"Acre",al:"Alagoas",ap:"Amapá",am:"Amazonas",ba:"Bahia",ce:"Ceará",df:"Distrito Federal",es:"Espírito Santo",go:"Goiás",ma:"Maranhão",mt:"Mato Grosso",ms:"Mato Grosso do Sul",mg:"Minas Gerais",pa:"Pará",pb:"Paraíba",pr:"Paraná",pe:"Pernambuco",pi:"Piauí",rj:"Rio de Janeiro",rn:"Rio Grande do Norte",rs:"Rio Grande do Sul",ro:"Rondônia",rr:"Roraima",sc:"Santa Catarina",sp:"São Paulo",se:"Sergipe",to:"Tocantins",zz:"Exterior"};
+const REGIONS = [
+  {nome:"Norte",ufs:["ac","ap","am","pa","ro","rr","to"]},
+  {nome:"Nordeste",ufs:["al","ba","ce","ma","pb","pe","pi","rn","se"]},
+  {nome:"Centro-Oeste",ufs:["df","go","mt","ms"]},
+  {nome:"Sudeste",ufs:["es","mg","rj","sp"]},
+  {nome:"Sul",ufs:["pr","rs","sc"]}
+];
+const state = { br:null, mg:{gov:null,sen:null}, uf:{}, open:new Set(), tab:"br", mgTab:"sen", regions:new Set() };
+
+const url = (ele, uf, cargo) => `${BASE}/${ele}/dados/${uf}/${uf}-c${cargo}-e00${ele}-u.json`;
+const num = s => parseFloat(String(s||"0").replace(",", ".")) || 0;
+const fmt = n => n.toLocaleString("pt-BR");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+function tseTimestamp(data, hora){
+  const m = String(data||"").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const t = String(hora||"").match(/^(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if(!m || !t) return 0;
+  return new Date(`${m[3]}-${m[2]}-${m[1]}T${t[1]}:${t[2]}:${t[3]||"00"}-03:00`).getTime();
+}
+
+async function get(u){
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+  const r = await fetch(u, {cache:"no-cache", signal:controller.signal});
+  if(!r.ok) throw new Error(r.status === 429 ? "TSE limitou as consultas, tentando de novo em seguida" : "Arquivo indisponível ("+r.status+")");
+  return await r.json();
+  } catch(e) {
+    if(e.name === "AbortError") throw new Error("TSE demorou a responder. Nova tentativa automática.");
+    if(e instanceof TypeError) throw new Error("Sem conexão com o TSE. Nova tentativa automática.");
+    throw e;
+  } finally { clearTimeout(timer); }
+}
+
+function parse(d){
+  if(!Array.isArray(d.carg) || !d.s) throw new Error("Resposta do TSE em formato inesperado.");
+  const cands = [];
+  (d.carg?.[0]?.agr || []).forEach(a => (a.par||[]).forEach(p => (p.cand||[]).forEach(k => {
+    cands.push({ id:String(k.n || k.sqcand || k.nmu || k.nm), valido:!k.dvt || k.dvt === "Válido", nome:k.nmu || k.nm, part:p.sg, votos:+k.vap || 0, pct:num(k.pvapn || k.pvap), eleito:k.e === "s", st:k.st || "" });
+  })));
+  cands.sort((a,b) => b.votos - a.votos);
+  return {
+    cands,
+    apurado: num(d.s?.pstn || d.s?.pst),
+    eleitores: +(d.e?.te || 0),
+    secoesTotal: +(d.s?.ts || 0),
+    secoesApuradas: +(d.s?.st || 0),
+    hora: [d.dt || d.dg, d.ht || d.hg].filter(Boolean).join(" às "),
+    timestampTSE: tseTimestamp(d.dt || d.dg, d.ht || d.hg),
+    comparecimento: {qtd:+(d.e?.c || 0), pct:num(d.e?.pc)},
+    brancos: {qtd:+(d.v?.vb || 0), pct:num(d.v?.pvb)},
+    nulos: {qtd:+(d.v?.tvn || 0), pct:num(d.v?.ptvn)},
+    cargo: d.carg?.[0]?.nmn || ""
+  };
+}
+
+function candRows(list, limit){
+  const top = list.cands.slice(0, limit || list.cands.length);
+  if(!top.length) return '<div class="err">Sem votos divulgados ainda.</div>';
+  return top.map((c,i) => `
+    <div class="row${i===0?" lead":""}">
+      <div class="row-top">
+        <span class="name">${esc(c.nome)}<em>${esc(c.part)}</em>${c.eleito?'<span class="tag">Eleito</span>':(c.st && c.st!=="Eleito"?`<span class="tag">${esc(c.st)}</span>`:"")}</span>
+        <span class="pct">${c.pct.toFixed(2).replace(".",",")}%</span>
+      </div>
+      <div class="votes">${fmt(c.votos)} votos</div>
+      <div class="bar"><span style="width:${Math.min(100,c.pct)}%"></span></div>
+    </div>`).join("");
+}
+
+const notice = d => d?.stale ? `<div class="notice">${esc(d.stale)} Exibindo a última consulta recebida.</div>` : "";
+
+function meter(p, cap){
+  return `<div class="meter">
+    <div class="meter-top">
+      <div class="meter-num">${p.toFixed(2).replace(".",",")}<small>%</small></div>
+      <div class="meter-cap">das seções apuradas<br>${esc(cap)}</div>
+    </div>
+    <div class="meter-track"><div class="meter-fill" style="width:${p}%"></div></div>
+  </div>`;
+}
+
+
+
+const percent = n => n.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+function gapPanel(d, senate=false){
+  if(!d || d.error) return "";
+  const valid = d.cands.filter(c => c.valido !== false);
+  const a = valid[senate ? 1 : 0], b = valid[senate ? 2 : 1];
+  if(!a || !b || !valid.some(c=>c.votos>0)) return "";
+  const gap = a.votos - b.votos;
+  return `<div class="gap"><strong>${senate ? "Disputa pela segunda vaga" : "Vantagem entre 1º e 2º"}:</strong><br>
+    ${gap === 0 ? esc(a.nome) + " e " + esc(b.nome) + " estão empatados em votos." : esc(a.nome) + " tem " + fmt(gap) + " votos de vantagem sobre " + esc(b.nome) + " (" + percent(Math.max(0,a.pct-b.pct)) + " pontos percentuais)."}
+  </div>`;
+}
+function voteStatsLine(d){
+  if(!d?.comparecimento || !d?.brancos || !d?.nulos) return "";
+  return `<div class="sub">Comparecimento: <strong>${fmt(d.comparecimento.qtd)} (${percent(d.comparecimento.pct)}%)</strong> · Brancos: <strong>${fmt(d.brancos.qtd)} (${percent(d.brancos.pct)}%)</strong> · Nulos: <strong>${fmt(d.nulos.qtd)} (${percent(d.nulos.pct)}%)</strong></div>`;
+}
+function overview(d,title,senate=false,showVoteStats=false){
+  if(!d || d.error) return "";
+  const c = d.cands.filter(c=>c.valido !== false);
+  if(!c.length || !c.some(k=>k.votos>0)) return "";
+  const leaders = c.filter(k=>k.votos === c[0].votos);
+  const lead = leaders.length > 1 ? "Empate na liderança" : esc(c[0].nome);
+  return `<div class="block overview"><div class="overview-title">${esc(title)} · Resumo da parcial</div>
+    <div class="overview-lead">${lead}</div>
+    <div class="sub">${leaders.length > 1 ? leaders.map(k=>esc(k.nome)).join(" · ") : "Líder com " + percent(c[0].pct) + "% dos votos válidos"}</div>
+    <div class="overview-grid">
+      <div class="overview-stat"><strong>${percent(d.apurado)}%</strong><span>das seções totalizadas</span></div>
+      <div class="overview-stat"><strong>${fmt(c[0].votos)}</strong><span>votos do primeiro colocado</span></div>
+    </div>
+    ${gapPanel(d,senate)}
+    ${showVoteStats ? voteStatsLine(d) : ""}
+    <div class="sub"><strong>Dados do TSE:</strong> ${esc(d.hora)}${d.stale ? " · Atualização falhou; consulta anterior." : ""}</div>
+  </div>`;
+}
+function runoffPanel(d,title){
+  if(!d || d.error) return "";
+  const leader = d.cands.find(c=>c.valido !== false);
+  if(!leader || !d.cands.some(c=>c.valido !== false && c.votos > 0)) return `<div class="block scenario"><h2>Vai ter segundo turno? · ${esc(title)}</h2><div class="sub">Aguardando votos válidos divulgados.</div></div>`;
+  const pct = leader.pct, above = pct > 50;
+  return `<div class="block scenario">
+    <h2>Vai ter segundo turno? · ${esc(title)}</h2>
+    <div class="scenario-result">${above ? "Líder acima de 50% na parcial" : "Nenhum candidato acima de 50% na parcial"}</div>
+    <div class="sub">${esc(leader.nome)}: <strong>${percent(pct)}%</strong> · ${Math.abs(pct-50).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:4})} ponto(s) percentual(is) ${above ? "acima" : pct < 50 ? "abaixo" : "de distância"} de 50%.</div>
+    <div class="threshold" aria-hidden="true"><div class="threshold-fill" style="width:${Math.max(0,Math.min(100,pct))}%"></div><span class="threshold-mark"></span></div>
+    <div class="threshold-labels"><span>0%</span><span>50% dos votos</span><span>100%</span></div>
+    <div class="sub">${above ? "Se mantiver esse percentual até o resultado final, vence no primeiro turno." : "Se ninguém superar 50% no resultado final, haverá segundo turno."}</div>
+    <details class="explanation"><summary>Entenda o cálculo</summary>
+      <p><strong>Probabilidade de segundo turno: não estimada.</strong> A ordem da apuração varia entre regiões. O percentual parcial não é uma amostra aleatória e os votos restantes podem mudar o cenário.</p>
+      <p>Uma probabilidade numérica exige um modelo validado. É necessário mais de 50% dos votos válidos para vencer no primeiro turno; brancos e nulos ficam fora do cálculo.</p>
+      <p>Este painel mostra a condição atual. Confira a confirmação no <a href="https://resultados.tse.jus.br" target="_blank" rel="noopener">TSE</a>.</p>
+    </details>
+  </div>`;
+}
+
+
+const HISTORY_KEY = `apuracao2026.history.turno-${TURNO_ATIVO}.v1`;
+const HISTORY_LIMIT = 120;
+let historyPersistent = true;
+const history = readHistory();
+function sourceOrder(hora){
+  const m = String(hora||"").match(/(\d{2})\/(\d{2})\/(\d{4}).*?(\d{2}):(\d{2})(?::(\d{2}))?/);
+  return m ? Date.UTC(+m[3],+m[2]-1,+m[1],+m[4],+m[5],+(m[6]||0)) : 0;
+}
+function readHistory(){
+  const clean = {br:[],senMG:[]};
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if(!raw) return clean;
+    if(raw.length > 2000000) return clean;
+    const saved = JSON.parse(raw);
+    for(const key of Object.keys(clean)){
+      if(!Array.isArray(saved[key])) continue;
+      clean[key] = saved[key].filter(s => s && typeof s.hora === "string" &&
+        typeof s.signature === "string" && Number.isFinite(s.apurado) && s.apurado >= 0 && s.apurado <= 100 &&
+        Array.isArray(s.cands) && s.cands.length <= 100 &&
+        s.cands.every(c => c && typeof c.id === "string" && typeof c.nome === "string" &&
+          Number.isSafeInteger(c.votos) && c.votos >= 0 && Number.isFinite(c.pct) && c.pct >= 0 && c.pct <= 100)
+      ).slice(-HISTORY_LIMIT);
+    }
+  } catch(e){ historyPersistent = false; }
+  return clean;
+}
+function recordHistory(key,d){
+  if(!key || !d || d.error || d.stale) return;
+  const cands = d.cands.filter(c=>c.valido !== false).map(c=>({id:c.id,nome:c.nome,votos:c.votos,pct:c.pct}));
+  if(!cands.length || !cands.some(c=>c.votos>0)) return;
+  const signature = JSON.stringify([d.apurado,[...cands].sort((a,b)=>a.id.localeCompare(b.id)).map(c=>[c.id,c.votos,c.pct])]);
+  const last = history[key].at(-1);
+  if(last?.signature === signature) return;
+  if(last && sourceOrder(d.hora) && sourceOrder(d.hora) < sourceOrder(last.hora)) return;
+  history[key].push({hora:d.hora,apurado:d.apurado,cands,signature});
+  history[key] = history[key].slice(-HISTORY_LIMIT);
+  try { localStorage.setItem(HISTORY_KEY,JSON.stringify(history)); historyPersistent = true; }
+  catch(e){ historyPersistent = false; }
+}
+function historyPair(d,senate){
+  const c = d.cands.filter(c=>c.valido !== false);
+  return [c[senate ? 1 : 0],c[senate ? 2 : 1]];
+}
+function pairSample(s,a,b){
+  const A = s.cands.find(c=>c.id===a.id), B = s.cands.find(c=>c.id===b.id);
+  return A && B ? {...s,a:A,b:B,gap:A.votos-B.votos} : null;
+}
+function historyGraph(points,a,b){
+  if(points.length < 2) return '<div class="sub">O gráfico aparecerá quando houver dois registros diferentes do TSE.</div>';
+  const w=600,h=205,left=76,right=14,top=14,bottom=42;
+  const gaps=points.map(p=>p.gap);
+  let min=Math.min(0,...gaps),max=Math.max(0,...gaps);
+  if(min===max){min-=1;max+=1;}
+  const span=max-min, padding=span*.08;
+  min-=padding;max+=padding;
+  const times=points.map(p=>sourceOrder(p.hora));
+  const timeSpan=times.at(-1)-times[0];
+  const x=(p,i)=>left+(w-left-right)*(timeSpan>0 ? (times[i]-times[0])/timeSpan : i/(points.length-1));
+  const y=v=>top+(h-top-bottom)*(max-v)/(max-min);
+  const path=points.map((p,i)=>(i ? "L":"M")+x(p,i).toFixed(2)+","+y(p.gap).toFixed(2)).join(" ");
+  const clock=p=>p.hora.split(" às ").at(-1);
+  const short=n=>Math.abs(n)>=1000000 ? (n/1000000).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mi" : Math.abs(n)>=1000 ? (n/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil" : fmt(Math.round(n));
+  return `<svg class="history-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Evolução da vantagem em votos de ${esc(a.nome)} sobre ${esc(b.nome)}. Valores negativos indicam vantagem de ${esc(b.nome)}.">
+    <line x1="${left}" x2="${w-right}" y1="${y(0)}" y2="${y(0)}" stroke="currentColor" stroke-dasharray="4 4" opacity=".6"/>
+    ${[Math.max(...gaps),Math.min(...gaps)].filter((v,i,arr)=>v!==0 && arr.indexOf(v)===i).map(v=>`<text x="${left-8}" y="${y(v)+4}" text-anchor="end" font-size="13" fill="currentColor">${short(v)}</text>`).join("")}
+    <text x="${left-8}" y="${y(0)+4}" text-anchor="end" font-size="12" fill="currentColor">0</text>
+    <path d="${path}" fill="none" stroke="var(--bar)" stroke-width="3" stroke-linejoin="round"/>
+    <circle cx="${x(points.at(-1),points.length-1)}" cy="${y(points.at(-1).gap)}" r="4" fill="var(--bar)"/>
+    <text x="${left}" y="${h-15}" font-size="13" fill="currentColor">${esc(clock(points[0]))}</text>
+    <text x="${w-right}" y="${h-15}" text-anchor="end" font-size="13" fill="currentColor">${esc(clock(points.at(-1)))}</text>
+  </svg>`;
+}
+function historyPanel(key,d,senate=false){
+  if(!d || d.error) return "";
+  const [a,b] = historyPair(d,senate);
+  if(!a || !b) return "";
+  const points=history[key].map(s=>pairSample(s,a,b)).filter(Boolean);
+  const last=points.at(-1),previous=points.at(-2);
+  let message="Aguardando a próxima mudança nos números do TSE.";
+  if(last && previous){
+    const delta=last.gap-previous.gap;
+    message=delta===0 ? "A vantagem ficou igual ao registro anterior." : "A vantagem de "+esc(a.nome)+" sobre "+esc(b.nome)+" "+(delta>0 ? "aumentou":"diminuiu")+" "+fmt(Math.abs(delta))+" votos.";
+    const old=previous.cands.filter(c=>c.votos>0).sort((x,y)=>y.votos-x.votos);
+    if(old[senate?1:0]?.id!==a.id || old[senate?2:1]?.id!==b.id) message+=" Houve mudança de posições; a comparação usa os candidatos atuais.";
+  }
+  return `<div class="block history"><h2>${senate ? "Evolução da disputa pela segunda vaga" : "Evolução da disputa presidencial"}</h2>
+    <div class="history-change">${message}</div>
+    <div class="sub">${previous ? "Comparação entre os dados de "+esc(previous.hora)+" e "+esc(last.hora)+"." : "O registro começa quando este navegador recebe os dados."}</div>
+    <div class="sub"><strong>${esc(a.nome)} × ${esc(b.nome)}</strong> · Vantagem em votos; abaixo de zero, ${esc(b.nome)} estava à frente.</div>
+    ${historyGraph(points,a,b)}
+    <details class="explanation"><summary>Ver histórico · ${points.length} registro(s)</summary>
+      <div class="sub">Últimos 10 registros. A linha liga as consultas recebidas; não estima o que ocorreu entre elas.</div>
+      <div class="history-table-wrap"><table class="history-table"><thead><tr><th scope="col">Horário TSE</th><th scope="col">Apuração</th><th scope="col">${esc(a.nome)} (%)</th><th scope="col">${esc(b.nome)} (%)</th><th scope="col">Vantagem (votos)</th></tr></thead><tbody>
+        ${points.slice(-10).reverse().map(p=>`<tr><td>${esc(p.hora)}</td><td>${percent(p.apurado)}%</td><td>${percent(p.a.pct)}%</td><td>${percent(p.b.pct)}%</td><td>${fmt(p.gap)}</td></tr>`).join("")}
+      </tbody></table></div>
+    </details>
+    <div class="sub">${historyPersistent ? "Histórico salvo neste navegador, até 120 registros por disputa." : "Armazenamento indisponível: histórico temporário desta página."} Novos registros dependem do app aberto e das consultas; períodos sem acompanhamento ficam sem coleta.</div>
+  </div>`;
+}
+
+function renderBR(){
+  const el = document.getElementById("tab-br");
+  const d = state.br;
+  if(!d){ el.innerHTML = '<div class="err">Buscando dados do TSE…</div>'; return; }
+  if(d.error){ el.innerHTML = `<div class="err">${esc(d.error)}</div>`; return; }
+  el.innerHTML = notice(d) + overview(d, "Presidente · Brasil", false, true) + historyPanel("br",d) +
+    `<div class="block"><h2>Presidente</h2><div class="sub">Votos válidos, totalização das ${esc(d.hora)}</div>${candRows(d)}</div>` + runoffPanel(d, "Presidente");
+}
+
+
+function renderSenators(d){
+  const title = "Senadores de Minas";
+  if(!d) return `<div class="block"><h2>${title}</h2><div class="err">Buscando dados do TSE…</div></div>`;
+  if(d.error) return `<div class="block"><h2>${title}</h2><div class="err">${esc(d.error)}</div></div>`;
+  const hasVotes = d.cands.some(c => c.votos > 0);
+  const valid = d.cands.filter(c=>c.valido !== false);
+  const ranked = { ...d, cands:d.cands.map(c => {
+    const rank = 1 + valid.filter(other=>other.votos>c.votos).length;
+    const tied = valid.filter(other=>other.votos===c.votos).length > 1;
+    return {...c,st:c.eleito || c.st ? c.st : hasVotes && c.valido !== false && rank <= 2 ? rank + "º na parcial" + (tied ? " · empate" : "") : ""};
+  }) };
+  return `<div class="block senators"><h2>${title}</h2>
+    ${notice(d)}
+    <div class="sub"><strong>2 vagas em disputa</strong> · ${d.apurado.toFixed(2).replace(".",",")}% das seções totalizadas</div>
+    <div class="sub">Dados de ${esc(d.hora)} · Ordenado do mais votado ao menos votado.</div>
+    <div class="sub">Os dois primeiros estão em destaque na parcial. A posição pode mudar até o fim da apuração; a confirmação de eleição é do TSE.</div>
+    ${candRows(ranked)}
+    <div class="sub">Cada eleitor pode votar em dois candidatos ao Senado. Os percentuais são sobre votos válidos, não sobre eleitores. Não há segundo turno para senador.</div>
+  </div>`;
+}
+
+
+function renderMG(){
+  const el = document.getElementById("tab-mg");
+  const tabs = [{key:"gov",nome:"Governador"},{key:"sen",nome:"Senado"},{key:"pres",nome:"Presidente"}];
+  const key = state.mgTab;
+  const title = tabs.find(t=>t.key===key).nome;
+  const d = key === "pres" ? state.uf.mg : state.mg[key];
+  let h = `<div class="cargo-tabs" aria-label="Cargo em Minas">${tabs.map(t=>`<button type="button" data-cargo="${t.key}" aria-pressed="${key===t.key}">${t.nome}</button>`).join("")}</div>`;
+  if(!d) h += '<div class="err">Buscando dados do TSE…</div>';
+  else if(d.error) h += `<div class="err">${esc(d.error)}</div>`;
+  else {
+    h += notice(d) + overview(d,title + " · Minas Gerais",key==="sen",key==="gov");
+    if(key === "sen") h += historyPanel("senMG",d,true);
+    h += key === "sen" ? renderSenators(d) : `<div class="block"><h2>${title} em Minas</h2><div class="sub">Dados de ${esc(d.hora)}</div>${candRows(d)}</div>`;
+    if(key === "gov") h += runoffPanel(d,"Governador de Minas");
+  }
+  el.innerHTML = h;
+}
+
+function aggregateRegion(region){
+  const totals = new Map();
+  let received = 0, stale = 0, sections = 0, counted = 0;
+  for(const k of region.ufs){
+    const d = state.uf[k];
+    if(!d || d.error) continue;
+    received++;
+    if(d.stale) stale++;
+    sections += d.secoesTotal || 0;
+    counted += d.secoesApuradas || 0;
+    for(const c of d.cands){
+      if(c.valido === false) continue;
+      const id = c.id || c.nome;
+      const item = totals.get(id) || {id,nome:c.nome,part:c.part,votos:0,eleito:false,st:""};
+      item.votos += c.votos;
+      totals.set(id,item);
+    }
+  }
+  const cands = [...totals.values()].sort((a,b) => b.votos-a.votos || a.nome.localeCompare(b.nome,"pt-BR"));
+  const validVotes = cands.reduce((sum,c) => sum + c.votos, 0);
+  cands.forEach(c => { c.pct = validVotes ? 100*c.votos/validVotes : 0; });
+  return {cands,validVotes,received,stale,sections,counted};
+}
+
+function regionSummary(region){
+  const d = aggregateRegion(region);
+  const leaders = d.cands.filter(c => c.votos > 0 && c.votos === d.cands[0]?.votos);
+  let headline = "Aguardando votos divulgados";
+  if(leaders.length === 1) headline = esc(leaders[0].nome) + " lidera " + (d.received === region.ufs.length ? "a parcial regional" : "nos estados disponíveis");
+  if(leaders.length > 1) headline = "Empate na liderança da parcial";
+  const coverage = d.received === region.ufs.length ? "Dados dos " + d.received + " estados recebidos." : "Resumo incompleto: dados de " + d.received + " dos " + region.ufs.length + " estados.";
+  return `<div class="block region-summary">
+    <div class="scenario-result">${headline}</div>
+    <div class="sub">${coverage}${d.stale ? " " + d.stale + " estado(s) com consulta anterior após falha de atualização." : ""}</div>
+    ${d.validVotes ? candRows(d,3) : '<div class="err">Sem votos válidos nas consultas disponíveis.</div>'}
+    <div class="sub">${fmt(d.validVotes)} votos válidos somados.${d.sections ? " " + (100*d.counted/d.sections).toFixed(2).replace(".",",") + "% das seções dos estados disponíveis totalizadas." : ""} Percentuais calculados sobre a soma de votos, sem fazer média entre estados.</div>
+  </div>`;
+}
+
+function stateCard(k){
+  const d = state.uf[k];
+  const open = state.open.has(k);
+  let inner;
+  if(!d) inner = '<div class="uf-ap">Buscando…</div>';
+  else if(d.error) inner = `<div class="uf-ap">${esc(d.error)}</div>`;
+  else {
+    const [a, b] = d.cands;
+    inner = a ? `
+      <div class="uf-duel"><span>${esc(a.nome)} <b>${a.pct.toFixed(1).replace(".",",")}%</b></span>${b?`<span>${esc(b.nome)} <b>${b.pct.toFixed(1).replace(".",",")}%</b></span>`:""}</div>
+      <div class="split"><span class="a" style="width:${a.pct}%"></span>${b?`<span class="b" style="width:${b.pct}%"></span>`:""}</div>
+      ${open ? `<div class="uf-body">${candRows(d)}<div class="sub">Dados de ${esc(d.hora)}</div></div>` : ""}` : '<div class="uf-ap">Sem votos divulgados ainda.</div>';
+  }
+  return `<div class="uf" tabindex="0" role="button" aria-expanded="${open}" data-uf="${k}">
+    <div class="uf-head"><span class="uf-name">${UFS[k]}</span><span class="uf-ap">${d && !d.error ? d.apurado.toFixed(1).replace(".",",")+"% apurado" : ""}</span></div>
+    ${notice(d)}${inner}</div>`;
+}
+
+function renderUF(){
+  const ord = document.getElementById("ord").value;
+  const sorter = (a,b) => {
+    const A = state.uf[a], B = state.uf[b];
+    if(ord === "apurado") return (B?.apurado||0) - (A?.apurado||0);
+    if(ord === "eleitores") return (B?.eleitores||0) - (A?.eleitores||0);
+    return UFS[a].localeCompare(UFS[b], "pt-BR");
+  };
+  document.getElementById("uf-list").innerHTML = REGIONS.map(region =>
+    `<section class="region-group"><h2 class="region-title">${region.nome}</h2>${regionSummary(region)}${gapPanel(aggregateRegion(region))}<button type="button" class="region-toggle" data-region="${region.nome}" aria-expanded="${state.regions.has(region.nome)}">${state.regions.has(region.nome) ? "Ocultar" : "Ver"} estados · ${region.ufs.length}</button><div ${state.regions.has(region.nome) ? "" : "hidden"}>${[...region.ufs].sort(sorter).map(stateCard).join("")}</div></section>`
+  ).join("") + '<section class="region-group"><h2 class="region-title">Exterior</h2><div class="notice">Votos no exterior são exibidos separadamente das cinco regiões.</div>' + stateCard("zz") + '</section>';
+}
+
+
+
+let installPrompt=null;
+function isStandalone(){
+  return matchMedia("(display-mode: standalone)").matches || navigator.standalone===true;
+}
+function updateInstallCard(){
+  document.getElementById("install-card").hidden=isStandalone();
+}
+function openInstall(){
+  if(installPrompt){
+    installPrompt.prompt();
+    installPrompt.userChoice.finally(()=>{installPrompt=null;updateInstallCard();});
+    return;
+  }
+  const modal=document.getElementById("install-modal");
+  modal.hidden=false;
+  document.getElementById("install-close").focus();
+}
+function closeInstall(){
+  document.getElementById("install-modal").hidden=true;
+  document.getElementById("install-button").focus();
+}
+
+function topLines(d,limit){
+  if(!d || d.error) return [];
+  return d.cands.filter(c=>c.valido !== false && c.votos>0).slice(0,limit).map((c,i)=>
+    (i+1)+"º "+c.nome+" ("+c.part+"): "+percent(c.pct)+"% · "+fmt(c.votos)+" votos"
+  );
+}
+function regionLeaderLines(){
+  return REGIONS.map(region=>{
+    const d=aggregateRegion(region), a=d.cands[0];
+    if(!a || !d.validVotes) return region.nome+": aguardando dados";
+    const suffix=d.received===region.ufs.length ? "" : " · "+d.received+"/"+region.ufs.length+" estados";
+    return region.nome+": "+a.nome+" "+percent(a.pct)+"%"+suffix;
+  });
+}
+function shareSummary(){
+  const br=state.br, gov=state.mg.gov, sen=state.mg.sen;
+  if(!br || br.error) return "";
+  const leader=br.cands.find(c=>c.valido !== false && c.votos>0);
+  const runoff=leader ? (leader.pct>50
+    ? "Líder acima de 50% na parcial; se mantiver, vence no 1º turno."
+    : "Nenhum candidato acima de 50% na parcial; se isso continuar, haverá 2º turno.") : "Aguardando votos.";
+  const lines=[
+    "APURAÇÃO 2026 · PARCIAL",
+    "",
+    "PRESIDENTE · BRASIL",
+    ...topLines(br,2),
+    "Apuração: "+percent(br.apurado)+"% das seções",
+    runoff,
+    "Dados do TSE: "+br.hora,
+    ""
+  ];
+  if(gov && !gov.error){
+    lines.push("GOVERNADOR · MINAS",...topLines(gov,2),"Apuração: "+percent(gov.apurado)+"% das seções","Dados do TSE: "+gov.hora,"");
+  }
+  if(sen && !sen.error){
+    lines.push("SENADO · MINAS · 2 VAGAS",...topLines(sen,3),"Apuração: "+percent(sen.apurado)+"% das seções","Dados do TSE: "+sen.hora,"");
+  }
+  lines.push("LÍDER POR REGIÃO",...regionLeaderLines(),"","Resultado parcial. Fonte: TSE",canonicalURL());
+  return lines.join("\n");
+}
+function canonicalURL(){
+  return location.origin && location.origin!=="null"
+    ? location.origin+location.pathname
+    : "https://fioribelle.github.io/apuracao/";
+}
+async function shareResults(){
+  const text=shareSummary(), note=document.getElementById("share-note");
+  if(!text) return;
+  const data={title:"Apuração 2026 · Parcial",text};
+  try {
+    if(navigator.share){
+      await navigator.share(data);
+      note.textContent="Resumo aberto para compartilhamento.";
+    } else {
+      const url="https://wa.me/?text="+encodeURIComponent(text);
+      const win=window.open(url,"_blank","noopener,noreferrer");
+      if(!win){
+        await navigator.clipboard.writeText(text);
+        note.textContent="Resumo copiado. Cole no WhatsApp.";
+      } else note.textContent="WhatsApp aberto com o resumo.";
+    }
+  } catch(e){
+    if(e.name==="AbortError") return;
+    try {
+      await navigator.clipboard.writeText(text);
+      note.textContent="Resumo copiado. Cole no WhatsApp.";
+    } catch(_){
+      note.textContent="Não foi possível compartilhar neste navegador.";
+    }
+  }
+}
+function updateShareButton(){
+  const button=document.getElementById("share");
+  button.disabled=!state.br || !!state.br.error || !state.br.cands?.some(c=>c.votos>0);
+}
+
+function renderConfigMessage(){
+  const message = `<div class="block"><h2>Aguardando configuração do ${TURNO_ATIVO}º turno</h2><div class="err">${esc(CONFIG_ERROR)}</div></div>`;
+  document.getElementById("tab-br").innerHTML = message;
+  document.getElementById("uf-list").innerHTML = message;
+  document.getElementById("tab-mg").innerHTML = message;
+  document.getElementById("stamp").textContent = "Aguardando códigos do TSE";
+  document.getElementById("refresh").disabled = true;
+  document.getElementById("share").disabled = true;
+}
+function render(){
+  if(CONFIG_ERROR){ renderConfigMessage(); return; }
+  renderBR(); renderUF(); renderMG(); updateShareButton();
+}
+function tseAgeLabel(){
+  const timestamp = state.br?.timestampTSE || state.mg.gov?.timestampTSE || state.mg.sen?.timestampTSE || 0;
+  if(!timestamp) return "";
+  const minutes = Math.max(0,Math.floor((Date.now()-timestamp)/60000));
+  return "dados do TSE há " + minutes + " min";
+}
+
+function setBusy(b){
+  document.getElementById("dot").classList.toggle("busy", b);
+  document.getElementById("refresh").disabled = b;
+  if(b) document.getElementById("stamp").textContent = "Consultando TSE…";
+  else {
+    const items = [state.br, state.mg.gov, state.mg.sen, ...Object.values(state.uf)].filter(Boolean);
+    const ok = items.some(d => !d.error && !d.stale);
+    const failed = items.some(d => d.error || d.stale);
+    const age = tseAgeLabel();
+    const suffix = age ? " · " + age : "";
+    document.getElementById("stamp").textContent = !ok
+      ? "TSE indisponível · tentando novamente" + suffix
+      : failed
+        ? "Algumas consultas falharam · nova tentativa automática" + suffix
+        : "Consulta concluída às " + new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",timeZone:"America/Sao_Paulo"}) + suffix;
+  }
+}
+
+async function update(target, key, ele, uf, cargo){
+  try {
+    target[key] = parse(await get(url(ele,uf,cargo)));
+    if(ele === PRES && uf === "br" && cargo === "0001") recordHistory("br",target[key]);
+    if(ele === EST && uf === "mg" && cargo === "0005") recordHistory("senMG",target[key]);
+  }
+  catch(e){ target[key] = target[key] && !target[key].error ? {...target[key],stale:e.message} : {error:e.message}; }
+}
+
+async function loadMain(){
+  await Promise.all([
+    update(state,"br",PRES,"br","0001"),
+    update(state.mg,"gov",EST,"mg","0003"),
+    update(state.mg,"sen",EST,"mg","0005"),
+    update(state.uf,"mg",PRES,"mg","0001")
+  ]);
+  render();
+}
+
+async function loadStates(){
+  const keys = Object.keys(UFS).filter(k => k !== "mg");
+  const batchSize = 4;
+  for(let i=0;i<keys.length;i+=batchSize){
+    if(document.hidden || state.tab !== "uf") break;
+    const batch = keys.slice(i,i+batchSize);
+    await Promise.all(batch.map(k => update(state.uf,k,PRES,k,"0001")));
+    if(state.tab === "uf") renderUF();
+  }
+}
+
+const MAIN_INTERVAL = 60000;
+const STATES_INTERVAL = 120000;
+const RESUME_AFTER = 30000;
+let loading = false;
+let statesLoading = false;
+let mainTimer = null;
+let statesTimer = null;
+let lastMainConsult = 0;
+let lastStatesConsult = 0;
+async function tick(){
+  if(CONFIG_ERROR || document.hidden || loading) return;
+  loading = true;
+  setBusy(true);
+  try { await loadMain(); }
+  finally {
+    lastMainConsult = Date.now();
+    loading = false;
+    setBusy(statesLoading);
+  }
+}
+async function tickStates(){
+  if(CONFIG_ERROR || document.hidden || state.tab !== "uf" || statesLoading) return;
+  statesLoading = true;
+  setBusy(true);
+  try { await loadStates(); }
+  finally {
+    lastStatesConsult = Date.now();
+    statesLoading = false;
+    setBusy(loading);
+  }
+}
+function stopTimers(){
+  if(mainTimer) clearInterval(mainTimer);
+  if(statesTimer) clearInterval(statesTimer);
+  mainTimer = null;
+  statesTimer = null;
+}
+function startTimers(){
+  stopTimers();
+  if(CONFIG_ERROR || document.hidden) return;
+  mainTimer = setInterval(tick,MAIN_INTERVAL);
+  if(state.tab === "uf") statesTimer = setInterval(tickStates,STATES_INTERVAL);
+}
+function refreshCurrent(){
+  if(CONFIG_ERROR || document.hidden) return;
+  tick();
+  if(state.tab === "uf") tickStates();
+}
+
+document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
+  document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x === b));
+  state.tab = b.dataset.tab;
+  ["br","uf","mg"].forEach(t => document.getElementById("tab-"+t).hidden = t !== state.tab);
+  if(state.tab === "uf") tickStates();
+  startTimers();
+}));
+document.getElementById("ord").addEventListener("change", renderUF);
+document.getElementById("tab-mg").addEventListener("click", e => {
+  const button = e.target.closest("[data-cargo]");
+  if(!button) return;
+  state.mgTab = button.dataset.cargo;
+  renderMG();
+});
+const toggle = e => {
+  const region = e.target.closest("[data-region]");
+  if(region){
+    const name = region.dataset.region;
+    state.regions.has(name) ? state.regions.delete(name) : state.regions.add(name);
+    renderUF();
+    document.querySelectorAll("[data-region]").forEach(b=>{if(b.dataset.region===name) b.focus();});
+    return;
+  }
+  const c = e.target.closest(".uf"); if(!c) return;
+  const k = c.dataset.uf; state.open.has(k) ? state.open.delete(k) : state.open.add(k); renderUF();
+};
+document.getElementById("uf-list").addEventListener("click", toggle);
+document.getElementById("uf-list").addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){ e.preventDefault(); toggle(e); } });
+
+render();
+refreshCurrent();
+startTimers();
+document.getElementById("refresh").addEventListener("click", refreshCurrent);
+document.getElementById("share").addEventListener("click", shareResults);
+document.getElementById("install-button").addEventListener("click",openInstall);
+document.getElementById("install-close").addEventListener("click",closeInstall);
+document.getElementById("install-modal").addEventListener("click",e=>{if(e.target.id==="install-modal") closeInstall();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!document.getElementById("install-modal").hidden) closeInstall();});
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;updateInstallCard();});
+window.addEventListener("appinstalled",()=>{installPrompt=null;updateInstallCard();});
+updateInstallCard();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("apuracao-sw.js").catch(()=>{});
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden){ stopTimers(); return; }
+  startTimers();
+  const now = Date.now();
+  if(now-lastMainConsult > RESUME_AFTER) tick();
+  if(state.tab === "uf" && now-lastStatesConsult > RESUME_AFTER) tickStates();
+});
+</script>
+</body>
+</html>
