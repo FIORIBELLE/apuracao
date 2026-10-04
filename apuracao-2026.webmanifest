@@ -1,0 +1,31 @@
+{
+  "name": "Apuração 2026",
+  "short_name": "Apuração 2026",
+  "description": "Acompanhamento independente da apuração com dados oficiais do TSE.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EDF0F3",
+  "theme_color": "#18212E",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "apuracao-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "apuracao-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "apuracao-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
