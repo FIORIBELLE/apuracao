@@ -136,6 +136,17 @@ details.explanation summary{cursor:pointer;padding:6px 0}
 .threshold-mark{position:absolute;left:50%;top:0;height:100%;border-left:3px solid var(--ink)}
 .threshold-labels{display:flex;justify-content:space-between;color:var(--soft);font-size:.75rem;margin-bottom:12px}
 .notice{color:var(--soft);font-size:.85rem;margin-bottom:10px}
+.dep-search{width:100%;font:inherit;padding:10px 11px;border-radius:7px;border:1px solid var(--line);background:var(--card);color:var(--ink);margin-bottom:10px}
+.dep-tools{align-items:flex-end;flex-wrap:wrap}
+.dep-tools>div{flex:1;min-width:150px}
+.dep-tools label{display:block;margin-bottom:4px}
+.dep-tools select{width:100%}
+.dep-warning{position:sticky;bottom:8px;z-index:4;background:var(--card);border:1px solid var(--live);border-radius:10px;padding:11px 12px;margin-bottom:14px;font-size:.85rem;box-shadow:0 4px 18px rgba(0,0,0,.12)}
+.dep-more{width:100%;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:7px;font:inherit;cursor:pointer;margin:10px 0}
+.dep-party-vacancies{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.dep-number{color:var(--soft);font-weight:400;font-size:.85rem;margin-left:4px}
+.dep-summary{padding-bottom:14px}
+@media (max-width:375px){nav button{padding-inline:4px;font-size:.92rem}}
 </style>
 </head>
 <body>
@@ -149,6 +160,7 @@ details.explanation summary{cursor:pointer;padding:6px 0}
     <button role="tab" aria-selected="true" data-tab="br">Brasil</button>
     <button role="tab" aria-selected="false" data-tab="uf">Estados</button>
     <button role="tab" aria-selected="false" data-tab="mg">Minas</button>
+    <button role="tab" aria-selected="false" data-tab="dep" aria-label="Deputados">Dep.</button>
   </nav>
 
   <section id="tab-br"></section>
@@ -165,6 +177,7 @@ details.explanation summary{cursor:pointer;padding:6px 0}
     <div id="uf-list"></div>
   </section>
   <section id="tab-mg" hidden></section>
+  <section id="tab-dep" hidden></section>
 
   <div class="actions">
     <button class="refresh" id="refresh" type="button">Atualizar agora</button>
@@ -211,7 +224,20 @@ const REGIONS = [
   {nome:"Sudeste",ufs:["es","mg","rj","sp"]},
   {nome:"Sul",ufs:["pr","rs","sc"]}
 ];
-const state = { br:null, mg:{gov:null,sen:null}, uf:{}, open:new Set(), tab:"br", mgTab:"sen", regions:new Set() };
+const state = {
+  br:null,
+  mg:{gov:null,sen:null},
+  uf:{},
+  open:new Set(),
+  tab:"br",
+  mgTab:"sen",
+  regions:new Set(),
+  dep:{federal:null,estadual:null},
+  depTab:"federal",
+  depVisible:20,
+  depQuery:"",
+  depFilter:"all"
+};
 
 const url = (ele, uf, cargo) => `${BASE}/${ele}/dados/${uf}/${uf}-c${cargo}-e00${ele}-u.json`;
 const num = s => parseFloat(String(s||"0").replace(",", ".")) || 0;
@@ -258,6 +284,58 @@ function parse(d){
     brancos: {qtd:+(d.v?.vb || 0), pct:num(d.v?.pvb)},
     nulos: {qtd:+(d.v?.tvn || 0), pct:num(d.v?.ptvn)},
     cargo: d.carg?.[0]?.nmn || ""
+  };
+}
+
+function parseProporcional(d){
+  const cargo = d?.carg?.[0];
+  if(!cargo || !d?.s) throw new Error("Resposta do TSE em formato inesperado.");
+  const federacoes = (cargo.fed || []).map(f => ({
+    sigla:String(f?.sg || ""),
+    nome:String(f?.nm || f?.sg || ""),
+    partidos:Array.isArray(f?.npar) ? f.npar.map(String) : String(f?.npar || "").split(/\D+/).filter(Boolean)
+  }));
+  const grupos = [];
+  const cands = [];
+  (cargo.agr || []).forEach((a,groupIndex) => {
+    const partidos = Array.isArray(a?.par) ? a.par : [];
+    const siglas = partidos.map(p => p?.sg).filter(Boolean);
+    const sigla = String(a?.com || a?.sg || siglas.join("/") || a?.nm || "Grupo");
+    const nome = String(a?.nm || a?.com || sigla);
+    const groupKey = String(a?.sq || a?.n || sigla || groupIndex);
+    const votos = partidos.reduce((sum,p) => sum + (+(p?.tvan || 0)), 0);
+    const votosLegenda = partidos.reduce((sum,p) => sum + (+(p?.tval || 0)), 0);
+    const vagas = +(a?.vag || 0);
+    grupos.push({key:groupKey,nome,sigla,votos,votosLegenda,votosNominais:Math.max(0,votos-votosLegenda),vagas,partidos:siglas});
+    partidos.forEach(p => (Array.isArray(p?.cand) ? p.cand : []).forEach(k => {
+      cands.push({
+        id:String(k?.sqcand || k?.n || k?.nmu || k?.nm || cands.length),
+        numero:String(k?.n || ""),
+        nome:String(k?.nmu || k?.nm || "Candidato"),
+        part:String(p?.sg || ""),
+        grupo:groupKey,
+        grupoNome:nome,
+        grupoSigla:sigla,
+        votos:+(k?.vap || 0),
+        pct:num(k?.pvapn || k?.pvap),
+        eleito:k?.e === "s",
+        st:String(k?.st || ""),
+        dvt:String(k?.dvt || "")
+      });
+    }));
+  });
+  grupos.sort((a,b) => b.vagas-a.vagas || b.votos-a.votos || a.nome.localeCompare(b.nome,"pt-BR"));
+  cands.sort((a,b) => b.votos-a.votos || a.nome.localeCompare(b.nome,"pt-BR"));
+  return {
+    cands,
+    grupos,
+    federacoes,
+    vagas:+(cargo.nv || 0),
+    quociente:+(cargo.qe || 0),
+    apurado:num(d.s?.pstn || d.s?.pst),
+    hora:[d.dt || d.dg, d.ht || d.hg].filter(Boolean).join(" às "),
+    timestampTSE:tseTimestamp(d.dt || d.dg,d.ht || d.hg),
+    cargo:String(cargo.nmn || "")
   };
 }
 
@@ -494,6 +572,82 @@ function renderMG(){
   el.innerHTML = h;
 }
 
+function normalizeSearch(value){
+  return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().trim();
+}
+function deputyCargoMeta(){
+  return state.depTab === "estadual"
+    ? {key:"estadual",nome:"Deputado Estadual",cargo:"0007"}
+    : {key:"federal",nome:"Deputado Federal",cargo:"0006"};
+}
+function deputyPartyRows(d){
+  if(!d.grupos.length) return '<div class="err">Sem distribuição de vagas divulgada ainda.</div>';
+  const max = Math.max(1,...d.grupos.map(g=>g.vagas));
+  return d.grupos.map((g,i) => `<div class="row${i===0?" lead":""}">
+    <div class="row-top"><span class="name">${esc(g.nome)}${g.sigla && g.sigla!==g.nome ? `<em>${esc(g.sigla)}</em>`:""}</span><span class="dep-party-vacancies">${fmt(g.vagas)} ${g.vagas===1?"vaga":"vagas"}</span></div>
+    <div class="votes">${fmt(g.votos)} votos totais · vagas na parcial</div>
+    <div class="bar"><span style="width:${100*g.vagas/max}%"></span></div>
+  </div>`).join("");
+}
+function deputyCandidateRows(cands){
+  if(!cands.length) return '<div class="err">Nenhum candidato encontrado.</div>';
+  const maxVotes = Math.max(1,...cands.map(c=>c.votos));
+  return cands.map((c,i) => `<div class="row${i===0?" lead":""}">
+    <div class="row-top">
+      <span class="name">${esc(c.nome)}<em>${esc(c.part)}</em><span class="dep-number">${esc(c.numero)}</span>${c.eleito?'<span class="tag">Eleito</span>':""}</span>
+      <span class="pct">${percent(c.pct)}%</span>
+    </div>
+    <div class="votes">${fmt(c.votos)} votos</div>
+    <div class="bar"><span style="width:${100*c.votos/maxVotes}%"></span></div>
+  </div>`).join("");
+}
+function filteredDeputies(d){
+  const term = normalizeSearch(state.depQuery);
+  return d.cands.filter(c => {
+    if(state.depFilter !== "all" && c.grupo !== state.depFilter) return false;
+    if(!term) return true;
+    return normalizeSearch(c.nome).includes(term) || normalizeSearch(c.numero).includes(term);
+  });
+}
+function renderDeputyCandidates(){
+  const box = document.getElementById("dep-candidates");
+  const d = state.dep[state.depTab];
+  if(!box || !d || d.error) return;
+  const filtered = filteredDeputies(d);
+  const searching = !!normalizeSearch(state.depQuery);
+  const limit = searching ? 50 : state.depVisible;
+  const visible = filtered.slice(0,limit);
+  const description = searching
+    ? `${fmt(filtered.length)} candidato(s) encontrado(s)${filtered.length>50?" · exibindo os primeiros 50":""}.`
+    : `Ordenado do mais votado ao menos votado · exibindo ${fmt(visible.length)} de ${fmt(filtered.length)}.`;
+  box.innerHTML = `<div class="sub">${description}</div>${deputyCandidateRows(visible)}${!searching && visible.length<filtered.length?'<button type="button" class="dep-more" data-dep-more>Ver mais 20</button>':""}`;
+}
+function renderDeputados(){
+  const el = document.getElementById("tab-dep");
+  const meta = deputyCargoMeta();
+  const d = state.dep[meta.key];
+  let h = `<div class="cargo-tabs" aria-label="Cargo de deputado em Minas"><button type="button" data-dep-cargo="federal" aria-pressed="${meta.key==="federal"}">Federal</button><button type="button" data-dep-cargo="estadual" aria-pressed="${meta.key==="estadual"}">Estadual</button></div>`;
+  if(!d) h += '<div class="err">Abra esta aba para buscar os dados do TSE.</div>';
+  else if(d.error) h += `<div class="err">${esc(d.error)}</div>`;
+  else {
+    const filterOptions = d.grupos.map(g=>`<option value="${esc(g.key)}"${state.depFilter===g.key?" selected":""}>${esc(g.nome)}</option>`).join("");
+    h += `${notice(d)}<div class="block dep-summary"><h2>Minas Gerais · ${fmt(d.vagas)} vagas</h2>
+      <div class="overview-grid"><div class="overview-stat"><strong>${percent(d.apurado)}%</strong><span>das seções totalizadas</span></div><div class="overview-stat"><strong>${fmt(d.vagas)}</strong><span>vagas na parcial</span></div></div>
+      <div class="overview-grid"><div class="overview-stat"><strong>${fmt(d.quociente)}</strong><span>quociente eleitoral</span></div><div class="overview-stat"><strong>${esc(d.hora || "Aguardando")}</strong><span>dados do TSE</span></div></div>
+      <div class="sub">Quociente eleitoral é a quantidade de votos que vale uma vaga.</div>
+    </div>
+    <div class="block"><h2>Vagas por partido/federação</h2><div class="sub">Ordenado por vagas e depois por votos. As vagas exibidas são da parcial.</div>${deputyPartyRows(d)}</div>
+    <div class="block"><h2>Candidatos mais votados</h2>
+      <input class="dep-search" id="dep-search" type="search" inputmode="search" autocomplete="off" placeholder="Buscar por nome ou número" value="${esc(state.depQuery)}">
+      <div class="tools dep-tools"><div><label for="dep-filter">Partido ou federação</label><select id="dep-filter"><option value="all">Todos</option>${filterOptions}</select></div></div>
+      <div id="dep-candidates"></div>
+    </div>
+    <div class="dep-warning">Na eleição para deputado, ser um dos mais votados não garante vaga. As vagas são divididas primeiro entre partidos e federações. Confirme no TSE.</div>`;
+  }
+  el.innerHTML = h;
+  renderDeputyCandidates();
+}
+
 function aggregateRegion(region){
   const totals = new Map();
   let received = 0, stale = 0, sections = 0, counted = 0;
@@ -602,6 +756,10 @@ function regionLeaderLines(){
     return region.nome+": "+a.nome+" "+percent(a.pct)+"%"+suffix;
   });
 }
+function deputyShareLines(d,title){
+  if(!d || d.error) return [];
+  return [title,...d.grupos.slice(0,3).map(g=>g.sigla+": "+fmt(g.vagas)+" "+(g.vagas===1?"vaga":"vagas")),"Apuração: "+percent(d.apurado)+"% das seções","Dados do TSE: "+d.hora,""];
+}
 function shareSummary(){
   const br=state.br, gov=state.mg.gov, sen=state.mg.sen;
   if(!br || br.error) return "";
@@ -625,6 +783,8 @@ function shareSummary(){
   if(sen && !sen.error){
     lines.push("SENADO · MINAS · 2 VAGAS",...topLines(sen,3),"Apuração: "+percent(sen.apurado)+"% das seções","Dados do TSE: "+sen.hora,"");
   }
+  lines.push(...deputyShareLines(state.dep.federal,"DEPUTADO FEDERAL · MINAS"));
+  lines.push(...deputyShareLines(state.dep.estadual,"DEPUTADO ESTADUAL · MINAS"));
   lines.push("LÍDER POR REGIÃO",...regionLeaderLines(),"","Resultado parcial. Fonte: TSE",canonicalURL());
   return lines.join("\n");
 }
@@ -669,16 +829,17 @@ function renderConfigMessage(){
   document.getElementById("tab-br").innerHTML = message;
   document.getElementById("uf-list").innerHTML = message;
   document.getElementById("tab-mg").innerHTML = message;
+  document.getElementById("tab-dep").innerHTML = message;
   document.getElementById("stamp").textContent = "Aguardando códigos do TSE";
   document.getElementById("refresh").disabled = true;
   document.getElementById("share").disabled = true;
 }
 function render(){
   if(CONFIG_ERROR){ renderConfigMessage(); return; }
-  renderBR(); renderUF(); renderMG(); updateShareButton();
+  renderBR(); renderUF(); renderMG(); renderDeputados(); updateShareButton();
 }
 function tseAgeLabel(){
-  const timestamp = state.br?.timestampTSE || state.mg.gov?.timestampTSE || state.mg.sen?.timestampTSE || 0;
+  const timestamp = state.br?.timestampTSE || state.mg.gov?.timestampTSE || state.mg.sen?.timestampTSE || state.dep[state.depTab]?.timestampTSE || 0;
   if(!timestamp) return "";
   const minutes = Math.max(0,Math.floor((Date.now()-timestamp)/60000));
   return "dados do TSE há " + minutes + " min";
@@ -689,7 +850,7 @@ function setBusy(b){
   document.getElementById("refresh").disabled = b;
   if(b) document.getElementById("stamp").textContent = "Consultando TSE…";
   else {
-    const items = [state.br, state.mg.gov, state.mg.sen, ...Object.values(state.uf)].filter(Boolean);
+    const items = [state.br, state.mg.gov, state.mg.sen, ...Object.values(state.uf), ...Object.values(state.dep)].filter(Boolean);
     const ok = items.some(d => !d.error && !d.stale);
     const failed = items.some(d => d.error || d.stale);
     const age = tseAgeLabel();
@@ -732,15 +893,31 @@ async function loadStates(){
   }
 }
 
+async function loadDeputies(){
+  const meta = deputyCargoMeta();
+  try {
+    state.dep[meta.key] = parseProporcional(await get(url(EST,"mg",meta.cargo)));
+  } catch(e){
+    const old = state.dep[meta.key];
+    state.dep[meta.key] = old && !old.error ? {...old,stale:e.message} : {error:e.message};
+  }
+  if(state.tab === "dep") renderDeputados();
+}
+
 const MAIN_INTERVAL = 60000;
 const STATES_INTERVAL = 120000;
+const DEPUTIES_INTERVAL = 180000;
 const RESUME_AFTER = 30000;
 let loading = false;
 let statesLoading = false;
+let deputiesLoading = false;
 let mainTimer = null;
 let statesTimer = null;
+let deputiesTimer = null;
 let lastMainConsult = 0;
 let lastStatesConsult = 0;
+let lastDeputiesConsult = 0;
+let deputySearchTimer = null;
 async function tick(){
   if(CONFIG_ERROR || document.hidden || loading) return;
   loading = true;
@@ -749,7 +926,7 @@ async function tick(){
   finally {
     lastMainConsult = Date.now();
     loading = false;
-    setBusy(statesLoading);
+    setBusy(statesLoading || deputiesLoading);
   }
 }
 async function tickStates(){
@@ -760,32 +937,48 @@ async function tickStates(){
   finally {
     lastStatesConsult = Date.now();
     statesLoading = false;
-    setBusy(loading);
+    setBusy(loading || deputiesLoading);
+  }
+}
+async function tickDeputies(){
+  if(CONFIG_ERROR || document.hidden || state.tab !== "dep" || deputiesLoading) return;
+  deputiesLoading = true;
+  setBusy(true);
+  try { await loadDeputies(); }
+  finally {
+    lastDeputiesConsult = Date.now();
+    deputiesLoading = false;
+    setBusy(loading || statesLoading);
   }
 }
 function stopTimers(){
   if(mainTimer) clearInterval(mainTimer);
   if(statesTimer) clearInterval(statesTimer);
+  if(deputiesTimer) clearInterval(deputiesTimer);
   mainTimer = null;
   statesTimer = null;
+  deputiesTimer = null;
 }
 function startTimers(){
   stopTimers();
   if(CONFIG_ERROR || document.hidden) return;
   mainTimer = setInterval(tick,MAIN_INTERVAL);
   if(state.tab === "uf") statesTimer = setInterval(tickStates,STATES_INTERVAL);
+  if(state.tab === "dep") deputiesTimer = setInterval(tickDeputies,DEPUTIES_INTERVAL);
 }
 function refreshCurrent(){
   if(CONFIG_ERROR || document.hidden) return;
   tick();
   if(state.tab === "uf") tickStates();
+  if(state.tab === "dep") tickDeputies();
 }
 
 document.querySelectorAll("nav button").forEach(b => b.addEventListener("click", () => {
   document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x === b));
   state.tab = b.dataset.tab;
-  ["br","uf","mg"].forEach(t => document.getElementById("tab-"+t).hidden = t !== state.tab);
+  ["br","uf","mg","dep"].forEach(t => document.getElementById("tab-"+t).hidden = t !== state.tab);
   if(state.tab === "uf") tickStates();
+  if(state.tab === "dep") tickDeputies();
   startTimers();
 }));
 document.getElementById("ord").addEventListener("change", renderUF);
@@ -794,6 +987,39 @@ document.getElementById("tab-mg").addEventListener("click", e => {
   if(!button) return;
   state.mgTab = button.dataset.cargo;
   renderMG();
+});
+document.getElementById("tab-dep").addEventListener("click", e => {
+  const cargo = e.target.closest("[data-dep-cargo]");
+  if(cargo){
+    state.depTab = cargo.dataset.depCargo;
+    state.depVisible = 20;
+    state.depQuery = "";
+    state.depFilter = "all";
+    renderDeputados();
+    tickDeputies();
+    startTimers();
+    return;
+  }
+  if(e.target.closest("[data-dep-more]")){
+    state.depVisible += 20;
+    renderDeputyCandidates();
+  }
+});
+document.getElementById("tab-dep").addEventListener("input", e => {
+  if(e.target.id !== "dep-search") return;
+  clearTimeout(deputySearchTimer);
+  const value = e.target.value;
+  deputySearchTimer = setTimeout(()=>{
+    state.depQuery = value;
+    state.depVisible = 20;
+    renderDeputyCandidates();
+  },300);
+});
+document.getElementById("tab-dep").addEventListener("change", e => {
+  if(e.target.id !== "dep-filter") return;
+  state.depFilter = e.target.value;
+  state.depVisible = 20;
+  renderDeputyCandidates();
 });
 const toggle = e => {
   const region = e.target.closest("[data-region]");
@@ -829,6 +1055,7 @@ document.addEventListener("visibilitychange", () => {
   const now = Date.now();
   if(now-lastMainConsult > RESUME_AFTER) tick();
   if(state.tab === "uf" && now-lastStatesConsult > RESUME_AFTER) tickStates();
+  if(state.tab === "dep" && now-lastDeputiesConsult > RESUME_AFTER) tickDeputies();
 });
 </script>
 </body>
