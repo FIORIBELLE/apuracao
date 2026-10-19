@@ -236,7 +236,7 @@ function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt
 function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
-const UI={screen:'start',tab:'elenco',div:null,artDiv:null,resDiv:null,startDiv:0,pickTid:null,mkt:{pos:'',div:'',max:'',q:''},live:null,counter:null,confirm:null,me:0,on:null,lobby:[],mine:[],pool:'A'};
+const UI={screen:'start',tab:'elenco',div:null,artDiv:null,resDiv:null,startDiv:0,pickTid:null,mkt:{pos:'',div:'',max:'',q:''},live:null,counter:null,confirm:null,me:0,on:null,lobby:[],mine:[],pool:'A',timer:120};
 const CFG=Object.assign({speed:1,halfStop:true},lsGet('fb_cfg')||{});
 const saveCfg=()=>lsSet('fb_cfg',CFG);
 const TM=id=>S.teams[id];
@@ -596,7 +596,7 @@ function subscribeLobby(){
 }
 async function createOnline(name){
   const ref=DB.collection('games').doc();
-  try{await ref.set({seed:Math.floor(Math.random()*2147483646)+1,pool:UI.pool,host:UID,hostName:name,guest:null,guestName:'',status:'waiting',created:Date.now()});}
+  try{await ref.set({seed:Math.floor(Math.random()*2147483646)+1,pool:UI.pool,timer:UI.timer,host:UID,hostName:name,guest:null,guestName:'',status:'waiting',created:Date.now()});}
   catch(e){toast(dbErr(e));return;}
   waitFor(ref.id);
 }
@@ -628,38 +628,64 @@ async function openOnline(gid){
   render();
   if(fresh&&S.turn===0)showDraw();else afterModals();
   subscribeTurn();
+  const o=UI.on;o.gunsub=DB.doc('games/'+gid).onSnapshot(s=>{if(UI.on!==o||!s.exists)return;o.g=s.data();updateOnlineBox();},()=>{});
 }
 function replayPending(){MODE='preview';const keep=[];UI.on.pending.forEach(a=>{const r=applyAct(UI.me,a);if(!r||r.ok!==false)keep.push(a);});UI.on.pending=keep;}
 async function catchUp(){const gid=UI.on.gid;let docs=[];
   try{const s=await DB.collection('games/'+gid+'/t').where('turn','>=',S.turn).orderBy('turn').limit(1000).get();docs=s.docs.map(d=>d.data());}catch(e){toast(dbErr(e));return;}
-  const by={};docs.forEach(d=>{(by[d.turn]=by[d.turn]||[null,null])[d.slot]=d;});
+  const by={};docs.forEach(d=>{if(d&&(d.slot===0||d.slot===1))(by[d.turn]=by[d.turn]||[null,null])[d.slot]=d;});
   let n=0;while(by[S.turn]&&by[S.turn][0]&&by[S.turn][1]){applyTurn(by[S.turn]);startMatchday(true);finishMatchday(true);UI.on.base=JSON.stringify(S);UI.on.pending=[];n++;}
   const cur=by[S.turn];UI.on.sent=!!(cur&&cur[UI.on.slot]);UI.on.rivalReady=!!(cur&&cur[1-UI.on.slot]);
+  UI.on.sentAt=UI.on.sent?Date.now():null;UI.on.rivalSeenAt=UI.on.rivalReady?Date.now():null;
   saveOnline();if(n)toast(`${n} rodada(s) atualizada(s). Veja os resultados.`);
 }
 function applyTurn(d){const base=UI.on.base;if(d[0].chk&&d[1].chk&&d[0].chk!==d[1].chk)UI.on.desync=true;S=JSON.parse(base);MODE='sync';
   [0,1].forEach(k=>(d[k].acts||[]).forEach(a=>{try{applyAct(k,a);}catch(e){}}));MODE='preview';}
 function subscribeTurn(){const o=UI.on;if(!o)return;if(o.unsub)o.unsub();const n=S.turn;
-  o.unsub=DB.collection('games/'+o.gid+'/t').where('turn','==',n).onSnapshot(snap=>{if(UI.on!==o||S.turn!==n)return;const d=[null,null];snap.docs.forEach(x=>{const v=x.data();if(v.slot===0||v.slot===1)d[v.slot]=v;});
-    o.rivalReady=!!d[1-o.slot];if(d[o.slot])o.sent=true;
+  o.unsub=DB.collection('games/'+o.gid+'/t').where('turn','==',n).onSnapshot(snap=>{if(UI.on!==o||S.turn!==n)return;const d=[null,null];snap.docs.forEach(x=>{const v=x.data();if(v&&(v.slot===0||v.slot===1))d[v.slot]=v;});
+    o.rivalReady=!!d[1-o.slot];if(o.rivalReady&&!o.rivalSeenAt)o.rivalSeenAt=Date.now();if(d[o.slot]){o.sent=true;if(!o.sentAt)o.sentAt=Date.now();}
     if(d[0]&&d[1]&&!o.running){o.running=true;if(o.unsub){o.unsub();o.unsub=null;}closeModal();applyTurn(d);startMatchday(false);}
     else if(UI.screen==='hub')updateOnlineBox();},e=>{toast(dbErr(e));});}
-function onlineTurnDone(){const o=UI.on;o.base=JSON.stringify(S);o.pending=[];o.sent=false;o.rivalReady=false;o.running=false;saveOnline();subscribeTurn();
+function onlineTurnDone(){const o=UI.on;o.base=JSON.stringify(S);o.pending=[];o.sent=false;o.rivalReady=false;o.running=false;o.sentAt=null;o.rivalSeenAt=null;saveOnline();subscribeTurn();
   try{DB.doc('games/'+o.gid).update({turn:S.turn,year:S.year});}catch(e){}}
 function saveOnline(){const o=UI.on;if(!o)return;UI.saved=lsSet('fb_on_'+o.gid,{slot:o.slot,base:o.base,pending:o.pending});}
-async function sendReady(){const o=UI.on;if(o.sent)return;const mg=ME();if(mg.fired){toast('Escolha seu novo clube antes.');showFired();return;}
+async function sendReady(auto){const o=UI.on;if(o.sent)return;const mg=ME();if(mg.fired&&!auto){toast('Escolha seu novo clube antes.');showFired();return;}
   const t=UT();const acts=o.pending.concat(t?[{k:'lineup',form:t.form,post:t.post,xi:t.xi.slice(),bench:t.bench.slice()}]:[]);
   o.sent=true;updateOnlineBox();
-  try{await DB.doc(`games/${o.gid}/t/${S.turn}_${o.slot}`).set({turn:S.turn,slot:o.slot,acts,chk:hashStr(o.base),at:Date.now()});}
-  catch(e){o.sent=false;updateOnlineBox();toast(dbErr(e));}
+  o.sentAt=Date.now();
+  try{const ok=await claimWrite(o.slot,{turn:S.turn,slot:o.slot,acts,chk:hashStr(o.base),at:Date.now()});
+    if(!ok)toast('Seu tempo tinha acabado: a rodada começou com o time da rodada anterior.');}
+  catch(e){o.sent=false;o.sentAt=null;updateOnlineBox();toast(dbErr(e));}
 }
-function stopOnline(){if(UI.on&&UI.on.unsub)UI.on.unsub();if(UI.live&&UI.live.timer)clearTimeout(UI.live.timer);UI.on=null;}
+function stopOnline(){if(UI.on&&UI.on.unsub)UI.on.unsub();if(UI.on&&UI.on.gunsub)UI.on.gunsub();if(UI.live&&UI.live.timer)clearTimeout(UI.live.timer);UI.on=null;}
+const TIMERS=[[0,'Sem limite'],[60,'1 minuto'],[120,'2 minutos'],[180,'3 minutos'],[300,'5 minutos'],[600,'10 minutos']];
+let GRACE_MS=15000;
+function timerOpts(v){return TIMERS.map(([s,n])=>`<option value="${s}" ${+v===s?'selected':''}>${n}</option>`).join('');}
+function timerTxt(v){const t=TIMERS.find(x=>x[0]===+(v||0));return v?`${t?t[1]:(v<60?v+' s':Math.round(v/60)+' min')} para confirmar`:'sem limite de tempo';}
+const fmtClock=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+function clockInfo(){const o=UI.on;if(!o||o.running)return null;const T=(+o.g.timer||0)*1000;if(!T)return null;const now=Date.now();
+  if(!o.sent&&o.rivalReady&&o.rivalSeenAt)return {mode:'me',left:o.rivalSeenAt+T-now};
+  if(o.sent&&!o.rivalReady&&o.sentAt)return {mode:'rival',left:o.sentAt+T-now};return null;}
+function clockTick(){const o=UI.on;if(!o||UI.screen!=='hub')return;const c=clockInfo();const el=$('#clk');
+  if(el)el.textContent=c?(c.mode==='me'?`Seu amigo já está pronto. A rodada começa em ${fmtClock(c.left)}.`:`${rival().name} tem ${fmtClock(c.left)} para confirmar.`):'';
+  if(!c)return;
+  if(c.mode==='me'&&c.left<=0&&!o.autoSending){o.autoSending=true;if(ME().fired&&(ME().firedOffers||[]).length){MODE='preview';applyAct(UI.me,{k:'fpick',tid:ME().firedOffers[0]});o.pending.push({k:'fpick',tid:ME().firedOffers[0]});closeModal();}
+    toast('O tempo acabou. A rodada vai começar com o seu time como está.');sendReady(true).finally(()=>{o.autoSending=false;});}
+  if(c.mode==='rival'&&c.left<=-GRACE_MS&&!o.forcing){o.forcing=true;forceRival().finally(()=>{o.forcing=false;});}}
+setInterval(clockTick,1000);
+// grava a confirmação de um técnico só se ninguém gravou antes (evita que os dois aparelhos vejam versões diferentes)
+async function claimWrite(slot,data){const ref=DB.doc(`games/${UI.on.gid}/t/${S.turn}_${slot}`);
+  let r=await ref.acquire({holder:UID,ttlMs:8000});if(!r.acquired){await new Promise(z=>setTimeout(z,1200));r=await ref.acquire({holder:UID,ttlMs:8000});if(!r.acquired)return false;}
+  const s=await ref.get();if(s.exists&&s.data()&&s.data().slot!=null)return false;await ref.set(data);return true;}
+async function forceRival(){const o=UI.on;const rs=1-o.slot;
+  try{const ok=await claimWrite(rs,{turn:S.turn,slot:rs,acts:[],chk:hashStr(o.base),at:Date.now(),forced:true});if(ok)toast(`O tempo de ${rival().name} acabou. A rodada vai começar.`);}catch(e){toast(dbErr(e));}}
 function rival(){return ONLINE()?S.mgr[1-UI.on.slot]:null;}
 function onlineBoxHTML(){const o=UI.on;const rv=rival();const mg=ME();
   const btn=mg.fired?`<button class="btn go" data-a="fshow">ESCOLHER NOVO CLUBE</button>`:o.sent?`<button class="btn go" disabled>AGUARDANDO ${esc(rv.name.toUpperCase())}…</button>`:`<button class="btn go" data-a="ready">PRONTO PARA A RODADA ▶</button>`;
   return `<div class="small">Rival: <b>${esc(rv.name)}</b> ${rv.tid!=null?tbox(rv.tid,'sm'):''} · ${o.rivalReady?'<b style="color:var(--verde)">pronto</b>':'ainda se preparando'}</div>
+   <div class="small" id="clk" style="font-weight:700;color:var(--alerta)"></div><div class="small muted">${timerTxt(o.g.timer)}</div>
    ${o.desync?'<div class="small" style="color:var(--alerta)">Atenção: os dois aparelhos calcularam resultados diferentes. Usem o mesmo navegador atualizado.</div>':''}${btn}`;}
-function updateOnlineBox(){const el=$('#onl');if(el&&ONLINE())el.innerHTML=onlineBoxHTML();}
+function updateOnlineBox(){const el=$('#onl');if(el&&ONLINE()){el.innerHTML=onlineBoxHTML();clockTick();}}
 
 /* ====================== RENDER ====================== */
 function tbox(tid,cls){const t=TM(tid);const c=t.c;const me=tid===myTid()?' me':'';
@@ -676,10 +702,11 @@ function onlineStartHTML(){
   const open=UI.lobby.filter(g=>g.host!==UID);const mineWait=UI.lobby.filter(g=>g.host===UID);
   return `<div class="grp"><span class="lg">Jogar online com um amigo</span>
    ${CANW===false?'<p class="small" style="margin-top:0;color:var(--alerta)">Você só pode ver esta página. Para jogar online, o dono precisa te convidar como Editor.</p>':''}
-   <p class="small" style="margin-top:0">Cada um comanda um clube sorteado no mesmo campeonato. A rodada só começa quando os dois tocam em Pronto.</p>
+   <p class="small" style="margin-top:0">Cada um comanda um clube sorteado no mesmo campeonato. A rodada começa quando os dois tocam em Pronto. Se um confirmar e o outro demorar, o cronômetro escolhido abaixo começa a correr; ao zerar, a rodada começa com o time como estiver.</p>
    <div class="row"><label for="pool">Sortear clubes da</label><select id="pool" data-c="pool"><option value="A" ${UI.pool==='A'?'selected':''}>Série A</option><option value="all" ${UI.pool==='all'?'selected':''}>Séries A, B e C</option></select>
+    <label for="otimer">Tempo para o amigo confirmar</label><select id="otimer" data-c="timer">${timerOpts(UI.timer)}</select>
     <button class="btn go" data-a="ocreate">CRIAR PARTIDA</button></div>
-   ${open.length?`<h3>Convites abertos</h3><div class="news sunk">${open.map(g=>`<div><span class="txt">Partida de <b>${esc(g.hostName)}</b> · sorteio ${g.pool==='all'?'em todas as séries':'na Série A'}</span><button class="btn sm go" data-a="ojoin" data-v="${esc(g.id)}">Aceitar e entrar</button></div>`).join('')}</div>`:''}
+   ${open.length?`<h3>Convites abertos</h3><div class="news sunk">${open.map(g=>`<div><span class="txt">Partida de <b>${esc(g.hostName)}</b> · sorteio ${g.pool==='all'?'em todas as séries':'na Série A'} · ${timerTxt(g.timer)}</span><button class="btn sm go" data-a="ojoin" data-v="${esc(g.id)}">Aceitar e entrar</button></div>`).join('')}</div>`:''}
    ${mineWait.length?`<h3>Suas partidas esperando amigo</h3><div class="news sunk">${mineWait.map(g=>`<div><span class="txt">Criada por você</span><button class="btn sm" data-a="owait" data-v="${esc(g.id)}">Abrir</button><button class="btn sm warn" data-a="odel" data-v="${esc(g.id)}">Cancelar</button></div>`).join('')}</div>`:''}
    ${UI.mine.length?`<h3>Continuar partida online</h3><div class="news sunk">${UI.mine.map(g=>`<div><span class="txt"><b>${esc(g.hostName)}</b> x <b>${esc(g.guestName)}</b>${g.year?` · temporada ${g.year}`:''}</span><button class="btn sm go" data-a="oopen" data-v="${esc(g.id)}">Continuar</button></div>`).join('')}</div>`:''}
   </div>`;}
@@ -835,7 +862,8 @@ function optHTML(){return `<div class="cols"><div>
    <div class="row"><span>Velocidade padrão</span>${['Lenta','Normal','Rápida','Turbo'].map((n,i)=>`<button class="btn sm ${CFG.speed===i?'on':''}" data-a="spd" data-v="${i}">${n}</button>`).join('')}</div>
    <label class="row" style="margin-top:8px"><input type="checkbox" id="half" data-c="half" ${CFG.halfStop?'checked':''} style="min-height:0"> Parar no intervalo dos meus jogos</label>
    ${ONLINE()?'':`<label class="row"><input type="checkbox" id="asub" data-c="asub" ${ME().autoSub?'checked':''} style="min-height:0"> Substituir automaticamente jogador lesionado</label>`}</div>
-  ${ONLINE()?`<div class="grp"><span class="lg">Partida online</span><p class="small" style="margin-top:0">O progresso fica salvo no Claude. Para continuar outro dia, abra a página e toque em Continuar partida online.</p><button class="btn" data-a="oleave">Voltar ao menu inicial</button></div>`:
+  ${ONLINE()?`<div class="grp"><span class="lg">Partida online</span><div class="row" style="margin-bottom:8px"><label for="gtimer">Tempo para confirmar a rodada</label>${UI.on&&UI.on.slot===0?`<select id="gtimer" data-c="gtimer">${timerOpts(UI.on.g.timer)}</select>`:`<b>${UI.on?timerTxt(UI.on.g.timer):''}</b><span class="small muted">(quem criou a partida escolhe)</span>`}</div>
+   <p class="small" style="margin-top:0">O progresso fica salvo no Claude. Para continuar outro dia, abra a página e toque em Continuar partida online.</p><button class="btn" data-a="oleave">Voltar ao menu inicial</button></div>`:
   `<div class="grp"><span class="lg">Salvar</span><p class="small" style="margin-top:0">O jogo salva sozinho neste navegador após cada rodada. Para guardar em outro lugar, copie o código de backup.</p>
    <div class="row"><button class="btn" data-a="save">Salvar agora</button><button class="btn" data-a="exp">Gerar código de backup</button></div>
    <textarea id="expbox" readonly style="margin-top:6px" hidden></textarea><div class="row" style="margin-top:4px"><button class="btn sm" data-a="copy" id="copyb" hidden>Copiar código</button></div></div>
@@ -843,7 +871,7 @@ function optHTML(){return `<div class="cols"><div>
   </div><div><div class="grp"><span class="lg">Como jogar</span><div class="small">
    <p style="margin-top:0"><b>Escalação:</b> 11 titulares e até 7 reservas. A força do time sai da soma dos jogadores por setor: atacantes pesam no ataque, defensores e goleiro na defesa, meio-campistas nos dois.</p>
    <p><b>Durante o jogo:</b> ${ONLINE()?'no modo online não há trocas manuais durante a partida; a postura escolhida antes vale até o fim.':'use Pausar para fazer até 5 substituições e mudar a postura. Ofensiva cria mais chances e deixa a defesa exposta.'}</p>
-   <p><b>Cartões:</b> 3 amarelos suspendem por 1 jogo; vermelho, por 1 ou 2.</p>
+   ${ONLINE()?'<p><b>Cronômetro:</b> quando um técnico confirma, o outro tem o tempo combinado. Ao zerar, a rodada começa com o time como estiver. Se o aparelho do amigo estiver fechado, vale a escalação da rodada anterior.</p>':''}<p><b>Cartões:</b> 3 amarelos suspendem por 1 jogo; vermelho, por 1 ou 2.</p>
    <p><b>Temporada:</b> 38 rodadas por série, pontos corridos. Sobem os 4 primeiros das Séries B e C; caem os 4 últimos das Séries A e B. A Copa do Brasil acontece entre as rodadas.</p>
    <p><b>Diretoria:</b> resultados abaixo da meta derrubam a confiança. Se chegar perto de zero, você é demitido e precisa aceitar proposta de um clube menor. Bons trabalhos geram convites de clubes maiores.</p></div></div></div></div>`;}
 
@@ -996,6 +1024,8 @@ document.addEventListener('change',e=>{const c=e.target.dataset.c;if(!c)return;c
   else if(c==='half'){CFG.halfStop=e.target.checked;saveCfg();}
   else if(c==='asub'){doAct({k:'autosub',v:e.target.checked});}
   else if(c==='pool'){UI.pool=v;}
+  else if(c==='timer'){UI.timer=+v;}
+  else if(c==='gtimer'&&UI.on){DB.doc('games/'+UI.on.gid).update({timer:+v}).then(()=>toast('Tempo atualizado para os dois.'),e=>toast(dbErr(e)));}
   else if(c==='mp'){UI.mkt.pos=v;render();}else if(c==='md'){UI.mkt.div=v;render();}else if(c==='mm'){UI.mkt.max=v;render();}});
 let mqT;document.addEventListener('input',e=>{if(e.target.dataset.c==='mq'){UI.mkt.q=e.target.value;clearTimeout(mqT);mqT=setTimeout(()=>{render();const i=$('#mq');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},350);}
   else if(e.target.id==='mgr'){UI.mgr=e.target.value;}});
