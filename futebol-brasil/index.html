@@ -123,6 +123,14 @@ textarea{font:12px/1.3 ui-monospace,Consolas,monospace;width:100%;min-height:90p
 .mrow .last{font-family:var(--f-data);font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mrow.mine{background:var(--me)}
 .mrow.rvm{background:var(--rv)}
+.field{background:repeating-linear-gradient(180deg,#1d7a3a 0 46px,#22863f 46px 92px);border:2px solid #f3f3f3;padding:10px 8px;display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
+.frow{display:flex;justify-content:space-around;gap:6px}
+.slot{flex:1 1 0;min-width:0;max-width:150px;background:#fff;color:#141414;border:3px solid var(--verde);padding:3px 4px;display:flex;flex-direction:column;align-items:center;gap:1px;font-family:var(--f-data);cursor:pointer;border-radius:0}
+.slot b{font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot .spos{font-size:11px;font-weight:700;color:#55524a}.slot .sfor{font-size:12px}.slot .sfor s{color:#888}
+.slot.sec{border-color:#8cc63f}.slot.nb{border-color:#e0a800}.slot.bad{border-color:var(--alerta);background:#ffe1e1}.slot.empty{border-style:dashed;border-color:#fff;background:#ffffffb3}
+.slot:focus-visible{outline:2px dotted #fff;outline-offset:2px}
+.pubc{color:var(--azul);font-weight:600}
 .mrow.flash{animation:fl 1.2s steps(2) 2}
 @keyframes fl{0%{background:var(--amarelo)}100%{background:var(--paper)}}
 @media (prefers-reduced-motion:reduce){.mrow.flash{animation:none;background:var(--amarelo)}}
@@ -150,26 +158,26 @@ textarea{font:12px/1.3 ui-monospace,Consolas,monospace;width:100%;min-height:90p
 /* ====================== DADOS 2026 ====================== */
 // [nome, curto, divisão(0=A,1=B,2=C), cor fundo, cor texto, faixa, reputação, estádio, capacidade, elenco]
 const T0=[
-['Flamengo','FLAMENGO',0,'#c8102e','#111111','',95,'Maracanã',78838,'G Rossi 82 30;G Matheus Cunha 70 24;D Varela 78 32;D Léo Ortiz 80 29;D Léo Pereira 80 29;D Danilo 76 34;D Alex Sandro 76 35;D Ayrton Lucas 75 28;D Emerson Royal 74 27;M Pulgar 77 32;M Jorginho 81 34;M De la Cruz 82 28;M Arrascaeta 87 31;M Saúl 78 31;M Carrascal 80 26;M Evertton Araújo 72 22;A Pedro 85 28;A Bruno Henrique 79 35;A Samuel Lino 80 26;A Everton Cebolinha 76 30;A Luiz Araújo 77 29;A Plata 80 25'],
-['Palmeiras','PALMEIRAS',0,'#006437','#ffffff','',93,'Allianz Parque',43713,'G Weverton 80 38;G Carlos Miguel 76 27;D Gustavo Gómez 81 32;D Murilo 78 28;D Bruno Fuchs 75 26;D Giay 77 25;D Khellven 74 25;D Piquerez 79 27;D Benedetti 72 25;M Aníbal Moreno 80 27;M Andreas Pereira 80 30;M Lucas Evangelista 76 30;M Emiliano Martínez 76 26;M Raphael Veiga 81 30;M Maurício 77 24;A Vitor Roque 83 21;A Flaco López 81 25;A Facundo Torres 80 26;A Ramón Sosa 77 26;A Paulinho 77 25;A Felipe Anderson 76 33;A Allan 72 21'],
-['Cruzeiro','CRUZEIRO',0,'#1748a3','#ffffff','',85,'Mineirão',61846,'G Cássio 79 39;G Léo Aragão 66 23;D William 76 31;D Fabrício Bruno 79 30;D Jonathan Jesus 76 27;D Villalba 74 27;D Kaiki 76 23;D Fagner 73 36;D Marlon 72 29;M Lucas Romero 79 31;M Lucas Silva 76 32;M Christian 77 24;M Matheus Henrique 77 28;M Matheus Pereira 83 30;M Eduardo 74 36;M Gerson 82 29;A Kaio Jorge 82 24;A Wanderson 77 31;A Arroyo 74 25;A Sinisterra 76 26;A Marquinhos 71 22;A Rayan Lelis 70 19'],
-['Mirassol','MIRASSOL',0,'#f6d300','#00602b','',70,'Maião',15000,'G Walter 74 37;G Alex Muralha 66 36;D Reinaldo 75 36;D João Victor 74 27;D Jemmes 73 30;D Lucas Ramon 72 32;D Daniel Borges 70 32;D Igor Formiga 69 25;M Neto Moura 75 30;M José Aldo 72 31;M Danielzinho 74 31;M Gabriel 72 30;M Yago Felipe 72 30;M Shaylon 71 28;M Luiz Otávio 70 33;A Chico da Costa 73 26;A Negueba 74 33;A Alesson 72 27;A Edson Carioca 71 28;A Cristian 72 28;A Carlos Eduardo 72 28;A Renato Marques 69 24'],
-['Fluminense','FLUMINENSE',0,'#7a1630','#ffffff','#009c3b',83,'Maracanã',78838,'G Fábio 76 45;G Vitor Eudes 66 27;D Samuel Xavier 73 35;D Guga 74 27;D Thiago Silva 80 42;D Freytes 76 25;D Ignácio 76 29;D Renê 73 33;D Fuentes 74 28;M Martinelli 79 24;M Hércules 77 25;M Bernal 74 26;M Nonato 74 27;M Lucho Acosta 80 31;M Ganso 76 36;A Canobbio 77 27;A Kevin Serna 77 28;A Germán Cano 76 38;A Everaldo 73 34;A Soteldo 76 28;A Keno 72 36;A John Kennedy 72 23'],
-['Botafogo','BOTAFOGO',0,'#111111','#ffffff','',84,'Nilton Santos',44661,'G Léo Linck 73 25;G Neto 74 36;D Vitinho 76 26;D Alexander Barboza 79 30;D Bastos 76 34;D Alex Telles 77 33;D Cuiabano 74 22;D Kaio Pantaleão 73 29;M Gregore 77 31;M Marlon Freitas 79 30;M Danilo Barbosa 75 29;M Savarino 81 28;M Montoro 78 22;M Newton 74 30;M Kauê 70 20;A Arthur Cabral 76 27;A Artur 76 27;A Matheus Martins 76 22;A Chris Ramos 74 28;A Joaquín Correa 76 31;A Santi Rodríguez 77 25;A Jeffinho 72 26'],
-['Bahia','BAHIA',0,'#0b4fa8','#ffffff','#c8102e',78,'Arena Fonte Nova',47907,'G Marcos Felipe 75 29;G Ronaldo 68 29;D Gilberto 74 32;D Santiago Mingo 74 24;D David Duarte 74 30;D Kanu 75 28;D Luciano Juba 78 26;D Iago 72 28;D Zé Guilherme 70 24;M Jean Lucas 77 27;M Caio Alexandre 78 26;M Rodrigo Nestor 76 25;M Everton Ribeiro 78 37;M Erick 74 28;M Michel Araújo 75 29;A Erick Pulga 77 25;A Willian José 76 34;A Tiago 72 26;A Ademir 74 30;A Cauly 77 30;A Lucho Rodríguez 74 22;A Kayky 71 22'],
-['São Paulo','SÃO PAULO',0,'#ffffff','#c8102e','#111111',82,'Morumbis',66795,'G Rafael 76 36;G Young 66 22;D Rafinha 72 40;D Arboleda 77 34;D Alan Franco 76 29;D Sabino 74 29;D Enzo Díaz 75 30;D Wendell 74 32;D Cédric 71 34;M Alisson 75 32;M Pablo Maia 77 24;M Marcos Antônio 76 25;M Luan 72 26;M Bobadilla 76 25;M Lucas Moura 79 33;M Rodriguinho 70 22;A Luciano 76 32;A Calleri 79 32;A Ferreirinha 74 27;A Tapia 74 22;A André Silva 72 28;A Ryan Francisco 70 19'],
-['Grêmio','GRÊMIO',0,'#2b8fd6','#111111','',79,'Arena do Grêmio',55662,'G Tiago Volpi 76 35;G Gabriel Grando 69 25;D João Pedro 73 28;D Kannemann 76 35;D Wagner Leonardo 74 26;D Gustavo Martins 74 22;D Marlon 74 29;D Viery 71 25;M Dodi 74 30;M Edenilson 73 36;M Villasanti 79 28;M Cristaldo 79 28;M Alysson 74 20;M Arthur Melo 76 29;M Camilo 70 25;A Braithwaite 78 35;A Amuzu 76 26;A Carlos Vinícius 76 30;A Pavón 76 29;A André Henrique 70 21;A Aravena 74 23;A Monsalve 74 21'],
-['Red Bull Bragantino','BRAGANTINO',0,'#ffffff','#c8102e','#0a2342',74,'Nabi Abi Chedid',15010,'G Cleiton 74 28;G Lucão 67 24;D Andrés Hurtado 73 26;D Pedro Henrique 74 30;D Guzmán Rodríguez 73 25;D Juninho Capixaba 75 28;D Agustín Sant\'Anna 73 25;D Luan Cândido 72 24;D Guilherme Lopes 70 23;M Gabriel 74 22;M Jhon Jhon 77 23;M Eric Ramires 75 25;M Lucas Barbosa 75 25;M Fernando 72 34;M Matheus Fernandes 73 27;M Gustavinho 70 21;A Eduardo Sasha 75 34;A Isidro Pitta 76 26;A Vinicinho 74 22;A Laquintana 74 26;A Henry Mosquera 72 23;A Fabinho 70 26'],
-['Atlético Mineiro','ATLÉTICO-MG',0,'#111111','#ffffff','',82,'Arena MRV',46000,'G Everson 77 35;G Gabriel Delfim 68 25;D Natanael 74 24;D Junior Alonso 77 33;D Lyanco 75 29;D Vitor Hugo 74 35;D Ruan 72 30;D Guilherme Arana 79 29;D Caio Paulista 74 28;M Alan Franco 76 27;M Fausto Vera 76 26;M Gustavo Scarpa 79 32;M Igor Gomes 75 27;M Bernard 75 33;M Gabriel Menino 74 25;M Patrick 72 34;A Hulk 80 39;A Rony 74 31;A Dudu 75 34;A Biel 73 25;A Cuello 77 26;A Reinier 74 24'],
-['Santos','SANTOS',0,'#ffffff','#111111','',78,'Vila Belmiro',16068,'G Gabriel Brazão 76 25;G Diógenes 66 25;D Igor Vinícius 72 29;D Zé Ivaldo 74 29;D Luan Peres 72 32;D Adonis Frías 74 28;D Escobar 72 31;D Souza 71 20;M Zé Rafael 75 32;M João Schmidt 74 33;M Willian Arão 74 34;M Tomás Rincón 71 38;M Neymar 85 34;M Rollheiser 76 26;M Thaciano 72 30;A Guilherme 76 30;A Barreal 74 25;A Tiquinho Soares 73 35;A Lautaro Díaz 74 27;A Robinho Jr. 71 18;A Gabriel Bontempo 70 20;A Mateus Xavier 68 19'],
-['Corinthians','CORINTHIANS',0,'#ffffff','#111111','#c8102e',82,'Neo Química Arena',47605,'G Hugo Souza 79 27;G Felipe Longo 67 22;D Matheuzinho 76 25;D André Ramalho 75 34;D Gustavo Henrique 75 33;D Cacá 72 27;D Félix Torres 75 29;D Matheus Bidu 74 27;D Angileri 73 32;M Raniele 74 29;M Maycon 74 28;M José Martínez 74 31;M Breno Bidon 76 21;M Rodrigo Garro 80 28;M André Carrillo 75 35;M Charles 71 30;A Memphis Depay 84 32;A Yuri Alberto 80 25;A Ángel Romero 74 33;A Talles Magno 73 23;A Gui Negão 71 19;A Dieguinho 68 18'],
-['Vasco da Gama','VASCO',0,'#ffffff','#111111','#c8102e',77,'São Januário',21880,'G Léo Jardim 79 31;G Daniel Fuzato 68 28;D Paulo Henrique 74 29;D Puma Rodríguez 73 28;D Robert Renan 73 22;D Lucas Freitas 72 23;D Lucas Piton 76 25;D Mauricio Lemos 72 30;D Cuesta 71 30;M Hugo Moura 74 28;M Thiago Mendes 74 34;M Tchê Tchê 73 33;M Nuno Moreira 76 27;M Philippe Coutinho 80 34;M Andrés Gómez 75 23;M Paulinho 72 25;A Vegetti 80 37;A David 74 30;A GB 71 21;A Adson 72 25;A Loide Augusto 70 25;A Benjamín Garré 72 25'],
-['Vitória','VITÓRIA',0,'#c8102e','#111111','',66,'Barradão',30618,'G Lucas Arcanjo 75 27;G Thiago Couto 66 24;D Raúl Cáceres 72 34;D Lucas Halter 73 25;D Neris 72 33;D Jamerson 71 28;D Ramon 71 24;D Edu 70 26;M Ronald 73 29;M Baralhas 72 25;M Matheuzinho 73 25;M Willian Oliveira 72 32;M Wellington Rato 73 33;M Pepê 71 28;M Ricardo Ryller 70 30;A Renato Kayzer 75 30;A Renzo López 73 31;A Osvaldo 71 38;A Carlinhos 72 31;A Erick 72 28;A Fabri 70 24'],
-['Internacional','INTERNACIONAL',0,'#c8102e','#ffffff','',80,'Beira-Rio',50128,'G Sergio Rochet 78 33;G Anthoni 69 24;D Aguirre 74 26;D Vitão 77 26;D Victor Gabriel 73 22;D Juninho 72 30;D Bernabei 76 25;D Bruno Gomes 72 25;M Thiago Maia 75 29;M Bruno Henrique 74 36;M Alan Patrick 79 34;M Gabriel Carvalho 74 19;M Óscar Romero 74 33;M Bruno Tabata 74 29;M Fernando 72 38;A Enner Valencia 77 37;A Borré 78 30;A Wesley 75 26;A Vitinho 73 27;A Ricardo Mathias 70 21;A Carbonero 74 26'],
-['Coritiba','CORITIBA',0,'#ffffff','#00703c','#00703c',66,'Couto Pereira',40502,'G Pedro Morisco 73 22;G Pedro Rangel 64 23;D Tiago Cóser 71 27;D Maicon 72 37;D Rodrigo Moledo 70 38;D Bruno Melo 70 32;D JP Chermont 71 26;D Felipe Jonatan 70 28;M Sebastián Gómez 73 28;M Josué 74 36;M Filipe Machado 70 31;M Vini Paulista 71 27;M Lucas Ronier 71 20;M Fernando Sobral 70 31;A Clayson 70 31;A Iury Castilho 72 31;A Gustavo Coutinho 71 26;A Joaquín Lavega 72 21;A Breno Lopes 71 30;A Nicolas Careca 69 24'],
-['Athletico Paranaense','ATHLETICO-PR',0,'#c8102e','#111111','#111111',72,'Ligga Arena',42372,'G Santos 74 36;G Mycael 70 22;D Benavídez 72 27;D Arthur Dias 71 25;D Esquivel 71 27;D Léo Derik 71 24;D Terán 70 30;D Gamarra 71 24;M Felipinho 72 22;M Raul 71 27;M Zapelli 74 24;M Jadson 71 32;M Luiz Gustavo 70 25;M Bruno Zapelli 70 23;A Stiven Mendoza 74 34;A Kevin Viveros 75 26;A Julimar 72 29;A Luiz Fernando 71 29;A Renan Peixoto 70 27'],
-['Chapecoense','CHAPECOENSE',0,'#00843d','#ffffff','',60,'Arena Condá',20089,'G Léo Vieira 70 32;G Rafael Santos 66 27;D Marcos Vinícius 69 27;D Bruno Leonardo 69 29;D Eduardo Doma 69 25;D Mancha 69 28;D Walter Clar 69 31;D Rafael Carvalheira 68 30;M Jean Carlos 70 32;M Giovanni Augusto 71 36;M Marcinho 70 29;M Robert 69 26;M Ênio 69 23;A Italo 70 24;A Perotti 69 28;A Bruno Matias 68 25;A Neto Pessoa 69 31'],
-['Remo','REMO',0,'#0a1f5c','#ffffff','',62,'Mangueirão',53635,'G Marcelo Rangel 71 37;G Ygor Vinhas 66 26;D Marcelinho 69 30;D Klaus 69 31;D Reynaldo 70 35;D Kayky Almeida 68 23;D Sávio 68 28;D Alan Rodríguez 69 26;M Caio Vinícius 70 27;M Pavani 70 26;M Jaderson 71 25;M Régis 69 33;M Diego Hernández 71 25;M Nathan 68 24;A Pedro Rocha 72 31;A Nicolas 70 36;A Janderson 70 27;A Ytalo 69 37;A Marrony 70 27;A Felipe Vizeu 70 29'],
+['Flamengo','FLAMENGO',0,'#c8102e','#111111','',95,'Maracanã',78838,'G:GOL Rossi 82 30;G:GOL Matheus Cunha 70 24;D:LD Varela 78 32;D:ZAG/VOL Léo Ortiz 80 29;D:ZAG Léo Pereira 80 29;D:ZAG/LD Danilo 76 34;D:LE Alex Sandro 76 35;D:LE/ME Ayrton Lucas 75 28;D:LD Emerson Royal 74 27;M:VOL Pulgar 77 32;M:VOL/MC Jorginho 81 34;M:MC/VOL De la Cruz 82 28;M:MC/ME Arrascaeta 87 31;M:VOL/MC Saúl 78 31;M:MC/MD Carrascal 80 26;M:VOL Evertton Araújo 72 22;A:CA Pedro 85 28;A:PE/CA Bruno Henrique 79 35;A:PE/ME Samuel Lino 80 26;A:PE Everton Cebolinha 76 30;A:PD Luiz Araújo 77 29;A:PD/PE Plata 80 25'],
+['Palmeiras','PALMEIRAS',0,'#006437','#ffffff','',93,'Allianz Parque',43713,'G:GOL Weverton 80 38;G:GOL Carlos Miguel 76 27;D:ZAG Gustavo Gómez 81 32;D:ZAG Murilo 78 28;D:ZAG Bruno Fuchs 75 26;D:LD Giay 77 25;D:LD Khellven 74 25;D:LE Piquerez 79 27;D:ZAG Benedetti 72 25;M:VOL Aníbal Moreno 80 27;M:MC/VOL Andreas Pereira 80 30;M:VOL/MC Lucas Evangelista 76 30;M:VOL Emiliano Martínez 76 26;M:MC Raphael Veiga 81 30;M:MC/MD Maurício 77 24;A:CA/PE Vitor Roque 83 21;A:CA Flaco López 81 25;A:PD/PE Facundo Torres 80 26;A:PE Ramón Sosa 77 26;A:PE/PD Paulinho 77 25;A:PD/MC Felipe Anderson 76 33;A:PD/PE Allan 72 21'],
+['Cruzeiro','CRUZEIRO',0,'#1748a3','#ffffff','',85,'Mineirão',61846,'G:GOL Cássio 79 39;G:GOL Léo Aragão 66 23;D:LD William 76 31;D:ZAG Fabrício Bruno 79 30;D:ZAG Jonathan Jesus 76 27;D:ZAG Villalba 74 27;D:LE Kaiki 76 23;D:LD Fagner 73 36;D:LE Marlon 72 29;M:VOL Lucas Romero 79 31;M:VOL Lucas Silva 76 32;M:MC/VOL Christian 77 24;M:VOL/MC Matheus Henrique 77 28;M:MC Matheus Pereira 83 30;M:MC/ME Eduardo 74 36;M:MC/VOL Gerson 82 29;A:CA Kaio Jorge 82 24;A:PE/PD Wanderson 77 31;A:PD/PE Arroyo 74 25;A:PD/PE Sinisterra 76 26;A:PE Marquinhos 71 22;A:PD Rayan Lelis 70 19'],
+['Mirassol','MIRASSOL',0,'#f6d300','#00602b','',70,'Maião',15000,'G:GOL Walter 74 37;G:GOL Alex Muralha 66 36;D:LE Reinaldo 75 36;D:ZAG João Victor 74 27;D:ZAG Jemmes 73 30;D:LD Lucas Ramon 72 32;D:LD Daniel Borges 70 32;D:LD/LE Igor Formiga 69 25;M:VOL Neto Moura 75 30;M:VOL José Aldo 72 31;M:VOL/MC Danielzinho 74 31;M:MC Gabriel 72 30;M:VOL/MC Yago Felipe 72 30;M:MC Shaylon 71 28;M:VOL/ZAG Luiz Otávio 70 33;A:CA Chico da Costa 73 26;A:PD/PE Negueba 74 33;A:PE Alesson 72 27;A:CA Edson Carioca 71 28;A:PD Cristian 72 28;A:PE/CA Carlos Eduardo 72 28;A:CA Renato Marques 69 24'],
+['Fluminense','FLUMINENSE',0,'#7a1630','#ffffff','#009c3b',83,'Maracanã',78838,'G:GOL Fábio 76 45;G:GOL Vitor Eudes 66 27;D:LD Samuel Xavier 73 35;D:LD/LE Guga 74 27;D:ZAG Thiago Silva 80 42;D:ZAG Freytes 76 25;D:ZAG Ignácio 76 29;D:LE Renê 73 33;D:LE Fuentes 74 28;M:VOL Martinelli 79 24;M:VOL/MC Hércules 77 25;M:VOL Bernal 74 26;M:MC/VOL Nonato 74 27;M:MC/PE Lucho Acosta 80 31;M:MC Ganso 76 36;A:PD/PE Canobbio 77 27;A:PD/PE Kevin Serna 77 28;A:CA Germán Cano 76 38;A:CA Everaldo 73 34;A:PE/MC Soteldo 76 28;A:PE Keno 72 36;A:CA/PD John Kennedy 72 23'],
+['Botafogo','BOTAFOGO',0,'#111111','#ffffff','',84,'Nilton Santos',44661,'G:GOL Léo Linck 73 25;G:GOL Neto 74 36;D:LD Vitinho 76 26;D:ZAG Alexander Barboza 79 30;D:ZAG Bastos 76 34;D:LE Alex Telles 77 33;D:LE Cuiabano 74 22;D:ZAG Kaio Pantaleão 73 29;M:VOL Gregore 77 31;M:VOL/MC Marlon Freitas 79 30;M:VOL/ZAG Danilo Barbosa 75 29;M:MD/MC Savarino 81 28;M:MC/ME Montoro 78 22;M:VOL Newton 74 30;M:MC Kauê 70 20;A:CA Arthur Cabral 76 27;A:PD/PE Artur 76 27;A:PE Matheus Martins 76 22;A:CA Chris Ramos 74 28;A:CA/PE Joaquín Correa 76 31;A:PD/MC Santi Rodríguez 77 25;A:PE Jeffinho 72 26'],
+['Bahia','BAHIA',0,'#0b4fa8','#ffffff','#c8102e',78,'Arena Fonte Nova',47907,'G:GOL Marcos Felipe 75 29;G:GOL Ronaldo 68 29;D:LD Gilberto 74 32;D:ZAG Santiago Mingo 74 24;D:ZAG David Duarte 74 30;D:ZAG Kanu 75 28;D:LE/ME Luciano Juba 78 26;D:LE Iago 72 28;D:LD Zé Guilherme 70 24;M:VOL/MC Jean Lucas 77 27;M:VOL Caio Alexandre 78 26;M:MC Rodrigo Nestor 76 25;M:MC/MD Everton Ribeiro 78 37;M:VOL/MC Erick 74 28;M:MC Michel Araújo 75 29;A:PE/PD Erick Pulga 77 25;A:CA Willian José 76 34;A:CA Tiago 72 26;A:PD/PE Ademir 74 30;A:PE/MC Cauly 77 30;A:PD/CA Lucho Rodríguez 74 22;A:PD/PE Kayky 71 22'],
+['São Paulo','SÃO PAULO',0,'#ffffff','#c8102e','#111111',82,'Morumbis',66795,'G:GOL Rafael 76 36;G:GOL Young 66 22;D:LD Rafinha 72 40;D:ZAG Arboleda 77 34;D:ZAG Alan Franco 76 29;D:ZAG Sabino 74 29;D:LE Enzo Díaz 75 30;D:LE Wendell 74 32;D:LD Cédric 71 34;M:VOL/MC Alisson 75 32;M:VOL Pablo Maia 77 24;M:VOL/MC Marcos Antônio 76 25;M:VOL Luan 72 26;M:VOL/MC Bobadilla 76 25;M:MD/MC Lucas Moura 79 33;M:MC Rodriguinho 70 22;A:CA/PE Luciano 76 32;A:CA Calleri 79 32;A:PE/PD Ferreirinha 74 27;A:CA/PD Tapia 74 22;A:CA André Silva 72 28;A:CA Ryan Francisco 70 19'],
+['Grêmio','GRÊMIO',0,'#2b8fd6','#111111','',79,'Arena do Grêmio',55662,'G:GOL Tiago Volpi 76 35;G:GOL Gabriel Grando 69 25;D:LD João Pedro 73 28;D:ZAG Kannemann 76 35;D:ZAG Wagner Leonardo 74 26;D:ZAG Gustavo Martins 74 22;D:LE Marlon 74 29;D:ZAG/LE Viery 71 25;M:VOL Dodi 74 30;M:MC/VOL Edenilson 73 36;M:VOL Villasanti 79 28;M:MC Cristaldo 79 28;M:ME/MC Alysson 74 20;M:VOL/MC Arthur Melo 76 29;M:MC Camilo 70 25;A:CA Braithwaite 78 35;A:PE/PD Amuzu 76 26;A:CA Carlos Vinícius 76 30;A:PD Pavón 76 29;A:CA André Henrique 70 21;A:PD/PE Aravena 74 23;A:PE/PD Monsalve 74 21'],
+['Red Bull Bragantino','BRAGANTINO',0,'#ffffff','#c8102e','#0a2342',74,'Nabi Abi Chedid',15010,'G:GOL Cleiton 74 28;G:GOL Lucão 67 24;D:LD Andrés Hurtado 73 26;D:ZAG Pedro Henrique 74 30;D:ZAG Guzmán Rodríguez 73 25;D:LE Juninho Capixaba 75 28;D:LD Agustín Sant\'Anna 73 25;D:LE Luan Cândido 72 24;D:ZAG Guilherme Lopes 70 23;M:VOL Gabriel 74 22;M:MC Jhon Jhon 77 23;M:VOL/MC Eric Ramires 75 25;M:MC/ME Lucas Barbosa 75 25;M:VOL Fernando 72 34;M:VOL Matheus Fernandes 73 27;M:MC Gustavinho 70 21;A:CA/PE Eduardo Sasha 75 34;A:CA Isidro Pitta 76 26;A:PD/PE Vinicinho 74 22;A:PD Laquintana 74 26;A:PE/CA Henry Mosquera 72 23;A:PD Fabinho 70 26'],
+['Atlético Mineiro','ATLÉTICO-MG',0,'#111111','#ffffff','',82,'Arena MRV',46000,'G:GOL Everson 77 35;G:GOL Gabriel Delfim 68 25;D:LD Natanael 74 24;D:ZAG Junior Alonso 77 33;D:ZAG Lyanco 75 29;D:ZAG Vitor Hugo 74 35;D:ZAG Ruan 72 30;D:LE Guilherme Arana 79 29;D:LE/LD Caio Paulista 74 28;M:VOL Alan Franco 76 27;M:VOL Fausto Vera 76 26;M:MC/ME Gustavo Scarpa 79 32;M:MC/MD Igor Gomes 75 27;M:MC/ME Bernard 75 33;M:VOL/LD Gabriel Menino 74 25;M:VOL/MC Patrick 72 34;A:PD/CA Hulk 80 39;A:PD/CA Rony 74 31;A:PE/PD Dudu 75 34;A:PE/PD Biel 73 25;A:PE/PD Cuello 77 26;A:CA/MC Reinier 74 24'],
+['Santos','SANTOS',0,'#ffffff','#111111','',78,'Vila Belmiro',16068,'G:GOL Gabriel Brazão 76 25;G:GOL Diógenes 66 25;D:LD Igor Vinícius 72 29;D:ZAG Zé Ivaldo 74 29;D:ZAG Luan Peres 72 32;D:ZAG Adonis Frías 74 28;D:LE Escobar 72 31;D:LE Souza 71 20;M:VOL/MC Zé Rafael 75 32;M:VOL João Schmidt 74 33;M:VOL/ZAG Willian Arão 74 34;M:VOL Tomás Rincón 71 38;M:MC/PE Neymar 85 34;M:MC/MD Rollheiser 76 26;M:MC/ME Thaciano 72 30;A:PE/PD Guilherme 76 30;A:PE Barreal 74 25;A:CA Tiquinho Soares 73 35;A:CA/PE Lautaro Díaz 74 27;A:PD Robinho Jr. 71 18;A:PE/MC Gabriel Bontempo 70 20;A:PD Mateus Xavier 68 19'],
+['Corinthians','CORINTHIANS',0,'#ffffff','#111111','#c8102e',82,'Neo Química Arena',47605,'G:GOL Hugo Souza 79 27;G:GOL Felipe Longo 67 22;D:LD Matheuzinho 76 25;D:ZAG André Ramalho 75 34;D:ZAG Gustavo Henrique 75 33;D:ZAG Cacá 72 27;D:ZAG Félix Torres 75 29;D:LE Matheus Bidu 74 27;D:LE Angileri 73 32;M:VOL Raniele 74 29;M:VOL/MC Maycon 74 28;M:VOL José Martínez 74 31;M:VOL/MC Breno Bidon 76 21;M:MC Rodrigo Garro 80 28;M:MD/MC André Carrillo 75 35;M:VOL Charles 71 30;A:CA/PE Memphis Depay 84 32;A:CA Yuri Alberto 80 25;A:PE/PD Ángel Romero 74 33;A:PE Talles Magno 73 23;A:CA Gui Negão 71 19;A:PD Dieguinho 68 18'],
+['Vasco da Gama','VASCO',0,'#ffffff','#111111','#c8102e',77,'São Januário',21880,'G:GOL Léo Jardim 79 31;G:GOL Daniel Fuzato 68 28;D:LD Paulo Henrique 74 29;D:LD Puma Rodríguez 73 28;D:ZAG Robert Renan 73 22;D:ZAG Lucas Freitas 72 23;D:LE Lucas Piton 76 25;D:ZAG Mauricio Lemos 72 30;D:ZAG Cuesta 71 30;M:VOL Hugo Moura 74 28;M:VOL Thiago Mendes 74 34;M:VOL/LD Tchê Tchê 73 33;M:ME/MC Nuno Moreira 76 27;M:MC Philippe Coutinho 80 34;M:MD/ME Andrés Gómez 75 23;M:MC/ME Paulinho 72 25;A:CA Vegetti 80 37;A:PD/CA David 74 30;A:CA GB 71 21;A:PD/PE Adson 72 25;A:PE Loide Augusto 70 25;A:PD/MC Benjamín Garré 72 25'],
+['Vitória','VITÓRIA',0,'#c8102e','#111111','',66,'Barradão',30618,'G:GOL Lucas Arcanjo 75 27;G:GOL Thiago Couto 66 24;D:LD Raúl Cáceres 72 34;D:ZAG Lucas Halter 73 25;D:ZAG Neris 72 33;D:LE Jamerson 71 28;D:LE Ramon 71 24;D:ZAG Edu 70 26;M:VOL Ronald 73 29;M:VOL Baralhas 72 25;M:MC/MD Matheuzinho 73 25;M:VOL Willian Oliveira 72 32;M:MD/MC Wellington Rato 73 33;M:ME/MC Pepê 71 28;M:VOL Ricardo Ryller 70 30;A:CA Renato Kayzer 75 30;A:CA Renzo López 73 31;A:PE Osvaldo 71 38;A:PD/PE Carlinhos 72 31;A:PD/PE Erick 72 28;A:CA Fabri 70 24'],
+['Internacional','INTERNACIONAL',0,'#c8102e','#ffffff','',80,'Beira-Rio',50128,'G:GOL Sergio Rochet 78 33;G:GOL Anthoni 69 24;D:LD Aguirre 74 26;D:ZAG Vitão 77 26;D:ZAG Victor Gabriel 73 22;D:ZAG Juninho 72 30;D:LE Bernabei 76 25;D:LD/VOL Bruno Gomes 72 25;M:VOL Thiago Maia 75 29;M:VOL Bruno Henrique 74 36;M:MC Alan Patrick 79 34;M:MC Gabriel Carvalho 74 19;M:MC/ME Óscar Romero 74 33;M:MC/MD Bruno Tabata 74 29;M:VOL Fernando 72 38;A:CA Enner Valencia 77 37;A:CA Borré 78 30;A:PE/PD Wesley 75 26;A:PD Vitinho 73 27;A:CA Ricardo Mathias 70 21;A:PD/PE Carbonero 74 26'],
+['Coritiba','CORITIBA',0,'#ffffff','#00703c','#00703c',66,'Couto Pereira',40502,'G:GOL Pedro Morisco 73 22;G:GOL Pedro Rangel 64 23;D:ZAG Tiago Cóser 71 27;D:ZAG Maicon 72 37;D:ZAG Rodrigo Moledo 70 38;D:LE Bruno Melo 70 32;D:LD JP Chermont 71 26;D:LE Felipe Jonatan 70 28;M:VOL/MC Sebastián Gómez 73 28;M:MC/VOL Josué 74 36;M:VOL Filipe Machado 70 31;M:MC Vini Paulista 71 27;M:MC/ME Lucas Ronier 71 20;M:VOL Fernando Sobral 70 31;A:PE Clayson 70 31;A:PE/PD Iury Castilho 72 31;A:CA Gustavo Coutinho 71 26;A:PD/PE Joaquín Lavega 72 21;A:PE/CA Breno Lopes 71 30;A:CA Nicolas Careca 69 24'],
+['Athletico Paranaense','ATHLETICO-PR',0,'#c8102e','#111111','#111111',72,'Ligga Arena',42372,'G:GOL Santos 74 36;G:GOL Mycael 70 22;D:LD Benavídez 72 27;D:ZAG Arthur Dias 71 25;D:LE Esquivel 71 27;D:LD Léo Derik 71 24;D:ZAG Terán 70 30;D:ZAG Gamarra 71 24;M:VOL Felipinho 72 22;M:VOL Raul 71 27;M:MC Zapelli 74 24;M:VOL Jadson 71 32;M:MC Luiz Gustavo 70 25;M:MC/MD Bruno Zapelli 70 23;A:PE/CA Stiven Mendoza 74 34;A:CA Kevin Viveros 75 26;A:PE Julimar 72 29;A:PD Luiz Fernando 71 29;A:CA Renan Peixoto 70 27'],
+['Chapecoense','CHAPECOENSE',0,'#00843d','#ffffff','',60,'Arena Condá',20089,'G:GOL Léo Vieira 70 32;G:GOL Rafael Santos 66 27;D:LD Marcos Vinícius 69 27;D:ZAG Bruno Leonardo 69 29;D:ZAG Eduardo Doma 69 25;D:LD Mancha 69 28;D:LE Walter Clar 69 31;D:ZAG Rafael Carvalheira 68 30;M:MC Jean Carlos 70 32;M:MC/VOL Giovanni Augusto 71 36;M:MD/MC Marcinho 70 29;M:VOL Robert 69 26;M:ME/MD Ênio 69 23;A:PD/CA Italo 70 24;A:CA Perotti 69 28;A:PE Bruno Matias 68 25;A:CA Neto Pessoa 69 31'],
+['Remo','REMO',0,'#0a1f5c','#ffffff','',62,'Mangueirão',53635,'G:GOL Marcelo Rangel 71 37;G:GOL Ygor Vinhas 66 26;D:LD Marcelinho 69 30;D:ZAG Klaus 69 31;D:ZAG Reynaldo 70 35;D:ZAG Kayky Almeida 68 23;D:LE Sávio 68 28;D:ZAG/LE Alan Rodríguez 69 26;M:VOL Caio Vinícius 70 27;M:VOL/MC Pavani 70 26;M:MC Jaderson 71 25;M:MC Régis 69 33;M:ME/MC Diego Hernández 71 25;M:VOL Nathan 68 24;A:PE/CA Pedro Rocha 72 31;A:CA Nicolas 70 36;A:PD/PE Janderson 70 27;A:CA Ytalo 69 37;A:PE/PD Marrony 70 27;A:CA Felipe Vizeu 70 29'],
 // Série B
 ['Fortaleza','FORTALEZA',1,'#1a3c8c','#ffffff','#c8102e',68,'Castelão',63903,''],
 ['Ceará','CEARÁ',1,'#111111','#ffffff','',64,'Castelão',63903,''],
@@ -216,7 +224,7 @@ const T0=[
 const DIVN=['Série A','Série B','Série C','América do Sul','Europa'];
 const STAGES=['1ª fase','Oitavas de final','Quartas de final','Semifinal','Final'];
 const CUP_AFTER=[3,8,13,18,24];
-const FORMS={'4-4-2':[4,4,2],'4-3-3':[4,3,3],'3-5-2':[3,5,2],'4-5-1':[4,5,1],'5-3-2':[5,3,2],'3-4-3':[3,4,3],'5-4-1':[5,4,1],'4-2-4':[4,2,4]};
+const FORMS={'4-4-2':[4,4,2],'4-3-3':[4,3,3],'3-5-2':[3,5,2],'4-5-1':[4,5,1],'5-3-2':[5,3,2],'3-4-3':[3,4,3],'5-4-1':[5,4,1],'4-2-4':[4,2,4],'4-2-3-1':[4,5,1]};
 const POSTS=['Defensiva','Equilibrada','Ofensiva'];
 const POSN={G:'Goleiro',D:'Defensor',M:'Meio-campo',A:'Atacante'};
 const PORD={G:0,D:1,M:2,A:3};
@@ -262,23 +270,23 @@ function riskF(p){const j=Math.max(12,p.tj||0);const inj=((p.ti||0)+(p.tmi||0)/3
   if((p.tj||0)>=10&&(p.p==='A'||p.p==='M')){const ex=p.p==='A'?.35:.12;fp=clamp(1+((p.tgj||0)/p.tj-ex)*.8,.85,1.25);}return {fi,fc,fp,t:fi*fc*fp};}
 function salFor(p){return Math.max(4000,Math.round(Math.pow(Math.max(p.f-35,1)/10,3.6)*120000*.02/1000)*1000);}
 function genName(used){for(let k=0;k<50;k++){const n=R()<.3?pick(NICK):pick(FIRST)+' '+pick(LAST);if(!used.has(n)){used.add(n);return n;}}return pick(FIRST)+' '+pick(LAST)+' '+ri(2,9);}
-function mkP(n,pos,f,a,tid){const p={id:S.nid++,n,p:pos,f:clamp(Math.round(f),25,96),a,t:tid,inj:0,sus:0,ps:0,yc:0,gl:0,gm:0,tg:0,sale:false};p.sal=salFor(p);if(S.v>=4){p.fr=Math.round((.5+R()+(R()<.12?R()*1.2:0))*100)/100;p.ag=Math.round((.5+R()+(R()<.1?R():0))*100)/100;}S.P[p.id]=p;return p;}
+function mkP(n,pos,f,a,tid){const p={id:S.nid++,n,p:pos,f:clamp(Math.round(f),25,96),a,t:tid,inj:0,sus:0,ps:0,yc:0,gl:0,gm:0,tg:0,sale:false};p.sal=salFor(p);if(S.v>=6)givePot(p);if(S.v>=4){p.fr=Math.round((.5+R()+(R()<.12?R()*1.2:0))*100)/100;p.ag=Math.round((.5+R()+(R()<.1?R():0))*100)/100;}S.P[p.id]=p;return p;}
 const baseF=t=>34+t.rep*.55;
-function youth(t,used){const pos=pick(['G','D','D','M','M','A','A']);const p=mkP(genNameP(used,t.pool),pos,baseF(t)-ri(8,18),ri(17,19),t.id);t.pids.push(p.id);return p;}
+function youth(t,used){const pos=pick(['G','D','D','M','M','A','A']);const p=mkP(genNameP(used,t.pool),pos,baseF(t)-ri(8,18),ri(17,19),t.id);t.pids.push(p.id);if(V6()){givePos(p,t);youthPot(p,t);}return p;}
 function buildSquad(t,str,needOv){
   const used=new Set();
-  if(str){for(const raw of str.split(';')){const tk=raw.trim().split(/\s+/);if(tk.length<3)continue;const pos=tk[0];let f,a,end=tk.length;
+  if(str){for(const raw of str.split(';')){const tk=raw.trim().split(/\s+/);if(tk.length<3)continue;const pos=tk[0].split(':')[0],det=tk[0].split(':')[1];let f,a,end=tk.length;
     if(/^\d+$/.test(tk[end-1])&&/^\d+$/.test(tk[end-2])){a=+tk[end-1];f=+tk[end-2];end-=2;}else{f=+tk[end-1];a=pos==='G'?ri(22,34):ri(20,32);end-=1;}
-    const n=tk.slice(1,end).join(' ');used.add(n);t.pids.push(mkP(n,pos,f,a,t.id).id);}}
+    const n=tk.slice(1,end).join(' ');used.add(n);const np=mkP(n,pos,f,a,t.id);t.pids.push(np.id);if(V6()&&det){const ds=det.split('/');np.dp=ds[0];np.sp=ds.slice(1);np.p=SECT[np.dp];}}}
   const need=needOv||{G:3,D:8,M:8,A:5};const have={G:0,D:0,M:0,A:0};t.pids.forEach(id=>have[PL(id).p]++);
   const bf=baseF(t);const isNew=!str;
-  for(const pos of ['G','D','M','A']){let k=0;while(have[pos]<need[pos]){const starter=have[pos]<({G:1,D:4,M:4,A:2})[pos];const f=starter?bf+ri(-4,5)+(R()<.12?ri(4,8):0):bf-(str?ri(6,14):ri(3,12));t.pids.push(mkP(genNameP(used,t.pool),pos,f,pos==='G'?ri(20,34):ri(18,33),t.id).id);have[pos]++;k++;}}
+  for(const pos of ['G','D','M','A']){let k=0;while(have[pos]<need[pos]){const starter=have[pos]<({G:1,D:4,M:4,A:2})[pos];const f=starter?bf+ri(-4,5)+(R()<.12?ri(4,8):0):bf-(str?ri(6,14):ri(3,12));{const gp=mkP(genNameP(used,t.pool),pos,f,pos==='G'?ri(20,34):ri(18,33),t.id);t.pids.push(gp.id);if(V6())givePos(gp,t);}have[pos]++;k++;}}
 }
 
 /* ====================== NOVO JOGO ====================== */
 function newWorld(seed,ver){
   S={v:ver||2,seed,rng:seed|0,year:2026,md:0,turn:0,nid:1,P:{},teams:[],mgr:[],news:[],history:[],lastSummary:null};
-  T0.forEach((d,i)=>{const t={id:i,name:d[0],short:d[1],div:d[2],c:[d[3],d[4],d[5]],rep:d[6],std:d[7],cap:d[8],pids:[],xi:[],bench:[],form:pick(['4-4-2','4-4-2','4-3-3','4-3-3','3-5-2','4-5-1']),post:1,loan:0,ticket:[60,35,20][d[2]]};
+  T0.forEach((d,i)=>{const t={id:i,name:d[0],short:d[1],div:d[2],c:[d[3],d[4],d[5]],rep:d[6],std:d[7],cap:d[8],pids:[],xi:[],bench:[],form:pick(S.v>=6?['4-4-2','4-2-3-1','4-3-3','4-3-3','3-5-2','4-5-1']:['4-4-2','4-4-2','4-3-3','4-3-3','3-5-2','4-5-1']),post:1,loan:0,ticket:[60,35,20][d[2]]};
     t.cash=Math.round(t.rep*t.rep*[6000,3000,1500][t.div]/1e5)*1e5;S.teams.push(t);buildSquad(t,d[9]);});
   if(S.v>=4)addWorldV4();else if(S.v>=3)addExtTeams();
 }
@@ -289,7 +297,7 @@ const mgrSal=mg=>mg.tid!=null&&TM(mg.tid)?Math.round(TM(mg.tid).rep*TM(mg.tid).r
 function mkMgr(name,tid,uid){return {name,uid:uid||null,tid,rep:35,conf:60,titles:[],seasons:0,fin:null,finLast:null,offers:[],jobs:[],fired:false,firedOffers:null,autoSub:true};}
 function startCareer(){S.mgr.forEach(mg=>{const u=TM(mg.tid);u.form='4-4-2';mg.rep=clamp(Math.round(20+u.rep*.3),20,60);});
   newSeason();S.mgr.forEach((mg,k)=>{autoLineup(TM(mg.tid));news(`${mg.name} assume o comando do ${TM(mg.tid).name}. A diretoria espera ${expectTxt(TM(mg.tid))}.`,'job',k);});}
-function newGame(name,tid){newWorld(Math.floor(Math.random()*2147483646)+1,5);S.mgr=[mkMgr(name,tid)];startCareer();}
+function newGame(name,tid){newWorld(Math.floor(Math.random()*2147483646)+1,6);S.mgr=[mkMgr(name,tid)];startCareer();}
 function newOnlineGame(g){newWorld(g.seed,g.ver||2);const pool=S.teams.filter(t=>(g.pool==='world'&&isLeague(t))||(g.pool==='all'&&t.div<=2)||t.div===0).map(t=>t.id);const a=pick(pool);const b=pick(pool.filter(x=>x!==a));
   S.online=true;S.mgr=[mkMgr(g.hostName||'Anfitrião',a,g.host),mkMgr(g.guestName||'Convidado',b,g.guest)];startCareer();}
 const emptyFin=()=>({bil:0,tv:0,pat:0,ven:0,pre:0,sal:0,com:0,obr:0,jur:0,man:0});
@@ -312,9 +320,52 @@ function roundRobin(ids){const n=ids.length;let arr=shuffle(ids.slice());const r
   for(let r=0;r<n-1;r++){const m=[];const alt=isV5();for(let i=0;i<n/2;i++){let h=arr[i],a=arr[n-1-i];if(alt?(i===0?r%2:r%2===1):(r+i)%2)[h,a]=[a,h];m.push({h,a,hg:null,ag:null});}rounds.push(m);arr=[arr[0],arr[n-1],...arr.slice(1,n-1)];}
   return rounds.concat(rounds.map(m=>m.map(x=>({h:x.a,a:x.h,hg:null,ag:null}))));}
 
+/* ====================== POSIÇÕES E POTENCIAL (mundo versão 6) ====================== */
+const V6=()=>!!S&&S.v>=6;
+const SECT={GOL:'G',ZAG:'D',LD:'D',LE:'D',VOL:'M',MC:'M',MD:'M',ME:'M',PD:'A',PE:'A',CA:'A'};
+const POSL={GOL:'Goleiro',ZAG:'Zagueiro',LD:'Lateral direito',LE:'Lateral esquerdo',VOL:'Volante',MC:'Meia central',MD:'Meia direita',ME:'Meia esquerda',PD:'Ponta direita',PE:'Ponta esquerda',CA:'Centroavante'};
+const DPS=Object.keys(POSL);
+const NEIGH={GOL:[],ZAG:['LD','LE','VOL'],LD:['LE','ZAG','MD'],LE:['LD','ZAG','ME'],VOL:['ZAG','MC','MD','ME'],MC:['VOL','MD','ME','CA'],MD:['ME','MC','PD','LD'],ME:['MD','MC','PE','LE'],PD:['PE','MD','CA'],PE:['PD','ME','CA'],CA:['PD','PE','MC']};
+const FSLOTS={'4-4-2':['GOL','LD','ZAG','ZAG','LE','VOL','VOL','MD','ME','CA','CA'],'4-3-3':['GOL','LD','ZAG','ZAG','LE','VOL','MC','MC','PD','PE','CA'],'4-2-3-1':['GOL','LD','ZAG','ZAG','LE','VOL','VOL','MD','MC','ME','CA'],'3-5-2':['GOL','ZAG','ZAG','ZAG','VOL','VOL','MD','ME','MC','CA','CA'],'4-5-1':['GOL','LD','ZAG','ZAG','LE','VOL','VOL','MD','ME','MC','CA'],'5-3-2':['GOL','LD','ZAG','ZAG','ZAG','LE','VOL','MC','MC','CA','CA'],'3-4-3':['GOL','ZAG','ZAG','ZAG','VOL','VOL','MD','ME','PD','PE','CA'],'5-4-1':['GOL','LD','ZAG','ZAG','ZAG','LE','VOL','VOL','MD','ME','CA'],'4-2-4':['GOL','LD','ZAG','ZAG','LE','VOL','MC','PD','PE','CA','CA']};
+// aproveitamento da força conforme a vaga: origem 100%, secundária 92%, vizinha 80%, fora de função 60%, goleiro trocado 25%
+function fit(p,pos){if(!p||!p.dp||!pos)return 1;if(pos===p.dp)return 1;if((p.sp||[]).includes(pos))return .92;if(pos==='GOL'||p.dp==='GOL')return .25;if((NEIGH[p.dp]||[]).includes(pos))return .8;return .6;}
+const effF=(p,pos)=>Math.round(p.f*fit(p,pos));
+const slotsOf=t=>FSLOTS[t.form]||FSLOTS['4-4-2'];
+const NEEDP={GOL:3,ZAG:3,LD:2,LE:2,VOL:2,MC:2,MD:1,ME:1,PD:1,PE:1,CA:2};
+const SECPOS={G:['GOL'],D:['ZAG','LD','LE'],M:['VOL','MC','MD','ME'],A:['CA','PD','PE']};
+const SECW={G:[1],D:[.5,.25,.25],M:[.3,.3,.2,.2],A:[.45,.275,.275]};
+function rollSec(p){const nb=NEIGH[p.dp]||[];p.sp=[];if(nb.length&&R()<.45){p.sp.push(pick(nb));if(R()<.25){const o=nb.filter(x=>!p.sp.includes(x));if(o.length)p.sp.push(pick(o));}}}
+// jogador gerado recebe a posição que mais falta no elenco do setor dele
+function givePos(p,t){const opts=SECPOS[p.p];let dp=null;
+  if(t){const have={};t.pids.forEach(id=>{const q=PL(id);if(q&&q.dp)have[q.dp]=(have[q.dp]||0)+1;});let best=0;for(const o of opts){const d=(NEEDP[o]||0)-(have[o]||0);if(d>best){best=d;dp=o;}}}
+  if(!dp){let r=R();const w=SECW[p.p];dp=opts[opts.length-1];for(let i=0;i<opts.length;i++){r-=w[i];if(r<=0){dp=opts[i];break;}}}
+  p.dp=dp;rollSec(p);}
+function givePot(p){p.pot=clamp(p.a<=20?p.f+ri(6,20):p.a<=23?p.f+ri(2,12):p.a<=26?p.f+ri(0,5):p.f,25,97);}
+function potTxt(p){if(p.pot==null)return '—';if(p.a>27||p.pot<=p.f+1)return 'no auge';return p.pot>=86?'craque':p.pot>=78?'alto':p.pot>=68?'médio':'baixo';}
+function posTag2(p){if(!(V6()&&p.dp))return posTag(p.p);return `<span class="pos ${p.p}" style="width:auto;min-width:30px;padding:0 3px" title="${POSL[p.dp]}">${p.dp}</span>${(p.sp||[]).length?`<span class="small muted"> ${p.sp.join('·')}</span>`:''}`;}
+// distribui os titulares pelas vagas: melhor força efetiva primeiro (empates pelo número do jogador)
+function fillSlots(slots,players,pre){const sl=pre?pre.slice():Array(slots.length).fill(null);const used=new Set(sl.filter(x=>x!=null));const pairs=[];
+  slots.forEach((pos,i)=>{if(sl[i]!=null)return;players.forEach(p=>{if(!used.has(p.id))pairs.push([p.f*fit(p,pos),i,p.id]);});});
+  pairs.sort((a,b)=>b[0]-a[0]||a[2]-b[2]||a[1]-b[1]);for(const [v,i,id] of pairs){if(sl[i]!=null||used.has(id))continue;sl[i]=id;used.add(id);}return sl;}
+function autoLineup6(t){const slots=slotsOf(t);const pool=t.pids.map(PL).filter(avail);const sl=fillSlots(slots,pool);t.sl=sl;t.xi=sl.filter(x=>x!=null);
+  const rest=pool.filter(p=>!t.xi.includes(p.id)).sort((a,b)=>b.f-a.f||a.id-b.id);const bench=[];const g=rest.find(p=>p.dp==='GOL');if(g)bench.push(g.id);
+  for(const p of rest){if(bench.length>=7)break;if(!bench.includes(p.id))bench.push(p.id);}t.bench=bench;}
+function normSlots(t){if(!V6())return;const slots=slotsOf(t);
+  if(!t.sl||t.sl.length!==slots.length){const xi=t.xi.map(PL).filter(Boolean);t.sl=fillSlots(slots,xi);}
+  else t.sl=t.sl.map(id=>id!=null&&t.pids.includes(id)?id:null);
+  t.xi=t.sl.filter(x=>x!=null);t.bench=t.bench.filter(id=>t.pids.includes(id)&&!t.xi.includes(id));}
+function checkLineup6(t){normSlots(t);const slots=slotsOf(t);const ok=id=>avail(PL(id));let changed=false;
+  t.sl=t.sl.map(id=>{if(id!=null&&!ok(id)){changed=true;return null;}return id;});t.bench=t.bench.filter(id=>ok(id));
+  const free=t.pids.map(PL).filter(p=>avail(p)&&!t.sl.includes(p.id));if(t.sl.some(x=>x==null)){const before=t.sl.filter(x=>x!=null).length;t.sl=fillSlots(slots,free,t.sl);if(t.sl.filter(x=>x!=null).length!==before)changed=true;}
+  t.xi=t.sl.filter(x=>x!=null);t.bench=t.bench.filter(id=>!t.xi.includes(id));return changed;}
+function slotMap(t){const m={};const slots=slotsOf(t);(t.sl||[]).forEach((id,i)=>{if(id!=null)m[id]=slots[i];});return m;}
+// jogador novo da base: às vezes surge uma joia com potencial de craque
+function youthPot(p,t){if(R()<.04){p.pot=ri(86,95);p.f=ri(56,66);p.gem=true;}else p.pot=clamp(Math.round(baseF(t))+ri(-6,12),40,93);p.sal=salFor(p);}
+function evo6(p){if(p.a<=27&&p.pot>p.f)return Math.min(p.pot-p.f,ri(1,4)+(p.a<=21?ri(1,4):0));return p.a<=30?ri(-2,1):p.a<=33?ri(-4,1):ri(-6,-1);}
+
 /* ====================== ESCALAÇÃO ====================== */
 const avail=p=>p&&p.inj===0&&p.sus===0;
-function autoLineup(t){
+function autoLineup(t){if(V6())return autoLineup6(t);
   const [d,m,a]=FORMS[t.form]||FORMS['4-4-2'];
   const pool=t.pids.map(PL).filter(avail).sort((x,y)=>y.f-x.f);const xi=[];const take=(pos,n)=>{for(const p of pool){if(n<=0)break;if(p.p===pos&&!xi.includes(p.id)){xi.push(p.id);n--;}}return n;};
   take('G',1);let left=take('D',d)+take('M',m)+take('A',a);
@@ -324,7 +375,7 @@ function autoLineup(t){
   for(const p of rest){if(bench.length>=7)break;if(!bench.includes(p.id))bench.push(p.id);}
   t.xi=xi;t.bench=bench;
 }
-function checkLineup(t){
+function checkLineup(t){if(V6())return checkLineup6(t);
   const ok=id=>t.pids.includes(id)&&avail(PL(id));const before=t.xi.length;
   t.xi=t.xi.filter(ok);t.bench=t.bench.filter(id=>ok(id)&&!t.xi.includes(id));
   let changed=t.xi.length!==before;
@@ -338,17 +389,18 @@ function checkLineup(t){
 
 /* ====================== MOTOR DE JOGO ====================== */
 function strength(sd){let g=0,D=0,M=0,A=0,hasG=false;
-  for(const id of sd.on){const p=PL(id);if(!p)continue;if(p.p==='G'){if(!hasG){g=p.f;hasG=true;}else D+=p.f*.5;}else if(p.p==='D')D+=p.f;else if(p.p==='M')M+=p.f;else A+=p.f;}
+  if(sd.slot){for(const id of sd.on){const p=PL(id);if(!p)continue;const pos=sd.slot[id]||p.dp;const e=p.f*fit(p,pos);const sc=SECT[pos]||p.p;if(sc==='G'){if(!hasG){g=e;hasG=true;}else D+=e*.5;}else if(sc==='D')D+=e;else if(sc==='M')M+=e;else A+=e;}}
+  else for(const id of sd.on){const p=PL(id);if(!p)continue;if(p.p==='G'){if(!hasG){g=p.f;hasG=true;}else D+=p.f*.5;}else if(p.p==='D')D+=p.f;else if(p.p==='M')M+=p.f;else A+=p.f;}
   if(!hasG)g=20;let atk=A+M*.5+D*.1,def=D+M*.4+g*1.5;
   if(sd.post===0){atk*=.85;def*=1.15;}else if(sd.post===2){atk*=1.15;def*=.87;}return {atk,def};}
 function prepSide(tid){const t=TM(tid);const k=mgrIdx(tid);const human=k>=0&&!S.mgr[k].fired;if(!human)autoLineup(t);
-  const served=t.pids.filter(id=>PL(id).sus>0);
-  return {tid,on:t.xi.slice(0,11),bench:t.bench.slice(),subs:0,post:human?t.post:1,human,auto:human?S.mgr[k].autoSub||S.online:true,user:tid===myTid(),served,app:new Set(t.xi),yel:new Set(),out:new Set()};}
+  const served=t.pids.filter(id=>PL(id).sus>0);if(V6())normSlots(t);
+  return {tid,slot:V6()?slotMap(t):null,on:t.xi.slice(0,11),bench:t.bench.slice(),subs:0,post:human?t.post:1,human,auto:human?S.mgr[k].autoSub||S.online:true,user:tid===myTid(),served,app:new Set(t.xi),yel:new Set(),out:new Set()};}
 function mkMatch(fx,comp){const m={fx,comp,s:[prepSide(fx.h),prepSide(fx.a)],g:[0,0],ev:[],flash:0,done:false,ko:comp===3||!!fx.ko,et:!!fx.et,neu:!!fx.n};m.mine=m.s[0].user||m.s[1].user;return m;}
 function addEv(m,min,type,side,txt){m.ev.push({m:min,type,side,txt});}
 function pickWeighted(list,w){let tot=0;const ws=list.map(x=>{const v=w(x);tot+=v;return v;});let r=R()*tot;for(let i=0;i<list.length;i++){r-=ws[i];if(r<=0)return list[i];}return list[list.length-1];}
-function bestBench(sd,pos){const b=sd.bench.map(PL).filter(p=>p&&avail(p));let c=b.filter(p=>p.p===pos);if(!c.length)c=b.filter(p=>p.p!=='G');if(!c.length)c=b;return c.sort((x,y)=>y.f-x.f)[0];}
-function doSub(m,i,outId,inId,min){const sd=m.s[i];const k=sd.on.indexOf(outId);if(k<0)return false;sd.on[k]=inId;sd.bench=sd.bench.filter(x=>x!==inId);sd.subs++;sd.app.add(inId);sd.out.add(outId);
+function bestBench(sd,pos,slotPos){if(sd.slot&&slotPos){const b=sd.bench.map(PL).filter(p=>p&&avail(p));return b.sort((x,y)=>y.f*fit(y,slotPos)-x.f*fit(x,slotPos)||x.id-y.id)[0];}const b=sd.bench.map(PL).filter(p=>p&&avail(p));let c=b.filter(p=>p.p===pos);if(!c.length)c=b.filter(p=>p.p!=='G');if(!c.length)c=b;return c.sort((x,y)=>y.f-x.f)[0];}
+function doSub(m,i,outId,inId,min){const sd=m.s[i];const k=sd.on.indexOf(outId);if(k<0)return false;sd.on[k]=inId;if(sd.slot)sd.slot[inId]=sd.slot[outId];sd.bench=sd.bench.filter(x=>x!==inId);sd.subs++;sd.app.add(inId);sd.out.add(outId);
   addEv(m,min,'sub',i,`${PL(inId).n} entra, sai ${PL(outId).n}`);return true;}
 function removeOn(m,i,id){const sd=m.s[i];sd.on=sd.on.filter(x=>x!==id);sd.out.add(id);}
 function simMinute(m,min){
@@ -357,18 +409,18 @@ function simMinute(m,min){
   const st=[strength(m.s[0]),strength(m.s[1])];
   for(let i=0;i<2;i++){const sd=m.s[i];if(!sd.on.length)continue;
     const r=st[i].atk/st[1-i].def/.62;const p=Math.min(.07,.0142*r*r*(m.neu?1:(i===0?1.1:.92)));
-    if(R()<p){const sc=pickWeighted(sd.on.map(PL),p=>p.p==='A'?p.f*5:p.p==='M'?p.f*2.2:p.p==='D'?p.f*.6:p.f*.02);
+    if(R()<p){const sc=pickWeighted(sd.on.map(PL),p=>{const sec=sd.slot?(SECT[sd.slot[p.id]]||p.p):p.p;const f=sd.slot?p.f*fit(p,sd.slot[p.id]):p.f;return sec==='A'?f*5:sec==='M'?f*2.2:sec==='D'?f*.6:f*.02;});
       m.g[i]++;sc.gl++;sc.tg++;sc.tgj=(sc.tgj||0)+1;if(TS()){const c=sc.cs||(sc.cs={});(c[m.comp]||(c[m.comp]=[0,0]))[1]++;}m.flash=3;addEv(m,min,'goal',i,`${sc.n}`);}
     if(R()<.024){const p=S.v>=4?pickWeighted(sd.on.map(PL),x=>x.ag||1):pick(sd.on.map(PL));if(TS())p.ty=(p.ty||0)+1;if(sd.yel.has(p.id)){addEv(m,min,'rc',i,`${p.n} (2º amarelo)`);p.ps+=1;removeOn(m,i,p.id);}else{sd.yel.add(p.id);p.yc++;if(p.yc>=3){p.ps+=1;p.yc=0;}addEv(m,min,'yc',i,p.n);}}
     if(R()<.0009&&sd.on.length){const p=S.v>=4?pickWeighted(sd.on.map(PL),x=>x.ag||1):pick(sd.on.map(PL));if(TS())p.tr=(p.tr||0)+1;p.ps+=ri(1,2);addEv(m,min,'rc',i,p.n);removeOn(m,i,p.id);aiAfterLoss(m,i,p,min);}
     if(R()<.0028&&sd.on.length){const p=S.v>=4?pickWeighted(sd.on.map(PL),x=>x.fr||1):pick(sd.on.map(PL));p.inj=ri(1,5)+1;if(TS()){p.ti=(p.ti||0)+1;p.tmi=(p.tmi||0)+p.inj-1;}addEv(m,min,'inj',i,`${p.n} (${p.inj-1} rod.)`);
       if(!sd.auto){m.injPause=p.n;} // fica em campo até você trocar
-      else{const b=sd.subs<5?bestBench(sd,p.p):null;if(b)doSub(m,i,p.id,b.id,min);else removeOn(m,i,p.id);}}
+      else{const b=sd.subs<5?bestBench(sd,p.p,sd.slot&&sd.slot[p.id]):null;if(b)doSub(m,i,p.id,b.id,min);else removeOn(m,i,p.id);}}
   }
   if(m.flash>0)m.flash--;
 }
 function aiAfterLoss(m,i,p,min){const sd=m.s[i];if(sd.human||sd.subs>=5)return;
-  if(p.p==='G'){const g=sd.bench.map(PL).find(x=>x&&x.p==='G'&&avail(x));if(g){const out=sd.on.map(PL).filter(x=>x.p==='A').sort((a,b)=>a.f-b.f)[0]||sd.on.map(PL).filter(x=>x.p!=='G').sort((a,b)=>a.f-b.f)[0];if(out)doSub(m,i,out.id,g.id,min);}}}
+  if(p.p==='G'){const g=sd.bench.map(PL).find(x=>x&&x.p==='G'&&avail(x));if(g){const out=sd.on.map(PL).filter(x=>x.p==='A').sort((a,b)=>a.f-b.f)[0]||sd.on.map(PL).filter(x=>x.p!=='G').sort((a,b)=>a.f-b.f)[0];if(out){doSub(m,i,out.id,g.id,min);if(sd.slot)sd.slot[g.id]='GOL';}}}}
 function penalties(m){const s=[0,0];const kick=i=>{const g=m.s[1-i].on.map(PL).find(p=>p.p==='G');return R()<.78-(g?(g.f-65)*.004:-.05);};
   for(let k=0;k<5;k++){for(let i=0;i<2;i++)if(kick(i))s[i]++;}
   let k=0;while(s[0]===s[1]&&k<20){const a=kick(0),b=kick(1);if(a)s[0]++;if(b)s[1]++;k++;}if(s[0]===s[1])s[0]++;return s;}
@@ -393,6 +445,7 @@ function startMatchday(headless){
   if(!headless&&changed[UI.me])toast('Escalação ajustada: jogadores indisponíveis foram trocados.');
   const ms=[];
   evFixtures(ev).forEach(([fx,c])=>ms.push(mkMatch(fx,c)));
+  if(S.v>=6)ms.forEach(m=>{const fx=m.fx;if(fx.pub==null)fx.pub=m.neu?ri(38000,80000):attendance(TM(fx.h),fx.a);});
   const mine=ms.find(m=>m.mine);
   UI.live={ms,min:0,paused:false,done:false,tab:mine?mine.comp:(ms[0]?ms[0].comp:0),ev,timer:null,banner:''};
   if(headless){const L=UI.live;while(L.min<(L.end||90)||L.min<90){stepMin(L);ms.forEach(m=>{m.injPause=null;});}endLive();return;}
@@ -458,7 +511,7 @@ function attendance(t,opp){const fans=t.rep*t.rep*9;const pts=t.tb.f.reduce((s,x
   const oppF=1+(TM(opp).rep-50)/150;const ref=LGP(t.div).tk;const pf=clamp(Math.pow(ref/Math.max(1,t.ticket),1.15),.12,1.6);
   return Math.round(Math.min(t.cap,fans*form*oppF*pf*(.9+R()*.2)));}
 function roundFinance(mg,ev,ur){if(mg.tid==null)return;const t=TM(mg.tid);const L={bil:0,tv:0,pat:0,sal:0,man:0,jur:0,pub:0};
-  if(ur&&ur.home){L.pub=attendance(t,ur.opp);L.bil=L.pub*t.ticket*(ev.t==='C'?1.2:(ev.t==='X'||ev.t==='M')?1.5:1);}
+  if(ur&&ur.home){L.pub=S.v>=6&&ur.fx.pub!=null?ur.fx.pub:attendance(t,ur.opp);L.bil=L.pub*t.ticket*(ev.t==='C'?1.2:(ev.t==='X'||ev.t==='M')?1.5:1);}
   if(ev.t==='L'){L.tv=LGP(t.div).tv;L.pat=t.rep*LGP(t.div).pat;}
   L.sal=-Math.round(t.pids.reduce((s,id)=>s+PL(id).sal,0)*.25);L.man=-Math.round(t.cap*4);
   L.jur=-Math.round(t.loan*.012);
@@ -539,7 +592,7 @@ function firedOffers(mg){const cur=mg.tid!=null?TM(mg.tid):null;let c=S.teams.fi
 function fail(k,msg){if(MODE==='sync')news(msg,'bad',k);return {ok:false,msg};}
 function applyAct(k,a){const mg=S.mgr[k];const t=mg.tid!=null?TM(mg.tid):null;const p=a.pid!=null?PL(a.pid):null;
   switch(a.k){
-  case 'lineup':{if(!t||mg.fired)return;if(FORMS[a.form])t.form=a.form;t.post=clamp(a.post|0,0,2);t.xi=(a.xi||[]).filter(id=>t.pids.includes(id)).slice(0,11);t.bench=(a.bench||[]).filter(id=>t.pids.includes(id)&&!t.xi.includes(id)).slice(0,7);return;}
+  case 'lineup':{if(!t||mg.fired)return;if(FORMS[a.form])t.form=a.form;if(V6()&&a.sl){t.sl=a.sl.slice(0,11).map(id=>id!=null&&t.pids.includes(id)?id:null);while(t.sl.length<11)t.sl.push(null);t.xi=t.sl.filter(x=>x!=null);t.bench=(a.bench||[]).filter(id=>t.pids.includes(id)&&!t.xi.includes(id)).slice(0,7);t.post=clamp(a.post|0,0,2);return;}t.post=clamp(a.post|0,0,2);t.xi=(a.xi||[]).filter(id=>t.pids.includes(id)).slice(0,11);t.bench=(a.bench||[]).filter(id=>t.pids.includes(id)&&!t.xi.includes(id)).slice(0,7);return;}
   case 'bid':{if(!t||mg.fired)return fail(k,'Você está sem clube.');if(!p||p.t!==a.from||isHuman(p.t))return fail(k,`Negócio não concluído: ${p?p.n:'o jogador'} já não está no clube.`);
     const r=evalBid(mg,p,a.amt);if(!r.ok){if(MODE==='sync')news(`Negócio por ${p.n} não concluído: ${r.msg}`,'bad',k);return r;}
     const from=TM(p.t).name;movePlayer(p.id,t.id,a.amt);news(`Contratação: ${p.n} chega do ${from} por ${money(a.amt)}.`,'job',k);return {ok:true};}
@@ -551,6 +604,7 @@ function applyAct(k,a){const mg=S.mgr[k];const t=mg.tid!=null?TM(mg.tid):null;co
   case 'orej':{mg.offers=mg.offers.filter(x=>x.id!==a.oid);return;}
   case 'rel':{if(!p||!t||p.t!==t.id)return;if(t.pids.length<=16)return fail(k,'O elenco precisa ter pelo menos 16 jogadores.');
     t.cash-=p.sal*3;mg.fin.sal-=p.sal*3;t.pids=t.pids.filter(x=>x!==p.id);t.xi=t.xi.filter(x=>x!==p.id);t.bench=t.bench.filter(x=>x!==p.id);mg.offers=mg.offers.filter(o=>o.pid!==p.id);news(`${p.n} foi dispensado pelo ${t.name}.`,'');delete S.P[p.id];return {ok:true};}
+  case 'setpos':{if(p&&POSL[a.dp]){p.dp=a.dp;p.sp=(a.sp||[]).filter(x=>POSL[x]&&x!==a.dp).slice(0,2);p.p=SECT[p.dp];}return;}
   case 'rename':{if(p){const n=String(a.n||'').trim().slice(0,30);if(n)p.n=n;}return;}
   case 'tk':{if(t)t.ticket=clamp(a.v|0,5,300);return;}
   case 'loan':{if(t&&t.loan+5e6<=t.rep*3e5){t.loan+=5e6;t.cash+=5e6;news(`O ${t.name} pegou R$ 5 mi emprestados.`,'',k);}return;}
@@ -596,17 +650,17 @@ function seasonEnd(){
   up1.forEach(t=>{t.div=0;t.rep=clamp(t.rep+5,30,99);});up2.forEach(t=>{t.div=1;t.rep=clamp(t.rep+4,30,99);});
   tabs.forEach(tab=>tab.forEach((t,i)=>{if(!dn0.includes(t)&&!dn1.includes(t)&&!up1.includes(t)&&!up2.includes(t))t.rep=clamp(t.rep+(10-i)*.25,30,99);}));
   const retired=[];
-  Object.values(S.P).forEach(p=>{p.a++;const d=p.a<=22?ri(0,6):p.a<=26?ri(-1,4):p.a<=30?ri(-2,2):p.a<=33?ri(-4,1):ri(-6,-1);p.f=clamp(p.f+d,25,96);
+  Object.values(S.P).forEach(p=>{p.a++;const d=S.v>=6&&p.pot!=null?evo6(p):p.a<=22?ri(0,6):p.a<=26?ri(-1,4):p.a<=30?ri(-2,2):p.a<=33?ri(-4,1):ri(-6,-1);p.f=clamp(p.f+d,25,96);
     if((p.a>=35&&R()<(p.a-34)*.25)||p.a>=40){retired.push(p);}});
   retired.forEach(p=>{const t=TM(p.t);t.pids=t.pids.filter(x=>x!==p.id);t.xi=t.xi.filter(x=>x!==p.id);t.bench=t.bench.filter(x=>x!==p.id);if(p.f>=74||isHuman(t.id))news(`${p.n} (${t.name}) anuncia aposentadoria aos ${p.a} anos.`,'');delete S.P[p.id];});
-  S.teams.forEach(t=>{const used=new Set(t.pids.map(i=>PL(i).n));const hu=isHuman(t.id);const n=hu?2:ri(1,3);for(let i=0;i<n;i++)youth(t,used);
+  const gems=[];S.teams.forEach(t=>{const used=new Set(t.pids.map(i=>PL(i).n));const hu=isHuman(t.id);const n=hu?2:ri(1,3);for(let i=0;i<n;i++){const y=youth(t,used);if(y.gem&&isLeague(t)){gems.push(y);news(`Joia revelada: ${y.n}, ${y.a} anos, ${POSL[y.dp]||''} da base do ${t.name}.`,'job');}}
     const cnt={G:0,D:0,M:0,A:0};t.pids.forEach(id=>cnt[PL(id).p]++);const need={G:3,D:7,M:7,A:4};
-    if(!hu){for(const pos in need)while(cnt[pos]<need[pos]){t.pids.push(mkP(genNameP(used,t.pool),pos,baseF(t)-ri(2,10),ri(20,30),t.id).id);cnt[pos]++;}
+    if(!hu){for(const pos in need)while(cnt[pos]<need[pos]){const np=mkP(genNameP(used,t.pool),pos,baseF(t)-ri(2,10),ri(20,30),t.id);t.pids.push(np.id);if(V6())givePos(np,t);cnt[pos]++;}
       while(t.pids.length>30){const w=t.pids.map(PL).sort((a,b)=>a.f-b.f||a.id-b.id)[0];t.pids=t.pids.filter(x=>x!==w.id);delete S.P[w.id];}}
-    else if(cnt.G<2){t.pids.push(mkP(genNameP(used,t.pool),'G',baseF(t)-8,ri(20,28),t.id).id);}
+    else if(cnt.G<2){const np=mkP(genNameP(used,t.pool),'G',baseF(t)-8,ri(20,28),t.id);t.pids.push(np.id);if(V6())np.dp='GOL',np.sp=[];}
     t.pids.forEach(id=>{const p=PL(id);p.sal=Math.max(p.sal,Math.round(salFor(p)*.8/1000)*1000);});});
   S.mgr.forEach(mg=>{mg.offers=[];mg.jobs=[];});
-  S.lastSummary={y:S.year,champ,cup:S.cup.champ,lg:S.lgChamp||null,lib:S.lib?S.lib.champ:null,ucl:S.ucl?S.ucl.champ:null,mun:S.mun?S.mun.champ:null,up1:up1.map(t=>t.id),up2:up2.map(t=>t.id),dn0:dn0.map(t=>t.id),dn1:dn1.map(t=>t.id),scorers,per,retired:retired.length};
+  S.lastSummary={y:S.year,champ,cup:S.cup.champ,lg:S.lgChamp||null,lib:S.lib?S.lib.champ:null,ucl:S.ucl?S.ucl.champ:null,mun:S.mun?S.mun.champ:null,up1:up1.map(t=>t.id),up2:up2.map(t=>t.id),dn0:dn0.map(t=>t.id),dn1:dn1.map(t=>t.id),scorers,per,retired:retired.length,retNames:retired.slice().sort((a,b)=>b.f-a.f).slice(0,8).map(p=>`${p.n} (${TM(p.t)?TM(p.t).short:''}, ${p.a} anos)`),gems:(typeof gems!=='undefined'?gems:[]).slice(0,8).map(p=>`${p.n} (${TM(p.t).short}, ${p.dp||''})`)};
   S.year++;S.mgr.forEach(mg=>mg.seasons++);newSeason();
   S.mgr.forEach((mg,k)=>{if(mg.fired){mg.firedOffers=firedOffers(mg);return;}if(mg.tid!=null)autoLineup(TM(mg.tid));
     if(mg.rep>55&&R()<.5){const c=S.teams.filter(x=>!isHuman(x.id)&&(S.v>=4?isLeague(x):isDom(x))&&x.rep>TM(mg.tid).rep+3&&x.rep<=mg.rep+22);if(c.length){const j=pick(c);mg.jobs.push({tid:j.id,exp:S.md+3});news(`Convite: o ${j.name} quer contratar você para ${S.year}.`,'job',k);}}});
@@ -639,7 +693,7 @@ const LGOF={'Arsenal':10,'Chelsea':10,'Liverpool':10,'Manchester City':10,'Newca
  'Boca Juniors':16,'Estudiantes':16,'Lanús':16,'Rosario Central':16,'Platense':16,'Independiente Rivadavia':16};
 // [nome, curto, liga, fundo, texto, faixa, prestígio, estádio, capacidade, jogadores conhecidos]
 const NEWC=[
-['Aston Villa','ASTON VILLA',10,'#670e36','#95bfe5','',86,'Villa Park',42640,'G Emiliano Martínez 87 33;M Tielemans 82 29;M McGinn 80 31;A Watkins 84 30;A Rogers 83 23'],
+['Aston Villa','ASTON VILLA',10,'#670e36','#95bfe5','',86,'Villa Park',42640,'G:GOL Emiliano Martínez 87 33;M:MC/VOL Tielemans 82 29;M:MC McGinn 80 31;A:CA Watkins 84 30;A:MC/ME Rogers 83 23'],
 ['Bournemouth','BOURNEMOUTH',10,'#da291c','#111111','',80,'Vitality Stadium',11307,''],
 ['Brentford','BRENTFORD',10,'#e30613','#ffffff','',80,'Gtech Community Stadium',17250,''],
 ['Brighton','BRIGHTON',10,'#0057b8','#ffffff','',82,'Amex Stadium',31876,''],
@@ -648,10 +702,10 @@ const NEWC=[
 ['Everton','EVERTON',10,'#003399','#ffffff','',79,'Hill Dickinson Stadium',52888,''],
 ['Fulham','FULHAM',10,'#ffffff','#111111','',79,'Craven Cottage',29600,''],
 ['Leeds United','LEEDS',10,'#ffffff','#1d428a','#ffcd00',76,'Elland Road',37645,''],
-['Manchester United','MAN UNITED',10,'#da291c','#ffffff','#111111',87,'Old Trafford',74310,'D Lisandro Martínez 84 28;D De Ligt 83 26;M Bruno Fernandes 87 31;M Casemiro 82 34;A Matheus Cunha 85 27;A Mbeumo 84 26;A Šeško 82 22'],
+['Manchester United','MAN UNITED',10,'#da291c','#ffffff','#111111',87,'Old Trafford',74310,'D:ZAG/LE Lisandro Martínez 84 28;D:ZAG De Ligt 83 26;M:MC Bruno Fernandes 87 31;M:VOL Casemiro 82 34;A:MC/CA Matheus Cunha 85 27;A:PD/CA Mbeumo 84 26;A:CA Šeško 82 22'],
 ['Nottingham Forest','NOTTM FOREST',10,'#dd0000','#ffffff','',81,'City Ground',30404,''],
 ['Sunderland','SUNDERLAND',10,'#eb172b','#ffffff','#111111',75,'Stadium of Light',49000,''],
-['West Ham','WEST HAM',10,'#7a263a','#1bb1e7','',79,'London Stadium',62500,'M Lucas Paquetá 83 28;A Bowen 83 29'],
+['West Ham','WEST HAM',10,'#7a263a','#1bb1e7','',79,'London Stadium',62500,'M:MC Lucas Paquetá 83 28;A:PD Bowen 83 29'],
 ['Wolverhampton','WOLVES',10,'#fdb913','#231f20','',77,'Molineux',31750,''],
 ['Alavés','ALAVÉS',11,'#0057b8','#ffffff','',74,'Mendizorroza',19840,''],
 ['Celta de Vigo','CELTA',11,'#8ac3ee','#ffffff','#d50000',76,'Balaídos',24870,''],
@@ -663,24 +717,24 @@ const NEWC=[
 ['Mallorca','MALLORCA',11,'#c8102e','#111111','',75,'Son Moix',23142,''],
 ['Osasuna','OSASUNA',11,'#d50000','#0a2240','',75,'El Sadar',23576,''],
 ['Rayo Vallecano','RAYO',11,'#ffffff','#d50000','',75,'Vallecas',14708,''],
-['Real Betis','REAL BETIS',11,'#00954c','#ffffff','',81,'Benito Villamarín',60721,'M Isco 82 34;A Antony 82 26'],
+['Real Betis','REAL BETIS',11,'#00954c','#ffffff','',81,'Benito Villamarín',60721,'M:MC Isco 82 34;A:PD Antony 82 26'],
 ['Real Oviedo','REAL OVIEDO',11,'#0033a0','#ffffff','',70,'Carlos Tartiere',30500,''],
 ['Real Sociedad','REAL SOCIEDAD',11,'#0067b1','#ffffff','',80,'Anoeta',39500,''],
 ['Sevilla','SEVILLA',11,'#ffffff','#d50000','',79,'Sánchez-Pizjuán',43883,''],
 ['Valencia','VALENCIA',11,'#ffffff','#111111','#ee7d00',77,'Mestalla',49430,''],
 ['Bologna','BOLOGNA',12,'#1a2f48','#ffffff','#a21c26',81,"Renato Dall'Ara",36462,''],
 ['Cagliari','CAGLIARI',12,'#a5001e','#ffffff','#002350',72,'Unipol Domus',16416,''],
-['Como','COMO',12,'#0b2e5c','#ffffff','',79,'Giuseppe Sinigaglia',13602,'M Nico Paz 84 21'],
+['Como','COMO',12,'#0b2e5c','#ffffff','',79,'Giuseppe Sinigaglia',13602,'M:MC Nico Paz 84 21'],
 ['Cremonese','CREMONESE',12,'#a1191e','#ffffff','',70,'Giovanni Zini',16003,''],
-['Fiorentina','FIORENTINA',12,'#482e92','#ffffff','',79,'Artemio Franchi',43147,'A Kean 83 26'],
+['Fiorentina','FIORENTINA',12,'#482e92','#ffffff','',79,'Artemio Franchi',43147,'A:CA Kean 83 26'],
 ['Genoa','GENOA',12,'#a51d34','#ffffff','#0b2e5c',73,'Luigi Ferraris',36599,''],
 ['Hellas Verona','VERONA',12,'#ffd400','#0033a0','',71,'Marcantonio Bentegodi',39211,''],
 ['Lazio','LAZIO',12,'#87d8f7','#ffffff','',81,'Olímpico de Roma',70634,''],
 ['Lecce','LECCE',12,'#ffd400','#d50000','',70,'Via del Mare',31533,''],
-['Milan','MILAN',12,'#fb090b','#111111','',87,'San Siro',75817,'G Maignan 87 30;M Modrić 83 40;M Rabiot 83 31;A Rafael Leão 85 27;A Pulisic 85 27'],
+['Milan','MILAN',12,'#fb090b','#111111','',87,'San Siro',75817,'G:GOL Maignan 87 30;M:MC Modrić 83 40;M:MC/VOL Rabiot 83 31;A:PE Rafael Leão 85 27;A:PD/MC Pulisic 85 27'],
 ['Parma','PARMA',12,'#ffd400','#0033a0','',71,'Ennio Tardini',27906,''],
 ['Pisa','PISA',12,'#0033a0','#111111','',69,'Arena Garibaldi',25000,''],
-['Roma','ROMA',12,'#8e1f2f','#f0bc42','',84,'Olímpico de Roma',70634,'M Manu Koné 82 24;A Dybala 82 32'],
+['Roma','ROMA',12,'#8e1f2f','#f0bc42','',84,'Olímpico de Roma',70634,'M:VOL/MC Manu Koné 82 24;A:MC/CA Dybala 82 32'],
 ['Sassuolo','SASSUOLO',12,'#00a650','#111111','',72,'Mapei Stadium',21584,''],
 ['Torino','TORINO',12,'#8a1e03','#ffffff','',74,'Olímpico Grande Torino',27958,''],
 ['Udinese','UDINESE',12,'#111111','#ffffff','',73,'Bluenergy Stadium',25144,''],
@@ -713,7 +767,7 @@ const NEWC=[
 ['Rennes','RENNES',14,'#e30613','#111111','',77,'Roazhon Park',29778,''],
 ['Strasbourg','STRASBOURG',14,'#0094d8','#ffffff','',77,'La Meinau',26109,''],
 ['Toulouse','TOULOUSE',14,'#5b2c86','#ffffff','',74,'Stadium de Toulouse',33150,''],
-['Porto','PORTO',15,'#003893','#ffffff','',85,'Estádio do Dragão',50033,'A Samu Aghehowa 82 21'],
+['Porto','PORTO',15,'#003893','#ffffff','',85,'Estádio do Dragão',50033,'A:CA Samu Aghehowa 82 21'],
 ['Braga','BRAGA',15,'#d50000','#ffffff','',79,'Municipal de Braga',30286,''],
 ['Vitória de Guimarães','VITÓRIA SC',15,'#ffffff','#111111','',74,'D. Afonso Henriques',30000,''],
 ['Famalicão','FAMALICÃO',15,'#ffffff','#0033a0','',72,'Municipal 22 de Junho',5307,''],
@@ -793,35 +847,35 @@ const NP={
 };
 // [nome, curto, região, cor fundo, cor texto, faixa, prestígio, estádio, idioma, jogadores conhecidos]
 const EXT=[
-['Paris Saint-Germain','PSG','EU','#004170','#ffffff','#da291c',96,'Parc des Princes','fr','G Chevalier 82 24;D Hakimi 88 27;D Marquinhos 85 32;D Pacho 84 24;D Nuno Mendes 88 23;M Vitinha 89 25;M João Neves 88 21;M Fabián Ruiz 84 29;A Dembélé 91 29;A Kvaratskhelia 89 25;A Doué 86 20;A Barcola 85 23;A Gonçalo Ramos 82 24'],
-['Real Madrid','REAL MADRID','EU','#ffffff','#1c2c5b','#febe10',96,'Santiago Bernabéu','es','G Courtois 89 34;D Carvajal 84 34;D Militão 85 28;D Rüdiger 85 33;D Huijsen 84 21;D Alexander-Arnold 86 27;D Carreras 82 23;M Valverde 89 28;M Bellingham 90 23;M Tchouaméni 86 26;M Camavinga 85 23;M Arda Güler 85 21;A Vinícius Júnior 91 26;A Mbappé 93 28;A Rodrygo 85 25'],
-['Manchester City','MAN CITY','EU','#6cabdd','#ffffff','#1c2c5b',95,'Etihad Stadium','en','G Donnarumma 89 27;D Rúben Dias 87 29;D Gvardiol 86 24;D Aké 81 31;D Khusanov 80 22;M Rodri 90 30;M Reijnders 86 28;M Bernardo Silva 85 32;M Foden 86 26;M Cherki 84 23;A Haaland 92 26;A Marmoush 84 27;A Doku 84 24'],
-['Bayern de Munique','BAYERN','EU','#dc052d','#ffffff','',95,'Allianz Arena','de','G Neuer 85 40;D Kimmich 88 31;D Upamecano 85 28;D Tah 85 30;D Davies 83 26;M Musiala 89 23;M Goretzka 82 31;M Pavlović 83 22;A Kane 91 33;A Olise 89 25;A Luis Díaz 87 29;A Gnabry 83 31'],
-['Liverpool','LIVERPOOL','EU','#c8102e','#ffffff','',95,'Anfield','en','G Alisson 88 34;D Van Dijk 88 35;D Konaté 85 27;D Frimpong 84 26;D Kerkez 82 23;M Mac Allister 87 28;M Szoboszlai 86 26;M Gravenberch 86 24;M Wirtz 88 23;A Salah 89 34;A Isak 88 27;A Ekitiké 85 24;A Gakpo 84 27'],
-['Arsenal','ARSENAL','EU','#ef0107','#ffffff','#063672',95,'Emirates Stadium','en','G Raya 87 31;D Saliba 89 25;D Gabriel Magalhães 88 29;D Timber 85 25;D Calafiori 82 24;M Rice 89 27;M Ødegaard 87 28;M Zubimendi 86 27;M Eze 85 28;A Saka 89 25;A Gyökeres 87 28;A Martinelli 84 25;A Madueke 82 24'],
-['Barcelona','BARCELONA','EU','#a50044','#ffdf00','#004d98',95,'Camp Nou','es','G Joan García 85 25;D Koundé 86 28;D Cubarsí 86 19;D Araújo 84 27;D Balde 84 23;M Pedri 90 24;M Frenkie de Jong 86 29;M Gavi 84 22;M Fermín López 84 23;A Lamine Yamal 92 19;A Raphinha 89 30;A Lewandowski 85 38;A Rashford 82 29'],
-['Inter de Milão','INTER','EU','#0068a8','#111111','',92,'San Siro','it','G Sommer 84 38;D Bastoni 86 27;D Acerbi 80 38;D Akanji 84 31;D Dimarco 85 29;D Dumfries 84 30;M Barella 87 29;M Çalhanoğlu 86 32;M Mkhitaryan 81 37;A Lautaro Martínez 89 29;A Thuram 85 29;A Bonny 80 23'],
-['Chelsea','CHELSEA','EU','#034694','#ffffff','',92,'Stamford Bridge','en','G Robert Sánchez 82 29;D Reece James 85 27;D Colwill 83 23;D Cucurella 84 28;D Chalobah 81 27;M Caicedo 88 25;M Enzo Fernández 86 25;M Cole Palmer 88 24;A João Pedro 85 25;A Estêvão 84 19;A Pedro Neto 83 26;A Garnacho 82 22'],
-['Atlético de Madrid','ATLÉTICO MAD','EU','#cb3524','#ffffff','#262f61',90,'Metropolitano','es','G Oblak 87 33;D Le Normand 82 30;D Giménez 82 31;D Hancko 81 28;D Llorente 83 31;M Koke 81 34;M Barrios 84 25;M Baena 84 25;M Gallagher 82 26;A Julián Álvarez 89 26;A Griezmann 84 35;A Sørloth 82 31'],
-['Borussia Dortmund','DORTMUND','EU','#fde100','#111111','',89,'Signal Iduna Park','de','G Kobel 86 28;D Schlotterbeck 84 26;D Anton 81 30;D Bensebaini 79 31;M Brandt 82 30;M Nmecha 81 25;M Sabitzer 80 32;A Guirassy 86 30;A Adeyemi 82 24;A Beier 80 23'],
-['Bayer Leverkusen','LEVERKUSEN','EU','#e32221','#111111','',88,'BayArena','de','G Flekken 81 32;D Tapsoba 83 27;D Grimaldo 84 30;M Andrich 81 31;M Aleix García 82 28;M Malik Tillman 81 24;A Schick 83 30'],
-['Napoli','NAPOLI','EU','#12a0d7','#ffffff','',89,'Diego Armando Maradona','it','G Milinković-Savić 82 29;D Di Lorenzo 83 33;D Buongiorno 83 27;D Rrahmani 82 32;M Lobotka 84 32;M McTominay 87 29;M De Bruyne 86 35;M Anguissa 83 30;A Højlund 83 23;A Politano 81 33;A Lang 80 27'],
-['Juventus','JUVENTUS','EU','#ffffff','#111111','',88,'Allianz Stadium','it','G Di Gregorio 82 29;D Bremer 85 29;D Kalulu 81 26;D Cambiaso 82 26;M Locatelli 82 28;M Khéphren Thuram 82 25;M Koopmeiners 81 28;A Kenan Yıldız 87 21;A Vlahović 83 26;A Jonathan David 83 26;A Conceição 82 23'],
-['Atalanta','ATALANTA','EU','#1e71b8','#111111','',86,'Gewiss Stadium','it','G Carnesecchi 82 26;D Scalvini 80 22;D Kolašinac 79 33;M De Roon 80 35;M Éderson 83 27;M De Ketelaere 83 25;A Scamacca 81 27;A Lookman 84 29'],
-['Tottenham','TOTTENHAM','EU','#ffffff','#132257','',87,'Tottenham Hotspur Stadium','en','G Vicario 83 29;D Cristian Romero 86 28;D Van de Ven 85 25;D Porro 83 26;M Bentancur 81 29;M Palhinha 83 31;M Xavi Simons 85 23;M Kudus 84 26;A Solanke 82 29;A Richarlison 80 29'],
-['Newcastle','NEWCASTLE','EU','#111111','#ffffff','',87,"St James' Park",'en','G Pope 83 34;D Botman 83 26;D Trippier 80 36;D Tino Livramento 82 23;M Bruno Guimarães 87 28;M Tonali 85 26;M Joelinton 82 29;A Gordon 84 25;A Woltemade 83 24;A Wissa 81 29'],
-['Benfica','BENFICA','EU','#e83030','#ffffff','',85,'Estádio da Luz','pt','G Trubin 83 25;D Otamendi 80 38;D António Silva 82 22;M Aursnes 81 30;M Sudakov 82 23;A Pavlidis 83 27;A Lukebakio 80 28'],
-['Sporting','SPORTING','EU','#008057','#ffffff','',85,'José Alvalade','pt','G Rui Silva 80 32;D Diomande 83 22;M Hjulmand 84 27;M Trincão 83 26;M Pedro Gonçalves 83 28;A Luis Suárez 83 28'],
-['Villarreal','VILLARREAL','EU','#ffe667','#005187','',84,'Estadio de la Cerámica','es','A Gerard Moreno 81 34;A Mikautadze 81 25'],
-['Athletic Club','ATHLETIC','EU','#ee2523','#ffffff','#111111',84,'San Mamés','es','G Unai Simón 85 29;D Vivian 82 27;M Sancet 82 26;A Nico Williams 86 24;A Iñaki Williams 81 32'],
-['Eintracht Frankfurt','FRANKFURT','EU','#111111','#e1000f','',83,'Deutsche Bank Park','de','D Koch 80 29;M Larsson 81 21;A Burkardt 80 26'],
-['PSV','PSV','EU','#ed1c24','#ffffff','',83,'Philips Stadion','nl','M Veerman 81 27;A Til 80 27;A Saibari 80 25'],
-['Olympique de Marseille','MARSEILLE','EU','#ffffff','#2faee0','',84,'Vélodrome','fr','G Rulli 81 34;M Højbjerg 81 31;A Greenwood 85 25;A Aubameyang 79 37;A Gouiri 81 26'],
-['Monaco','MONACO','EU','#e51b22','#ffffff','',83,'Stade Louis II','fr','M Golovin 80 30;A Minamino 79 31;A Ansu Fati 79 23;A Embolo 79 29'],
-['Ajax','AJAX','EU','#ffffff','#d2122e','',81,'Johan Cruijff ArenA','nl','M Klaassen 78 33;A Weghorst 78 34'],
-['Galatasaray','GALATASARAY','EU','#a90432','#fdb912','',83,'Rams Park','tr','G Çakır 79 30;M Torreira 80 30;M Lemina 79 32;A Osimhen 87 27;A Icardi 80 33;A Leroy Sané 83 30;A Barış Alper Yılmaz 81 26'],
-['Club Brugge','BRUGGE','EU','#0076c0','#111111','',80,'Jan Breydel','nl','A Tzolis 80 24'],
-['Olympiacos','OLYMPIACOS','EU','#e2001a','#ffffff','',79,'Karaiskakis','gr','A El Kaabi 81 32'],
+['Paris Saint-Germain','PSG','EU','#004170','#ffffff','#da291c',96,'Parc des Princes','fr','G:GOL Chevalier 82 24;D:LD Hakimi 88 27;D:ZAG Marquinhos 85 32;D:ZAG Pacho 84 24;D:LE Nuno Mendes 88 23;M:MC/VOL Vitinha 89 25;M:VOL/MC João Neves 88 21;M:MC/VOL Fabián Ruiz 84 29;A:CA/PD Dembélé 91 29;A:PE Kvaratskhelia 89 25;A:PD/PE Doué 86 20;A:PE/PD Barcola 85 23;A:CA Gonçalo Ramos 82 24'],
+['Real Madrid','REAL MADRID','EU','#ffffff','#1c2c5b','#febe10',96,'Santiago Bernabéu','es','G:GOL Courtois 89 34;D:LD Carvajal 84 34;D:ZAG Militão 85 28;D:ZAG Rüdiger 85 33;D:ZAG Huijsen 84 21;D:LD/MC Alexander-Arnold 86 27;D:LE Carreras 82 23;M:MC/MD Valverde 89 28;M:MC Bellingham 90 23;M:VOL/ZAG Tchouaméni 86 26;M:VOL/LE Camavinga 85 23;M:MC/MD Arda Güler 85 21;A:PE Vinícius Júnior 91 26;A:CA/PE Mbappé 93 28;A:PD/PE Rodrygo 85 25'],
+['Manchester City','MAN CITY','EU','#6cabdd','#ffffff','#1c2c5b',95,'Etihad Stadium','en','G:GOL Donnarumma 89 27;D:ZAG Rúben Dias 87 29;D:ZAG/LE Gvardiol 86 24;D:ZAG/LE Aké 81 31;D:ZAG Khusanov 80 22;M:VOL Rodri 90 30;M:MC Reijnders 86 28;M:MC/MD Bernardo Silva 85 32;M:MC/ME Foden 86 26;M:MC/MD Cherki 84 23;A:CA Haaland 92 26;A:CA/PE Marmoush 84 27;A:PE Doku 84 24'],
+['Bayern de Munique','BAYERN','EU','#dc052d','#ffffff','',95,'Allianz Arena','de','G:GOL Neuer 85 40;D:VOL/LD Kimmich 88 31;D:ZAG Upamecano 85 28;D:ZAG Tah 85 30;D:LE Davies 83 26;M:MC/ME Musiala 89 23;M:VOL Goretzka 82 31;M:VOL Pavlović 83 22;A:CA Kane 91 33;A:PD Olise 89 25;A:PE Luis Díaz 87 29;A:PD/PE Gnabry 83 31'],
+['Liverpool','LIVERPOOL','EU','#c8102e','#ffffff','',95,'Anfield','en','G:GOL Alisson 88 34;D:ZAG Van Dijk 88 35;D:ZAG Konaté 85 27;D:LD/MD Frimpong 84 26;D:LE Kerkez 82 23;M:VOL/MC Mac Allister 87 28;M:MC/LD Szoboszlai 86 26;M:VOL Gravenberch 86 24;M:MC/ME Wirtz 88 23;A:PD Salah 89 34;A:CA Isak 88 27;A:CA/PE Ekitiké 85 24;A:PE/CA Gakpo 84 27'],
+['Arsenal','ARSENAL','EU','#ef0107','#ffffff','#063672',95,'Emirates Stadium','en','G:GOL Raya 87 31;D:ZAG Saliba 89 25;D:ZAG Gabriel Magalhães 88 29;D:LD/ZAG Timber 85 25;D:LE/ZAG Calafiori 82 24;M:VOL/MC Rice 89 27;M:MC Ødegaard 87 28;M:VOL Zubimendi 86 27;M:MC/ME Eze 85 28;A:PD Saka 89 25;A:CA Gyökeres 87 28;A:PE Martinelli 84 25;A:PD Madueke 82 24'],
+['Barcelona','BARCELONA','EU','#a50044','#ffdf00','#004d98',95,'Camp Nou','es','G:GOL Joan García 85 25;D:LD/ZAG Koundé 86 28;D:ZAG Cubarsí 86 19;D:ZAG Araújo 84 27;D:LE Balde 84 23;M:MC Pedri 90 24;M:VOL/MC Frenkie de Jong 86 29;M:MC Gavi 84 22;M:MC Fermín López 84 23;A:PD Lamine Yamal 92 19;A:PE/PD Raphinha 89 30;A:CA Lewandowski 85 38;A:PE/CA Rashford 82 29'],
+['Inter de Milão','INTER','EU','#0068a8','#111111','',92,'San Siro','it','G:GOL Sommer 84 38;D:ZAG/LE Bastoni 86 27;D:ZAG Acerbi 80 38;D:ZAG Akanji 84 31;D:LE/ME Dimarco 85 29;D:LD/MD Dumfries 84 30;M:MC Barella 87 29;M:VOL/MC Çalhanoğlu 86 32;M:MC Mkhitaryan 81 37;A:CA Lautaro Martínez 89 29;A:CA/PE Thuram 85 29;A:CA Bonny 80 23'],
+['Chelsea','CHELSEA','EU','#034694','#ffffff','',92,'Stamford Bridge','en','G:GOL Robert Sánchez 82 29;D:LD Reece James 85 27;D:ZAG Colwill 83 23;D:LE Cucurella 84 28;D:ZAG Chalobah 81 27;M:VOL/LD Caicedo 88 25;M:MC/VOL Enzo Fernández 86 25;M:MC/PD Cole Palmer 88 24;A:CA/MC João Pedro 85 25;A:PD Estêvão 84 19;A:PE/PD Pedro Neto 83 26;A:PE Garnacho 82 22'],
+['Atlético de Madrid','ATLÉTICO MAD','EU','#cb3524','#ffffff','#262f61',90,'Metropolitano','es','G:GOL Oblak 87 33;D:ZAG Le Normand 82 30;D:ZAG Giménez 82 31;D:ZAG/LE Hancko 81 28;D:LD/MD Llorente 83 31;M:VOL/MC Koke 81 34;M:VOL Barrios 84 25;M:MC/ME Baena 84 25;M:MC/VOL Gallagher 82 26;A:CA Julián Álvarez 89 26;A:CA/MC Griezmann 84 35;A:CA Sørloth 82 31'],
+['Borussia Dortmund','DORTMUND','EU','#fde100','#111111','',89,'Signal Iduna Park','de','G:GOL Kobel 86 28;D:ZAG Schlotterbeck 84 26;D:ZAG Anton 81 30;D:LE/ZAG Bensebaini 79 31;M:MC Brandt 82 30;M:MC/VOL Nmecha 81 25;M:VOL/MC Sabitzer 80 32;A:CA Guirassy 86 30;A:PE/PD Adeyemi 82 24;A:CA/PD Beier 80 23'],
+['Bayer Leverkusen','LEVERKUSEN','EU','#e32221','#111111','',88,'BayArena','de','G:GOL Flekken 81 32;D:ZAG Tapsoba 83 27;D:LE Grimaldo 84 30;M:VOL Andrich 81 31;M:VOL/MC Aleix García 82 28;M:MC Malik Tillman 81 24;A:CA Schick 83 30'],
+['Napoli','NAPOLI','EU','#12a0d7','#ffffff','',89,'Diego Armando Maradona','it','G:GOL Milinković-Savić 82 29;D:LD Di Lorenzo 83 33;D:ZAG Buongiorno 83 27;D:ZAG Rrahmani 82 32;M:VOL Lobotka 84 32;M:MC/VOL McTominay 87 29;M:MC De Bruyne 86 35;M:VOL/MC Anguissa 83 30;A:CA Højlund 83 23;A:PD Politano 81 33;A:PE Lang 80 27'],
+['Juventus','JUVENTUS','EU','#ffffff','#111111','',88,'Allianz Stadium','it','G:GOL Di Gregorio 82 29;D:ZAG Bremer 85 29;D:ZAG/LD Kalulu 81 26;D:LE/LD Cambiaso 82 26;M:VOL Locatelli 82 28;M:MC Khéphren Thuram 82 25;M:MC Koopmeiners 81 28;A:PE/MC Kenan Yıldız 87 21;A:CA Vlahović 83 26;A:CA Jonathan David 83 26;A:PD Conceição 82 23'],
+['Atalanta','ATALANTA','EU','#1e71b8','#111111','',86,'Gewiss Stadium','it','G:GOL Carnesecchi 82 26;D:ZAG Scalvini 80 22;D:ZAG/LE Kolašinac 79 33;M:VOL De Roon 80 35;M:VOL/MC Éderson 83 27;M:MC/CA De Ketelaere 83 25;A:CA Scamacca 81 27;A:PE Lookman 84 29'],
+['Tottenham','TOTTENHAM','EU','#ffffff','#132257','',87,'Tottenham Hotspur Stadium','en','G:GOL Vicario 83 29;D:ZAG Cristian Romero 86 28;D:ZAG Van de Ven 85 25;D:LD Porro 83 26;M:VOL Bentancur 81 29;M:VOL Palhinha 83 31;M:MC/ME Xavi Simons 85 23;M:MD/MC Kudus 84 26;A:CA Solanke 82 29;A:CA/PE Richarlison 80 29'],
+['Newcastle','NEWCASTLE','EU','#111111','#ffffff','',87,"St James' Park",'en','G:GOL Pope 83 34;D:ZAG Botman 83 26;D:LD Trippier 80 36;D:LD/LE Tino Livramento 82 23;M:VOL/MC Bruno Guimarães 87 28;M:VOL/MC Tonali 85 26;M:MC/VOL Joelinton 82 29;A:PE Gordon 84 25;A:CA Woltemade 83 24;A:CA/PE Wissa 81 29'],
+['Benfica','BENFICA','EU','#e83030','#ffffff','',85,'Estádio da Luz','pt','G:GOL Trubin 83 25;D:ZAG Otamendi 80 38;D:ZAG António Silva 82 22;M:MC/LD Aursnes 81 30;M:MC Sudakov 82 23;A:CA Pavlidis 83 27;A:PD Lukebakio 80 28'],
+['Sporting','SPORTING','EU','#008057','#ffffff','',85,'José Alvalade','pt','G:GOL Rui Silva 80 32;D:ZAG Diomande 83 22;M:VOL Hjulmand 84 27;M:MD/MC Trincão 83 26;M:MC/ME Pedro Gonçalves 83 28;A:CA Luis Suárez 83 28'],
+['Villarreal','VILLARREAL','EU','#ffe667','#005187','',84,'Estadio de la Cerámica','es','A:CA/PD Gerard Moreno 81 34;A:CA Mikautadze 81 25'],
+['Athletic Club','ATHLETIC','EU','#ee2523','#ffffff','#111111',84,'San Mamés','es','G:GOL Unai Simón 85 29;D:ZAG Vivian 82 27;M:MC Sancet 82 26;A:PE Nico Williams 86 24;A:PD/CA Iñaki Williams 81 32'],
+['Eintracht Frankfurt','FRANKFURT','EU','#111111','#e1000f','',83,'Deutsche Bank Park','de','D:ZAG Koch 80 29;M:MC Larsson 81 21;A:CA Burkardt 80 26'],
+['PSV','PSV','EU','#ed1c24','#ffffff','',83,'Philips Stadion','nl','M:MC Veerman 81 27;A:CA/MC Til 80 27;A:PD/MC Saibari 80 25'],
+['Olympique de Marseille','MARSEILLE','EU','#ffffff','#2faee0','',84,'Vélodrome','fr','G:GOL Rulli 81 34;M:VOL Højbjerg 81 31;A:PD/CA Greenwood 85 25;A:CA Aubameyang 79 37;A:PE/CA Gouiri 81 26'],
+['Monaco','MONACO','EU','#e51b22','#ffffff','',83,'Stade Louis II','fr','M:MC/ME Golovin 80 30;A:PD/MC Minamino 79 31;A:PE Ansu Fati 79 23;A:CA Embolo 79 29'],
+['Ajax','AJAX','EU','#ffffff','#d2122e','',81,'Johan Cruijff ArenA','nl','M:MC Klaassen 78 33;A:CA Weghorst 78 34'],
+['Galatasaray','GALATASARAY','EU','#a90432','#fdb912','',83,'Rams Park','tr','G:GOL Çakır 79 30;M:VOL Torreira 80 30;M:VOL/MC Lemina 79 32;A:CA Osimhen 87 27;A:CA Icardi 80 33;A:PD/PE Leroy Sané 83 30;A:PD/CA Barış Alper Yılmaz 81 26'],
+['Club Brugge','BRUGGE','EU','#0076c0','#111111','',80,'Jan Breydel','nl','A:PE/PD Tzolis 80 24'],
+['Olympiacos','OLYMPIACOS','EU','#e2001a','#ffffff','',79,'Karaiskakis','gr','A:CA El Kaabi 81 32'],
 ['Slavia Praga','SLAVIA PRAGA','EU','#ffffff','#d01c1f','',77,'Fortuna Arena','slav',''],
 ['Copenhague','COPENHAGUE','EU','#ffffff','#003b8e','',77,'Parken','nord',''],
 ['Union Saint-Gilloise','UNION SG','EU','#fcd116','#003a70','',77,'Joseph Marien','fr',''],
@@ -840,7 +894,7 @@ const EXT=[
 ['Bolívar','BOLÍVAR','SA','#5ab4e5','#ffffff','',71,'Hernando Siles','es',''],
 ['Deportivo La Guaira','LA GUAIRA','SA','#ff7f00','#0033a0','',62,'Olímpico de la UCV','es',''],
 ['Independiente Rivadavia','IND. RIVADAVIA','SA','#0033a0','#ffffff','',71,'Bautista Gargantini','es',''],
-['Boca Juniors','BOCA JUNIORS','SA','#003da5','#ffd400','',84,'La Bombonera','es','G Marchesín 79 37;M Paredes 83 31;A Merentiel 79 29;A Cavani 78 39;A Zeballos 79 24'],
+['Boca Juniors','BOCA JUNIORS','SA','#003da5','#ffd400','',84,'La Bombonera','es','G:GOL Marchesín 79 37;M:VOL Paredes 83 31;A:CA/PD Merentiel 79 29;A:CA Cavani 78 39;A:PE/PD Zeballos 79 24'],
 ['Universidad Católica','U. CATÓLICA','SA','#ffffff','#0033a0','#d50000',72,'Claro Arena','es',''],
 ['Barcelona SC','BARCELONA SC','SA','#ffd400','#111111','#d50000',72,'Monumental Banco Pichincha','es',''],
 ['Peñarol','PEÑAROL','SA','#ffd400','#111111','',77,'Campeón del Siglo','es',''],
@@ -854,7 +908,7 @@ const EXT=[
 ['Always Ready','ALWAYS READY','SA','#ffffff','#d50000','',64,'Municipal de El Alto','es',''],
 ['Independiente del Valle','IND. DEL VALLE','SA','#111111','#ffffff','#0033a0',78,'Banco Guayaquil','es',''],
 ['Libertad','LIBERTAD','SA','#111111','#ffffff','',74,'La Huerta','es',''],
-['Rosario Central','ROSARIO CENTRAL','SA','#0033a0','#ffd400','',78,'Gigante de Arroyito','es','A Di María 84 38'],
+['Rosario Central','ROSARIO CENTRAL','SA','#0033a0','#ffd400','',78,'Gigante de Arroyito','es','A:PD/MC Di María 84 38'],
 ['Universidad Central','U. CENTRAL','SA','#ffffff','#7a1630','',62,'Olímpico de la UCV','es','']
 ];
 // grupos reais da Libertadores 2026 (sorteio de 19/03/2026)
@@ -921,59 +975,59 @@ function contLabel(d){const a=LIBST[d]?`Libertadores ${LIBST[d]}`:'',b=UCLST[d]?
 /* ---------- Copa do Mundo 2026 ---------- */
 // [nome, curto, fundo, texto, faixa, força, idioma, grupo, jogadores conhecidos]
 const NAT=[
-['México','MÉXICO','#006847','#ffffff','#ce1126',80,'es','A','G Malagón 77 29;D Montes 78 29;D Vásquez 78 27;M Edson Álvarez 80 28;M Lira 78 23;A Raúl Jiménez 79 35;A Santiago Giménez 81 25;A Lozano 78 30'],
+['México','MÉXICO','#006847','#ffffff','#ce1126',80,'es','A','G:GOL Malagón 77 29;D:ZAG Montes 78 29;D:ZAG Vásquez 78 27;M:VOL/ZAG Edson Álvarez 80 28;M:VOL Lira 78 23;A:CA Raúl Jiménez 79 35;A:CA Santiago Giménez 81 25;A:PE/PD Lozano 78 30'],
 ['África do Sul','ÁFRICA DO SUL','#007a4d','#ffb612','',72,'af','A',''],
-['Coreia do Sul','COREIA DO SUL','#c60c30','#ffffff','#003478',79,'ko','A','D Kim Min-jae 85 29;M Lee Kang-in 82 25;A Son Heung-min 83 33;A Hwang Hee-chan 78 30'],
-['Tchéquia','TCHÉQUIA','#d7141a','#ffffff','#11457e',77,'slav','A','A Schick 83 30'],
-['Canadá','CANADÁ','#d80621','#ffffff','',77,'en','B','D Davies 83 25;A Jonathan David 83 26'],
-['Bósnia e Herzegovina','BÓSNIA','#002395','#fecb00','',75,'slav','B','A Džeko 76 40'],
+['Coreia do Sul','COREIA DO SUL','#c60c30','#ffffff','#003478',79,'ko','A','D:ZAG Kim Min-jae 85 29;M:MC/MD Lee Kang-in 82 25;A:PE/CA Son Heung-min 83 33;A:PD/CA Hwang Hee-chan 78 30'],
+['Tchéquia','TCHÉQUIA','#d7141a','#ffffff','#11457e',77,'slav','A','A:CA Schick 83 30'],
+['Canadá','CANADÁ','#d80621','#ffffff','',77,'en','B','D:LE/ME Davies 83 25;A:CA Jonathan David 83 26'],
+['Bósnia e Herzegovina','BÓSNIA','#002395','#fecb00','',75,'slav','B','A:CA Džeko 76 40'],
 ['Catar','CATAR','#8a1538','#ffffff','',70,'ar','B',''],
-['Suíça','SUÍÇA','#d52b1e','#ffffff','',81,'de','B','G Kobel 86 28;D Akanji 84 30;M Xhaka 82 33'],
-['Brasil','BRASIL','#ffdf00','#009c3b','#002776',92,'br','C','G Alisson 88 33;G Ederson 85 32;G Bento 79 27;D Marquinhos 85 32;D Gabriel Magalhães 88 28;D Militão 84 28;D Wesley 80 22;D Danilo 76 35;D Alex Sandro 76 35;D Douglas Santos 78 32;M Casemiro 82 34;M Bruno Guimarães 87 28;M Lucas Paquetá 83 28;M Andrey Santos 80 22;A Vinícius Júnior 91 25;A Raphinha 89 29;A Rodrygo 85 25;A Estêvão 84 19;A Matheus Cunha 85 27;A João Pedro 84 24;A Gabriel Martinelli 84 25;A Richarlison 80 29'],
-['Marrocos','MARROCOS','#c1272d','#ffffff','#006233',85,'ar','C','G Bounou 83 35;D Hakimi 88 27;D Aguerd 81 30;D Mazraoui 80 28;M Amrabat 79 30;M Ounahi 79 26;A Brahim Díaz 83 26;A Ezzalzouli 80 24;A En-Nesyri 80 29'],
+['Suíça','SUÍÇA','#d52b1e','#ffffff','',81,'de','B','G:GOL Kobel 86 28;D:ZAG Akanji 84 30;M:VOL/MC Xhaka 82 33'],
+['Brasil','BRASIL','#ffdf00','#009c3b','#002776',92,'br','C','G:GOL Alisson 88 33;G:GOL Ederson 85 32;G:GOL Bento 79 27;D:ZAG Marquinhos 85 32;D:ZAG Gabriel Magalhães 88 28;D:ZAG/LD Militão 84 28;D:LD Wesley 80 22;D:LD/ZAG Danilo 76 35;D:LE Alex Sandro 76 35;D:LE Douglas Santos 78 32;M:VOL Casemiro 82 34;M:VOL/MC Bruno Guimarães 87 28;M:MC/VOL Lucas Paquetá 83 28;M:VOL/MC Andrey Santos 80 22;A:PE Vinícius Júnior 91 25;A:PD/PE Raphinha 89 29;A:PD/CA Rodrygo 85 25;A:PD Estêvão 84 19;A:CA/MC Matheus Cunha 85 27;A:CA/MC João Pedro 84 24;A:PE Gabriel Martinelli 84 25;A:CA Richarlison 80 29'],
+['Marrocos','MARROCOS','#c1272d','#ffffff','#006233',85,'ar','C','G:GOL Bounou 83 35;D:LD Hakimi 88 27;D:ZAG Aguerd 81 30;D:LD/LE Mazraoui 80 28;M:VOL Amrabat 79 30;M:MC Ounahi 79 26;A:MC/PD Brahim Díaz 83 26;A:PE Ezzalzouli 80 24;A:CA En-Nesyri 80 29'],
 ['Haiti','HAITI','#00209f','#ffffff','#d21034',64,'fr','C',''],
-['Escócia','ESCÓCIA','#0065bd','#ffffff','',77,'en','C','D Robertson 81 32;M McTominay 87 29'],
-['Estados Unidos','EUA','#ffffff','#0a3161','#b31942',81,'en','D','G Matt Turner 77 32;D Robinson 80 29;D Richards 79 26;M McKennie 81 27;M Adams 79 27;M Musah 79 23;A Pulisic 85 27;A Weah 79 26;A Balogun 79 24'],
-['Paraguai','PARAGUAI','#d52b1e','#ffffff','#0038a8',77,'es','D','D Gustavo Gómez 81 33;M Almirón 78 32;A Enciso 79 22'],
+['Escócia','ESCÓCIA','#0065bd','#ffffff','',77,'en','C','D:LE Robertson 81 32;M:MC/VOL McTominay 87 29'],
+['Estados Unidos','EUA','#ffffff','#0a3161','#b31942',81,'en','D','G:GOL Matt Turner 77 32;D:LE Robinson 80 29;D:ZAG Richards 79 26;M:MC/VOL McKennie 81 27;M:VOL Adams 79 27;M:MC Musah 79 23;A:PD/PE Pulisic 85 27;A:PD Weah 79 26;A:CA Balogun 79 24'],
+['Paraguai','PARAGUAI','#d52b1e','#ffffff','#0038a8',77,'es','D','D:ZAG Gustavo Gómez 81 33;M:PD/MC Almirón 78 32;A:MC/CA Enciso 79 22'],
 ['Austrália','AUSTRÁLIA','#ffcd00','#00843d','',76,'en','D',''],
-['Turquia','TURQUIA','#e30a17','#ffffff','',80,'tr','D','M Çalhanoğlu 86 32;M Arda Güler 85 21;A Kenan Yıldız 87 21'],
-['Alemanha','ALEMANHA','#ffffff','#111111','',90,'de','E','G ter Stegen 84 34;D Rüdiger 85 33;D Tah 85 30;D Schlotterbeck 84 26;D Raum 81 28;M Kimmich 88 31;M Wirtz 88 23;M Musiala 89 23;M Goretzka 82 31;A Havertz 84 27;A Woltemade 83 24;A Sané 83 30;A Gnabry 83 30'],
+['Turquia','TURQUIA','#e30a17','#ffffff','',80,'tr','D','M:VOL/MC Çalhanoğlu 86 32;M:MC/PD Arda Güler 85 21;A:PE Kenan Yıldız 87 21'],
+['Alemanha','ALEMANHA','#ffffff','#111111','',90,'de','E','G:GOL ter Stegen 84 34;D:ZAG Rüdiger 85 33;D:ZAG Tah 85 30;D:ZAG Schlotterbeck 84 26;D:LE Raum 81 28;M:VOL/LD Kimmich 88 31;M:MC/ME Wirtz 88 23;M:MC/ME Musiala 89 23;M:VOL Goretzka 82 31;A:CA/MC Havertz 84 27;A:CA Woltemade 83 24;A:PD Sané 83 30;A:PD/PE Gnabry 83 30'],
 ['Curaçao','CURAÇAO','#002b7f','#f9e814','',64,'nl','E',''],
-['Costa do Marfim','COSTA DO MARFIM','#f77f00','#ffffff','#009e60',78,'af','E','D Kossounou 80 25;A Amad Diallo 82 23'],
-['Equador','EQUADOR','#ffdd00','#034ea2','#ed1c24',81,'es','E','D Hincapié 83 24;D Pacho 84 24;M Caicedo 88 24;A Enner Valencia 77 36'],
-['Holanda','HOLANDA','#ff6600','#ffffff','',89,'nl','F','G Verbruggen 82 23;D Van Dijk 88 34;D De Ligt 83 26;D Dumfries 84 30;D Frimpong 84 25;D Timber 85 25;M Frenkie de Jong 86 29;M Reijnders 86 27;M Gravenberch 86 24;M Xavi Simons 85 23;A Gakpo 84 27;A Depay 82 32'],
-['Japão','JAPÃO','#0b2e8a','#ffffff','',82,'ja','F','G Zion Suzuki 79 23;D Itakura 79 29;D Tomiyasu 79 27;M Endo 80 33;M Kamada 80 29;M Kubo 83 25;A Mitoma 82 29;A Ueda 80 27;A Minamino 79 31;A Doan 80 28'],
-['Suécia','SUÉCIA','#fecc02','#006aa7','',79,'nord','F','A Isak 88 26;A Gyökeres 87 28'],
+['Costa do Marfim','COSTA DO MARFIM','#f77f00','#ffffff','#009e60',78,'af','E','D:ZAG Kossounou 80 25;A:PD Amad Diallo 82 23'],
+['Equador','EQUADOR','#ffdd00','#034ea2','#ed1c24',81,'es','E','D:ZAG/LE Hincapié 83 24;D:ZAG Pacho 84 24;M:VOL Caicedo 88 24;A:CA Enner Valencia 77 36'],
+['Holanda','HOLANDA','#ff6600','#ffffff','',89,'nl','F','G:GOL Verbruggen 82 23;D:ZAG Van Dijk 88 34;D:ZAG De Ligt 83 26;D:LD Dumfries 84 30;D:LD/MD Frimpong 84 25;D:LD/ZAG Timber 85 25;M:VOL/MC Frenkie de Jong 86 29;M:MC Reijnders 86 27;M:VOL Gravenberch 86 24;M:MC/ME Xavi Simons 85 23;A:PE Gakpo 84 27;A:CA Depay 82 32'],
+['Japão','JAPÃO','#0b2e8a','#ffffff','',82,'ja','F','G:GOL Zion Suzuki 79 23;D:ZAG Itakura 79 29;D:ZAG/LD Tomiyasu 79 27;M:VOL Endo 80 33;M:MC Kamada 80 29;M:MD/MC Kubo 83 25;A:PE Mitoma 82 29;A:CA Ueda 80 27;A:MC/PE Minamino 79 31;A:PD Doan 80 28'],
+['Suécia','SUÉCIA','#fecc02','#006aa7','',79,'nord','F','A:CA Isak 88 26;A:CA Gyökeres 87 28'],
 ['Tunísia','TUNÍSIA','#e70013','#ffffff','',74,'ar','F',''],
-['Bélgica','BÉLGICA','#c8102e','#ffd700','#111111',86,'nl','G','G Courtois 89 34;D Theate 80 26;D Castagne 79 30;M De Bruyne 86 35;M Tielemans 82 29;M Amadou Onana 81 24;A Doku 84 24;A Trossard 82 31;A Lukaku 80 33;A Openda 81 26'],
-['Egito','EGITO','#c8102e','#ffffff','#111111',77,'ar','G','A Salah 89 34;A Marmoush 84 27'],
-['Irã','IRÃ','#ffffff','#da0000','#239f40',77,'fa','G','A Taremi 79 34'],
+['Bélgica','BÉLGICA','#c8102e','#ffd700','#111111',86,'nl','G','G:GOL Courtois 89 34;D:ZAG/LE Theate 80 26;D:LD Castagne 79 30;M:MC De Bruyne 86 35;M:MC/VOL Tielemans 82 29;M:VOL Amadou Onana 81 24;A:PE Doku 84 24;A:PE/CA Trossard 82 31;A:CA Lukaku 80 33;A:CA Openda 81 26'],
+['Egito','EGITO','#c8102e','#ffffff','#111111',77,'ar','G','A:PD Salah 89 34;A:CA/PE Marmoush 84 27'],
+['Irã','IRÃ','#ffffff','#da0000','#239f40',77,'fa','G','A:CA Taremi 79 34'],
 ['Nova Zelândia','NOVA ZELÂNDIA','#ffffff','#111111','',66,'en','G',''],
-['Espanha','ESPANHA','#c60b1e','#ffc400','',95,'es','H','G Unai Simón 85 29;D Carvajal 84 34;D Laporte 83 32;D Cubarsí 86 19;D Cucurella 84 27;D Huijsen 84 21;M Rodri 90 30;M Pedri 90 23;M Zubimendi 86 27;M Fabián Ruiz 84 30;M Dani Olmo 84 28;A Lamine Yamal 92 18;A Nico Williams 86 23;A Oyarzabal 84 29;A Ferran Torres 82 26'],
+['Espanha','ESPANHA','#c60b1e','#ffc400','',95,'es','H','G:GOL Unai Simón 85 29;D:LD Carvajal 84 34;D:ZAG Laporte 83 32;D:ZAG Cubarsí 86 19;D:LE Cucurella 84 27;D:ZAG Huijsen 84 21;M:VOL Rodri 90 30;M:MC Pedri 90 23;M:VOL Zubimendi 86 27;M:MC Fabián Ruiz 84 30;M:MC/ME Dani Olmo 84 28;A:PD Lamine Yamal 92 18;A:PE Nico Williams 86 23;A:CA/PE Oyarzabal 84 29;A:PE/CA Ferran Torres 82 26'],
 ['Cabo Verde','CABO VERDE','#003893','#ffffff','#cf2027',69,'pt','H',''],
 ['Arábia Saudita','ARÁBIA SAUDITA','#006c35','#ffffff','',72,'ar','H',''],
-['Uruguai','URUGUAI','#5ab4e5','#111111','',85,'es','H','G Rochet 80 33;D Ronald Araújo 84 27;D Giménez 82 31;D Olivera 81 28;M Valverde 89 27;M Bentancur 81 29;M Ugarte 82 25;M De Arrascaeta 86 32;A Darwin Núñez 82 27;A Pellistri 78 24'],
-['França','FRANÇA','#002654','#ffffff','#ed2939',95,'fr','I','G Maignan 87 30;D Saliba 89 25;D Upamecano 85 27;D Koundé 86 27;D Théo Hernández 84 28;D Konaté 85 27;M Tchouaméni 86 26;M Rabiot 83 31;M Kanté 80 35;M Zaïre-Emery 83 20;A Mbappé 93 27;A Dembélé 91 29;A Olise 89 24;A Doué 86 21;A Marcus Thuram 85 28'],
-['Senegal','SENEGAL','#00853f','#fdef42','#e31b23',81,'af','I','G Édouard Mendy 80 34;D Koulibaly 80 35;M Idrissa Gueye 79 36;M Pape Matar Sarr 81 23;A Nicolas Jackson 81 25;A Mané 80 34;A Ismaïla Sarr 80 28'],
+['Uruguai','URUGUAI','#5ab4e5','#111111','',85,'es','H','G:GOL Rochet 80 33;D:ZAG/LD Ronald Araújo 84 27;D:ZAG Giménez 82 31;D:LE Olivera 81 28;M:MC/MD Valverde 89 27;M:VOL Bentancur 81 29;M:VOL Ugarte 82 25;M:MC De Arrascaeta 86 32;A:CA Darwin Núñez 82 27;A:PD Pellistri 78 24'],
+['França','FRANÇA','#002654','#ffffff','#ed2939',95,'fr','I','G:GOL Maignan 87 30;D:ZAG Saliba 89 25;D:ZAG Upamecano 85 27;D:LD/ZAG Koundé 86 27;D:LE Théo Hernández 84 28;D:ZAG Konaté 85 27;M:VOL Tchouaméni 86 26;M:MC/VOL Rabiot 83 31;M:VOL Kanté 80 35;M:MC/VOL Zaïre-Emery 83 20;A:CA/PE Mbappé 93 27;A:PD/CA Dembélé 91 29;A:PD Olise 89 24;A:PE/PD Doué 86 21;A:CA Marcus Thuram 85 28'],
+['Senegal','SENEGAL','#00853f','#fdef42','#e31b23',81,'af','I','G:GOL Édouard Mendy 80 34;D:ZAG Koulibaly 80 35;M:VOL Idrissa Gueye 79 36;M:MC Pape Matar Sarr 81 23;A:CA Nicolas Jackson 81 25;A:PE Mané 80 34;A:PD Ismaïla Sarr 80 28'],
 ['Iraque','IRAQUE','#ffffff','#007a3d','#ce1126',70,'ar','I',''],
-['Noruega','NORUEGA','#ba0c2f','#ffffff','#00205b',82,'nord','I','D Ajer 78 28;M Ødegaard 87 27;M Berge 79 28;A Haaland 92 25;A Sørloth 82 30;A Nusa 80 21'],
-['Argentina','ARGENTINA','#75aadb','#ffffff','',94,'es','J','G Emiliano Martínez 87 33;G Rulli 81 34;D Molina 82 28;D Cristian Romero 86 28;D Lisandro Martínez 84 28;D Otamendi 79 38;D Tagliafico 80 33;M Mac Allister 87 27;M Enzo Fernández 86 25;M De Paul 84 32;M Paredes 82 31;M Lo Celso 81 30;A Messi 87 39;A Lautaro Martínez 89 28;A Julián Álvarez 89 26;A Nico González 81 28;A Almada 82 25'],
-['Argélia','ARGÉLIA','#ffffff','#006633','#d21034',77,'ar','J','D Aït-Nouri 81 25;A Mahrez 79 35'],
-['Áustria','ÁUSTRIA','#ed2939','#ffffff','',80,'de','J','D Alaba 80 34;M Sabitzer 80 32;M Laimer 81 29'],
+['Noruega','NORUEGA','#ba0c2f','#ffffff','#00205b',82,'nord','I','D:ZAG Ajer 78 28;M:MC Ødegaard 87 27;M:VOL Berge 79 28;A:CA Haaland 92 25;A:CA Sørloth 82 30;A:PE Nusa 80 21'],
+['Argentina','ARGENTINA','#75aadb','#ffffff','',94,'es','J','G:GOL Emiliano Martínez 87 33;G:GOL Rulli 81 34;D:LD Molina 82 28;D:ZAG Cristian Romero 86 28;D:ZAG Lisandro Martínez 84 28;D:ZAG Otamendi 79 38;D:LE Tagliafico 80 33;M:MC/VOL Mac Allister 87 27;M:MC/VOL Enzo Fernández 86 25;M:MC/MD De Paul 84 32;M:VOL Paredes 82 31;M:MC Lo Celso 81 30;A:PD/MC Messi 87 39;A:CA Lautaro Martínez 89 28;A:CA Julián Álvarez 89 26;A:PE/PD Nico González 81 28;A:MC/PE Almada 82 25'],
+['Argélia','ARGÉLIA','#ffffff','#006633','#d21034',77,'ar','J','D:LE Aït-Nouri 81 25;A:PD Mahrez 79 35'],
+['Áustria','ÁUSTRIA','#ed2939','#ffffff','',80,'de','J','D:ZAG/LE Alaba 80 34;M:MC/VOL Sabitzer 80 32;M:VOL/MC Laimer 81 29'],
 ['Jordânia','JORDÂNIA','#ffffff','#ce1126','#007a3d',70,'ar','J',''],
-['Portugal','PORTUGAL','#da291c','#ffffff','#046a38',92,'pt','K','G Diogo Costa 86 26;D Rúben Dias 87 29;D Nuno Mendes 88 24;D Cancelo 83 32;D Gonçalo Inácio 83 24;M Vitinha 89 26;M João Neves 88 21;M Bruno Fernandes 87 31;M Bernardo Silva 85 31;A Cristiano Ronaldo 83 41;A Rafael Leão 85 27;A Pedro Neto 83 26;A Gonçalo Ramos 82 25'],
+['Portugal','PORTUGAL','#da291c','#ffffff','#046a38',92,'pt','K','G:GOL Diogo Costa 86 26;D:ZAG Rúben Dias 87 29;D:LE Nuno Mendes 88 24;D:LD/LE Cancelo 83 32;D:ZAG Gonçalo Inácio 83 24;M:MC/VOL Vitinha 89 26;M:VOL/MC João Neves 88 21;M:MC Bruno Fernandes 87 31;M:MC/MD Bernardo Silva 85 31;A:CA Cristiano Ronaldo 83 41;A:PE Rafael Leão 85 27;A:PD/PE Pedro Neto 83 26;A:CA Gonçalo Ramos 82 25'],
 ['RD Congo','RD CONGO','#007fff','#f7d618','#ce1021',74,'af','K',''],
 ['Uzbequistão','UZBEQUISTÃO','#ffffff','#1eb53a','#0099b5',72,'uz','K',''],
-['Colômbia','COLÔMBIA','#fcd116','#003893','#ce1126',85,'es','K','G Camilo Vargas 79 37;D Dávinson Sánchez 79 30;D Daniel Muñoz 81 27;D Yerry Mina 78 31;M Lerma 80 31;M James Rodríguez 80 35;M Jhon Arias 82 28;A Luis Díaz 87 29;A Jhon Durán 80 22;A Borré 78 30'],
-['Inglaterra','INGLATERRA','#ffffff','#cf081f','',93,'en','L','G Pickford 83 32;D Stones 83 32;D Guéhi 84 25;D Reece James 85 26;D Alexander-Arnold 86 27;M Rice 89 27;M Bellingham 90 22;M Foden 86 26;M Cole Palmer 88 24;A Kane 91 32;A Saka 89 24;A Eze 85 27;A Rashford 82 28'],
-['Croácia','CROÁCIA','#ffffff','#d81e05','#171796',85,'slav','L','G Livaković 82 31;D Gvardiol 86 24;D Šutalo 80 26;M Modrić 83 40;M Kovačić 83 32;M Sučić 81 22;A Kramarić 80 35;A Perišić 78 37'],
-['Gana','GANA','#ffffff','#111111','#fcd116',75,'af','L','A Kudus 84 26'],
+['Colômbia','COLÔMBIA','#fcd116','#003893','#ce1126',85,'es','K','G:GOL Camilo Vargas 79 37;D:ZAG Dávinson Sánchez 79 30;D:LD Daniel Muñoz 81 27;D:ZAG Yerry Mina 78 31;M:VOL Lerma 80 31;M:MC James Rodríguez 80 35;M:PD/MC Jhon Arias 82 28;A:PE Luis Díaz 87 29;A:CA Jhon Durán 80 22;A:CA Borré 78 30'],
+['Inglaterra','INGLATERRA','#ffffff','#cf081f','',93,'en','L','G:GOL Pickford 83 32;D:ZAG Stones 83 32;D:ZAG Guéhi 84 25;D:LD Reece James 85 26;D:LD/MC Alexander-Arnold 86 27;M:VOL/MC Rice 89 27;M:MC Bellingham 90 22;M:MC/ME Foden 86 26;M:MC/MD Cole Palmer 88 24;A:CA Kane 91 32;A:PD Saka 89 24;A:MC/ME Eze 85 27;A:PE Rashford 82 28'],
+['Croácia','CROÁCIA','#ffffff','#d81e05','#171796',85,'slav','L','G:GOL Livaković 82 31;D:ZAG/LE Gvardiol 86 24;D:ZAG Šutalo 80 26;M:MC Modrić 83 40;M:MC/VOL Kovačić 83 32;M:MC Sučić 81 22;A:CA/MC Kramarić 80 35;A:PE/LE Perišić 78 37'],
+['Gana','GANA','#ffffff','#111111','#fcd116',75,'af','L','A:MD/MC Kudus 84 26'],
 ['Panamá','PANAMÁ','#da121a','#ffffff','#072357',70,'es','L','']
 ];
 const WCST=['1ª rodada','2ª rodada','3ª rodada','16 avos de final','Oitavas de final','Quartas de final','Semifinais','Final e 3º lugar'];
 const GL='ABCDEFGHIJKL';
 function newWC(name,ni){const seed=Math.floor(Math.random()*2147483646)+1;
-  S={v:3,mode:'wc',seed,rng:seed,year:2026,md:0,turn:0,nid:1,P:{},teams:[],mgr:[],news:[],history:[],lastSummary:null};
+  S={v:6,mode:'wc',seed,rng:seed,year:2026,md:0,turn:0,nid:1,P:{},teams:[],mgr:[],news:[],history:[],lastSummary:null};
   NAT.forEach((d,i)=>{const t={id:i,name:d[0],short:d[1],div:9,nat:true,c:[d[2],d[3],d[4]],rep:d[5],std:'Copa do Mundo 2026',cap:0,pool:d[6],grp:d[7],pids:[],xi:[],bench:[],form:pick(['4-4-2','4-3-3','4-3-3','4-5-1']),post:1,loan:0,ticket:0,cash:0,tb:emptyTb()};
     S.teams.push(t);buildSquad(t,d[8],{G:3,D:9,M:8,A:6});});
   const groups=[...GL].map(g=>S.teams.filter(t=>t.grp===g).map(t=>t.id));
@@ -1012,13 +1066,18 @@ function save(){if(!S||ONLINE())return;UI.saved=lsSet(S.mode==='wc'?WC_KEY:SAVE_
 const WC_KEY='futebolbrasil_copa';
 function loadWC(){const s=lsGet(WC_KEY);return s&&s.mode==='wc'?s:null;}
 // carreira solo antiga: os clubes estrangeiros entram agora e as copas internacionais começam na próxima temporada
-function upgradeSolo(o){if(!o||o.mode==='wc'||o.online||o.v>=4)return o;const keep=S;S=o;
-  if(!S.teams.some(t=>t.ext)){S.v=4;addWorldV4();}
+function upgradeSolo(o){if(!o||o.mode==='wc'||o.online||o.v>=6)return o;const keep=S;S=o;
+  if(S.v<4){if(!S.teams.some(t=>t.ext)){S.v=4;addWorldV4();}
   else{S.teams.forEach(t=>{if(t.ext&&LGOF[t.name]){t.div=LGOF[t.name];t.ticket=LGS[t.div].tk;t.cap=Math.max(30000,Math.round(t.rep*t.rep*7));}});S.v=4;
     NEWC.forEach(d=>{const P=LGS[d[2]];const t={id:S.teams.length,name:d[0],short:d[1],div:d[2],c:[d[3],d[4],d[5]],rep:d[6],std:d[7],cap:d[8],pool:P.pool,pids:[],xi:[],bench:[],form:pick(['4-4-2','4-3-3','4-5-1']),post:1,loan:0,ticket:P.tk,tb:emptyTb()};
       t.cash=Math.round(t.rep*t.rep*P.cash/1e5)*1e5;S.teams.push(t);buildSquad(t,d[9]);});}
+  }
   S.teams.forEach(t=>{if(!t.tb)t.tb=emptyTb();});
   Object.values(S.P).forEach(p=>{if(p.fr==null){p.fr=Math.round((.5+R()+(R()<.12?R()*1.2:0))*100)/100;p.ag=Math.round((.5+R()+(R()<.1?R():0))*100)/100;}});
+  // posições dos jogadores reais (pelo nome) e do restante pela necessidade de cada elenco
+  const known={};[...T0,...EXT,...NEWC].forEach(d=>{const sq=d[9];if(!sq)return;sq.split(';').forEach(raw=>{const tk=raw.trim().split(/\s+/);const det=tk[0].split(':')[1];if(!det)return;let end=tk.length;while(end>1&&/^\d+$/.test(tk[end-1]))end--;const n=tk.slice(1,end).join(' ');if(!(n in known))known[n]=det;});});
+  S.v=6;S.teams.forEach(t=>{const ps=t.pids.map(PL);ps.forEach(p=>{if(p.dp)return;if(p.p==='G'){p.dp='GOL';p.sp=[];return;}const d=known[p.n];if(d&&SECT[d.split('/')[0]]){const ds=d.split('/');p.dp=ds[0];p.sp=ds.slice(1);p.p=SECT[p.dp];}});
+    ps.forEach(p=>{if(!p.dp)givePos(p,t);if(p.pot==null)givePot(p);});t.sl=null;autoLineup(t);});
   S=keep;return o;}
 function loadSaved(){const s=lsGet(SAVE_KEY);if(s&&s.mgr)return s;return migrateV1(lsGet('futebolbrasil_v1'));}
 function migrateV1(o){if(!o||!o.user||!o.teams)return null;try{const u=o.user;
@@ -1054,7 +1113,7 @@ function subscribeLobby(){
 }
 async function createOnline(name){
   const ref=DB.collection('games').doc();
-  try{await ref.set({seed:Math.floor(Math.random()*2147483646)+1,pool:UI.pool,timer:UI.timer,ver:5,host:UID,hostName:name,guest:null,guestName:'',status:'waiting',created:Date.now()});}
+  try{await ref.set({seed:Math.floor(Math.random()*2147483646)+1,pool:UI.pool,timer:UI.timer,ver:6,host:UID,hostName:name,guest:null,guestName:'',status:'waiting',created:Date.now()});}
   catch(e){toast(dbErr(e));return;}
   waitFor(ref.id);
 }
@@ -1108,9 +1167,9 @@ function subscribeTurn(){const o=UI.on;if(!o)return;if(o.unsub)o.unsub();const n
     else if(UI.screen==='hub')updateOnlineBox();},e=>{toast(dbErr(e));});}
 function onlineTurnDone(){const o=UI.on;if(S.v>=4)autoRun();o.base=JSON.stringify(S);o.pending=[];o.sent=false;o.rivalReady=false;o.running=false;o.sentAt=null;o.rivalSeenAt=null;saveOnline();subscribeTurn();
   try{DB.doc('games/'+o.gid).update({turn:S.turn,year:S.year});}catch(e){}}
-function saveOnline(){const o=UI.on;if(!o)return;const t=UT();UI.saved=lsSet('fb_on_'+o.gid,{slot:o.slot,base:o.base,pending:o.pending,turn:S.turn,lu:t&&!o.sent?{k:'lineup',form:t.form,post:t.post,xi:t.xi.slice(),bench:t.bench.slice()}:null});}
+function saveOnline(){const o=UI.on;if(!o)return;const t=UT();UI.saved=lsSet('fb_on_'+o.gid,{slot:o.slot,base:o.base,pending:o.pending,turn:S.turn,lu:t&&!o.sent?{k:'lineup',form:t.form,post:t.post,xi:t.xi.slice(),bench:t.bench.slice(),sl:t.sl?t.sl.slice():undefined}:null});}
 async function sendReady(auto){const o=UI.on;if(o.sent)return;const mg=ME();if(mg.fired&&!auto){toast('Escolha seu novo clube antes.');showFired();return;}
-  const t=UT();const acts=o.pending.concat(t?[{k:'lineup',form:t.form,post:t.post,xi:t.xi.slice(),bench:t.bench.slice()}]:[]);
+  const t=UT();const acts=o.pending.concat(t?[{k:'lineup',form:t.form,post:t.post,xi:t.xi.slice(),bench:t.bench.slice(),sl:t.sl?t.sl.slice():undefined}]:[]);
   o.sent=true;updateOnlineBox();
   o.sentAt=Date.now();
   try{const ok=await claimWrite(o.slot,{turn:S.turn,slot:o.slot,acts,chk:hashStr(o.base),at:Date.now()});
@@ -1235,27 +1294,36 @@ const avgTxt=(g,j)=>j?(g/j).toFixed(2).replace('.',','):'—';
 const cpj=p=>p.tj?((p.ty||0)+(p.tr||0))/p.tj:0;
 const injRate=p=>((p.ti||0)+(p.tmi||0)/3)/Math.max(12,p.tj||0);
 const riskTxt=p=>{const r=injRate(p);return (p.tj||0)<5&&!(p.ti)?'sem histórico':r>=.15?'alto':r>=.07?'médio':'baixo';};
-const SORTS={cpj:['Cartões por jogo (mais)',(a,b)=>cpj(b)-cpj(a)||(b.tr||0)-(a.tr||0)],les:['Lesões (mais)',(a,b)=>(b.ti||0)-(a.ti||0)||(b.tmi||0)-(a.tmi||0)],safe:['Menor risco de lesão',(a,b)=>injRate(a)-injRate(b)||(b.tj||0)-(a.tj||0)||b.f-a.f],pos:['Posição',(a,b)=>PORD[a.p]-PORD[b.p]||b.f-a.f],f:['Força',(a,b)=>b.f-a.f],a:['Idade (mais novo)',(a,b)=>a.a-b.a||b.f-a.f],gl:['Gols',(a,b)=>b.gl-a.gl||a.gm-b.gm||b.f-a.f],
+const SORTS={pot:['Potencial (maior)',(a,b)=>(b.pot||0)-(a.pot||0)||a.a-b.a],cpj:['Cartões por jogo (mais)',(a,b)=>cpj(b)-cpj(a)||(b.tr||0)-(a.tr||0)],les:['Lesões (mais)',(a,b)=>(b.ti||0)-(a.ti||0)||(b.tmi||0)-(a.tmi||0)],safe:['Menor risco de lesão',(a,b)=>injRate(a)-injRate(b)||(b.tj||0)-(a.tj||0)||b.f-a.f],pos:['Posição',(a,b)=>PORD[a.p]-PORD[b.p]||b.f-a.f],f:['Força',(a,b)=>b.f-a.f],a:['Idade (mais novo)',(a,b)=>a.a-b.a||b.f-a.f],gl:['Gols',(a,b)=>b.gl-a.gl||a.gm-b.gm||b.f-a.f],
   avg:['Média de gols',(a,b)=>((b.gm>=3?avgNum(b):-1)-(a.gm>=3?avgNum(a):-1))||b.gl-a.gl||b.f-a.f],cavg:['Média na carreira',(a,b)=>(((b.tj||0)>=5?cavgNum(b):-1)-((a.tj||0)>=5?cavgNum(a):-1))||(b.tgj||0)-(a.tgj||0)||b.f-a.f],gm:['Jogos',(a,b)=>b.gm-a.gm||b.f-a.f],v:['Valor (mais barato)',(a,b)=>value(a)-value(b)||b.f-a.f],vd:['Valor (mais caro)',(a,b)=>value(b)-value(a)]};
 function sortOpts(keys,cur){return keys.map(k=>`<option value="${k}" ${cur===k?'selected':''}>${SORTS[k][0]}</option>`).join('');}
 const cpjTxt=p=>p.tj?(cpj(p)).toFixed(2).replace('.',','):'—';
 const injTxt=p=>p.ti?`${p.ti}<span class="small muted"> (${p.tmi||0}r)</span>`:'0';
 let persistT;function persistSoon(){clearTimeout(persistT);persistT=setTimeout(()=>{if(ONLINE())saveOnline();else save();},700);}
 function noClub(){return '<p>Você está sem clube no momento.</p>';}
-function elencoHTML(){const t=UT();if(!t||ME().fired)return noClub();
-  const E=UI.el;const all=t.pids.map(PL);const ps=all.filter(p=>!E.pos||p.p===E.pos).sort(SORTS[E.sort][1]);
+const PGROUPS=[['','Todos',null],['GOL','Goleiros',['GOL']],['ZAG','Zagueiros',['ZAG']],['LAT','Laterais',['LD','LE']],['VOL','Volantes',['VOL']],['MEI','Meias',['MC','MD','ME']],['PON','Pontas',['PD','PE']],['CA','Centroavantes',['CA']]];
+const inGroup=(p,k)=>{if(!k)return true;if(!V6()||!p.dp)return p.p===k;const g=PGROUPS.find(x=>x[0]===k);return g?g[2].includes(p.dp):true;};
+function fieldHTML(t){normSlots(t);const slots=slotsOf(t);const ROW={PE:0,CA:0,PD:0,ME:1,MC:1,MD:1,VOL:2,LE:3,ZAG:3,LD:3,GOL:4};const COL={PE:0,ME:0,LE:0,CA:1,MC:1,VOL:1,ZAG:1,GOL:1,PD:2,MD:2,LD:2};
+  const rows=[[],[],[],[],[]];slots.forEach((pos,i)=>rows[ROW[pos]].push(i));rows.forEach(r=>r.sort((a,b)=>COL[slots[a]]-COL[slots[b]]||a-b));
+  return `<div class="field">${rows.map(r=>r.length?`<div class="frow">${r.map(i=>{const id=t.sl[i];const p=id!=null?PL(id):null;const pos=slots[i];const ft=p?fit(p,pos):1;
+    const cls=!p?'empty':ft>=1?'ok':ft>=.9?'sec':ft>=.8?'nb':'bad';
+    return `<button class="slot ${cls}" data-a="slot" data-v="${i}" title="${POSL[pos]}"><span class="spos">${pos}</span><b>${p?esc(p.n):'escolher'}</b><span class="sfor">${p?`${effF(p,pos)}${ft<1?` <s>${p.f}</s> ${Math.round(ft*100)}%`:''}`:'vaga livre'}</span>${p&&!avail(p)?'<span class="tag inj">indisponível</span>':''}</button>`;}).join('')}</div>`:'').join('')}</div>
+   <p class="small muted" style="margin:4px 0 8px">Toque numa vaga para escolher o jogador. Borda verde: posição de origem. Verde-claro: posição secundária (92% da força). Amarelo: posição vizinha (80%). Vermelho: fora de função (60%) ou goleiro trocado (25%).</p>`;}
+function elencoHTML(){const t=UT();if(!t||ME().fired)return noClub();if(V6())normSlots(t);
+  const E=UI.el;const all=t.pids.map(PL);const ps=all.filter(p=>inGroup(p,E.pos)).sort(SORTS[E.sort][1]);
   const cnt={G:0,D:0,M:0,A:0};t.xi.forEach(id=>cnt[PL(id).p]++);
-  const s=strength({on:t.xi,post:t.post});const bad=t.xi.map(PL).filter(p=>!avail(p));
+  const s=strength({on:t.xi,post:t.post,slot:V6()?slotMap(t):null});const bad=t.xi.map(PL).filter(p=>!avail(p));
   return `${bad.length?`<div class="banner" style="margin:-10px -10px 10px;background:var(--warn)">${bad.length===1?'1 titular está indisponível':bad.length+' titulares estão indisponíveis'} (${bad.map(p=>esc(p.n)).join(', ')}). Troque agora ou o auxiliar troca na hora do jogo.</div>`:''}<div class="row" style="justify-content:space-between;margin-bottom:8px">
    <div class="row"><label for="form">Esquema</label><select id="form" data-c="form">${Object.keys(FORMS).map(f=>`<option ${f===t.form?'selected':''}>${f}</option>`).join('')}</select>
    <label for="post">Postura</label><select id="post" data-c="post">${POSTS.map((p,i)=>`<option value="${i}" ${i===t.post?'selected':''}>${p}</option>`).join('')}</select>
    <button class="btn" data-a="auto">Escalar automático</button></div>
    <div class="small"><b>Titulares ${t.xi.length}/11</b> · Reservas ${t.bench.length}/7 · Em campo: ${cnt.G} G · ${cnt.D} D · ${cnt.M} M · ${cnt.A} A · Ataque ${Math.round(s.atk)} / Defesa ${Math.round(s.def)}</div></div>
    <p class="small muted" style="margin:0 0 6px">Toque no quadrado da esquerda para alternar: T titular, R reserva, vazio fora do jogo. Toque no nome para abrir a ficha.${ONLINE()?' No modo online a postura vale para o jogo inteiro e lesionados são trocados automaticamente.':''}</p>
-   <div class="row" style="margin-bottom:6px"><span class="lbl">Mostrar</span>${[['','Todos'],['G','Goleiros'],['D','Defensores'],['M','Meio-campo'],['A','Atacantes']].map(([k,n])=>`<button class="btn sm ${E.pos===k?'on':''}" data-a="elpos" data-v="${k}">${n} (${k?all.filter(p=>p.p===k).length:all.length})</button>`).join('')}
+   ${V6()?fieldHTML(t):''}
+   <div class="row" style="margin-bottom:6px"><span class="lbl">Mostrar</span>${(V6()?PGROUPS.map(g=>[g[0],g[1]]):[['','Todos'],['G','Goleiros'],['D','Defensores'],['M','Meio-campo'],['A','Atacantes']]).map(([k,n])=>`<button class="btn sm ${E.pos===k?'on':''}" data-a="elpos" data-v="${k}">${n} (${all.filter(p=>inGroup(p,k)).length})</button>`).join('')}
     <label for="elsort" class="small">Ordenar por</label><select id="elsort" data-c="elsort">${sortOpts(['pos','f','a','gl','avg','cavg','gm','cpj','les','safe','vd'],E.sort)}</select></div>
-   <div class="scroll sunk"><table class="grid"><thead><tr><th class="c">Esc.</th><th>Pos</th><th>Jogador</th><th class="n">Força</th><th class="n">Idade</th><th class="n">J</th><th class="n">Gols</th><th class="n" title="Gols ÷ jogos na temporada">Média temp.</th><th class="n" title="Gols ÷ jogos na carreira, contados desde o início do jogo">Média carreira</th><th class="n" title="Cartões (amarelos + vermelhos) ÷ jogos na carreira">CA/J</th><th class="n" title="Lesões na carreira e rodadas perdidas">Lesões</th><th>Situação</th>${S.mode==='wc'?'':'<th class="n">Valor</th><th class="n">Salário/mês</th>'}</tr></thead><tbody>
-   ${ps.map(p=>{const k=t.xi.includes(p.id)?'T':t.bench.includes(p.id)?'R':'';return `<tr class="${k&&!avail(p)?'warn':''}"><td class="c"><button class="st ${k}" data-a="cyc" data-v="${p.id}" aria-label="Alternar escalação de ${esc(p.n)}">${k||'·'}</button></td><td>${posTag(p.p)}</td><td><a href="#" data-a="pinfo" data-v="${p.id}" style="color:inherit;font-weight:${p.f>=80?700:500}">${esc(p.n)}</a></td><td class="n">${p.f}</td><td class="n">${p.a}</td><td class="n">${p.gm}</td><td class="n">${p.gl}</td><td class="n">${avgTxt(p.gl,p.gm)}</td><td class="n">${avgTxt(p.tgj||0,p.tj||0)}${p.tj?`<span class="small muted"> (${p.tj}j)</span>`:''}</td><td class="n">${cpjTxt(p)}</td><td class="n">${injTxt(p)}</td><td>${pStatus(p)}</td>${S.mode==='wc'?'':`<td class="n">${money(value(p))}</td><td class="n">${money(p.sal)}</td>`}</tr>`;}).join('')}
+   <div class="scroll sunk"><table class="grid"><thead><tr><th class="c">Esc.</th><th>Pos</th><th>Jogador</th><th class="n">Força</th><th class="n">Idade</th>${V6()?'<th title="Até onde o jogador pode evoluir">Potencial</th>':''}<th class="n">J</th><th class="n">Gols</th><th class="n" title="Gols ÷ jogos na temporada">Média temp.</th><th class="n" title="Gols ÷ jogos na carreira, contados desde o início do jogo">Média carreira</th><th class="n" title="Cartões (amarelos + vermelhos) ÷ jogos na carreira">CA/J</th><th class="n" title="Lesões na carreira e rodadas perdidas">Lesões</th><th>Situação</th>${S.mode==='wc'?'':'<th class="n">Valor</th><th class="n">Salário/mês</th>'}</tr></thead><tbody>
+   ${ps.map(p=>{const k=t.xi.includes(p.id)?'T':t.bench.includes(p.id)?'R':'';return `<tr class="${k&&!avail(p)?'warn':''}"><td class="c"><button class="st ${k}" data-a="cyc" data-v="${p.id}" aria-label="Alternar escalação de ${esc(p.n)}">${k||'·'}</button></td><td>${posTag2(p)}</td><td><a href="#" data-a="pinfo" data-v="${p.id}" style="color:inherit;font-weight:${p.f>=80?700:500}">${esc(p.n)}</a>${p.gem?' <span class="tag sale">joia</span>':''}</td><td class="n">${p.f}</td><td class="n">${p.a}</td>${V6()?`<td class="small">${potTxt(p)}</td>`:''}<td class="n">${p.gm}</td><td class="n">${p.gl}</td><td class="n">${avgTxt(p.gl,p.gm)}</td><td class="n">${avgTxt(p.tgj||0,p.tj||0)}${p.tj?`<span class="small muted"> (${p.tj}j)</span>`:''}</td><td class="n">${cpjTxt(p)}</td><td class="n">${injTxt(p)}</td><td>${pStatus(p)}</td>${S.mode==='wc'?'':`<td class="n">${money(value(p))}</td><td class="n">${money(p.sal)}</td>`}</tr>`;}).join('')}
    </tbody></table></div>`;}
 function zone(d,i){if(LGS[d]){const q=LGS[d].ucl||LGS[d].lib||0;return i<q?'zone-l':'';}if(d===0)return i<6?'zone-l':i>=16?'zone-dn':'';if(d===1)return i<4?'zone-up':i>=16?'zone-dn':'';return i<4?'zone-up':'';}
 function rowCls(tid){return tid===myTid()?'me':isHuman(tid)?'rv':'';}
@@ -1267,7 +1335,7 @@ function tabelaHTML(){const t=UT();const d=UI.div??(t?t.div:0);const tab=sortedT
   <p class="small muted">${LGS[d]?`Verde: vaga na ${LGS[d].reg==='EU'?'Champions League':'Libertadores'} da próxima temporada. Liga sem rebaixamento neste jogo.`:d===0?'Verde: zona de Libertadores (1º ao 6º). Vermelho: rebaixamento para a Série B.':d===1?'Azul: acesso à Série A (1º ao 4º). Vermelho: rebaixamento para a Série C.':'Azul: acesso à Série B (1º ao 4º).'}${ONLINE()?' Linha azul-clara: clube do seu amigo.':''}</p>`;}
 function lastLeagueRound(){for(let i=S.md-1;i>=0;i--)if(S.cal[i].t==='L')return S.cal[i].r;return -1;}
 function goalsLine(fx,side){return (fx.ev||[]).filter(e=>e[1]===side&&e[2]==='goal').map(e=>`${esc(e[3])} ${e[0]}'`).join(', ');}
-function fxRow(fx){const played=fx.hg!=null;const c=fx.h===myTid()||fx.a===myTid()?'me':isHuman(fx.h)||isHuman(fx.a)?'rv':'';return `<tr class="${c}"><td>${tbox(fx.h)}</td><td class="c"><b>${played?`${fx.hg} x ${fx.ag}`:'x'}</b>${fx.pen?`<div class="small">pên. ${fx.pen[0]}x${fx.pen[1]}</div>`:''}</td><td>${tbox(fx.a)}</td><td class="small" style="white-space:normal;min-width:180px">${played?[goalsLine(fx,0),goalsLine(fx,1)].filter(Boolean).join(' · ')||'—':''}</td></tr>`;}
+function fxRow(fx){const played=fx.hg!=null;const c=fx.h===myTid()||fx.a===myTid()?'me':isHuman(fx.h)||isHuman(fx.a)?'rv':'';return `<tr class="${c}"><td>${tbox(fx.h)}</td><td class="c"><b>${played?`${fx.hg} x ${fx.ag}`:'x'}</b>${fx.pen?`<div class="small">pên. ${fx.pen[0]}x${fx.pen[1]}</div>`:''}</td><td>${tbox(fx.a)}</td><td class="n small">${fx.pub?num(fx.pub)+' pag.':''}</td><td class="small" style="white-space:normal;min-width:180px">${played?[goalsLine(fx,0),goalsLine(fx,1)].filter(Boolean).join(' · ')||'—':''}</td></tr>`;}
 function rodadaHTML(){const t=UT();const d=UI.resDiv??(t?t.div:0);const lr=lastLeagueRound();const ev=curEv();const nr=ev?(ev.t==='L'?ev.r:(lr+1<38?lr+1:-1)):-1;
   return `<div class="row" style="margin-bottom:8px">${divBtns(d,'rdiv')}</div>
   <div class="cols">
@@ -1282,21 +1350,21 @@ function calHTML(){const t=UT();if(!t)return noClub();const rows=[];
 function copaHTML(){const c=S.cup;return `<h2>Copa do Brasil ${S.year}</h2>${c.champ!=null?`<p class="trophy">Campeão: ${tbox(c.champ)} · Vice: ${tbox(c.vice)}</p>`:''}
   <p class="small muted">32 clubes (Série A + 12 da Série B), jogo único, empate decidido nos pênaltis. Prêmio por fase: R$ 2 mi a R$ 8 mi; campeão leva R$ 30 mi.</p>
   ${c.rounds.slice().reverse().map((r,k)=>{const s=c.rounds.length-1-k;return `<h3>${STAGES[s]}</h3><div class="scroll sunk"><table class="grid"><tbody>${r.map(fxRow).join('')}</tbody></table></div>`;}).join('')}`;}
-function artHTML(){if(S.mode==='wc'){const list=Object.values(S.P).filter(p=>p.gl>0).sort((a,b)=>b.gl-a.gl||a.gm-b.gm).slice(0,25);return `<h2>Artilharia da Copa</h2><div class="scroll sunk"><table class="grid"><thead><tr><th class="n">#</th><th>Jogador</th><th>Seleção</th><th class="n">Gols</th><th class="n">Jogos</th><th class="n">Média</th></tr></thead><tbody>${list.length?list.map((p,i)=>`<tr class="${rowCls(p.t)} click" data-a="pinfo" data-v="${p.id}"><td class="n">${i+1}</td><td>${posTag(p.p)} ${esc(p.n)}</td><td>${tbox(p.t,'sm')}</td><td class="n"><b>${p.gl}</b></td><td class="n">${p.gm}</td><td class="n">${avgTxt(p.gl,p.gm)}</td></tr>`).join(''):'<tr><td colspan="6">Nenhum gol ainda.</td></tr>'}</tbody></table></div>`;}const t=UT();const d=UI.artDiv??(t?t.div:0);const list=Object.values(S.P).filter(p=>TM(p.t).div===d&&p.gl>0).sort((a,b)=>b.gl-a.gl||a.gm-b.gm).slice(0,25);
+function artHTML(){if(S.mode==='wc'){const list=Object.values(S.P).filter(p=>p.gl>0).sort((a,b)=>b.gl-a.gl||a.gm-b.gm).slice(0,25);return `<h2>Artilharia da Copa</h2><div class="scroll sunk"><table class="grid"><thead><tr><th class="n">#</th><th>Jogador</th><th>Seleção</th><th class="n">Gols</th><th class="n">Jogos</th><th class="n">Média</th></tr></thead><tbody>${list.length?list.map((p,i)=>`<tr class="${rowCls(p.t)} click" data-a="pinfo" data-v="${p.id}"><td class="n">${i+1}</td><td>${posTag2(p)} ${esc(p.n)}</td><td>${tbox(p.t,'sm')}</td><td class="n"><b>${p.gl}</b></td><td class="n">${p.gm}</td><td class="n">${avgTxt(p.gl,p.gm)}</td></tr>`).join(''):'<tr><td colspan="6">Nenhum gol ainda.</td></tr>'}</tbody></table></div>`;}const t=UT();const d=UI.artDiv??(t?t.div:0);const list=Object.values(S.P).filter(p=>TM(p.t).div===d&&p.gl>0).sort((a,b)=>b.gl-a.gl||a.gm-b.gm).slice(0,25);
   return `<div class="row" style="margin-bottom:8px">${divBtns(d,'adiv')}</div>
   <div class="scroll sunk"><table class="grid"><thead><tr><th class="n">#</th><th>Jogador</th><th>Clube</th><th class="n">Gols</th><th class="n">Jogos</th><th class="n">Média</th></tr></thead><tbody>
-  ${list.length?list.map((p,i)=>`<tr class="${rowCls(p.t)} click" data-a="pinfo" data-v="${p.id}"><td class="n">${i+1}</td><td>${posTag(p.p)} ${esc(p.n)}</td><td>${tbox(p.t)}</td><td class="n"><b>${p.gl}</b></td><td class="n">${p.gm}</td><td class="n">${avgTxt(p.gl,p.gm)}</td></tr>`).join(''):'<tr><td colspan="6">Nenhum gol marcado ainda.</td></tr>'}
+  ${list.length?list.map((p,i)=>`<tr class="${rowCls(p.t)} click" data-a="pinfo" data-v="${p.id}"><td class="n">${i+1}</td><td>${posTag2(p)} ${esc(p.n)}</td><td>${tbox(p.t)}</td><td class="n"><b>${p.gl}</b></td><td class="n">${p.gm}</td><td class="n">${avgTxt(p.gl,p.gm)}</td></tr>`).join(''):'<tr><td colspan="6">Nenhum gol marcado ainda.</td></tr>'}
   </tbody></table></div><p class="small muted">Gols em todas as competições da temporada. Média = gols ÷ jogos. Empate em gols: fica na frente quem jogou menos.</p>`;}
 function mktHTML(){const t=UT();if(!t||ME().fired)return noClub();const f=UI.mkt;const mx=parseFloat(f.max)||0;const q=(f.q||'').toLowerCase();
   const amin=parseInt(f.amin)||0,amax=parseInt(f.amax)||0,fmin=parseInt(f.fmin)||0;
-  let list=Object.values(S.P).filter(p=>p.t!==t.id&&!isHuman(p.t)&&(!f.pos||p.p===f.pos)&&(f.div===''||TM(p.t).div===+f.div)&&(!mx||value(p)<=mx*1e6)&&(!amin||p.a>=amin)&&(!amax||p.a<=amax)&&(!fmin||p.f>=fmin)&&(!q||p.n.toLowerCase().includes(q)||TM(p.t).name.toLowerCase().includes(q)));
+  let list=Object.values(S.P).filter(p=>p.t!==t.id&&!isHuman(p.t)&&(!f.pos||(V6()&&p.dp?(p.dp===f.pos||(UI.mkt.sec&&(p.sp||[]).includes(f.pos))):p.p===f.pos))&&(f.div===''||TM(p.t).div===+f.div)&&(!mx||value(p)<=mx*1e6)&&(!amin||p.a>=amin)&&(!amax||p.a<=amax)&&(!fmin||p.f>=fmin)&&(!q||p.n.toLowerCase().includes(q)||TM(p.t).name.toLowerCase().includes(q)));
   const AQ=new Map();const aq=p=>{let a=AQ.get(p.id);if(!a){a=askInfo(p,t);AQ.set(p.id,a);}return a;};
   if(f.can)list=list.filter(p=>{const a=aq(p);return !a.refuse&&a.ask<=t.cash;});
   if(f.sort==='ask')list.sort((a,b)=>aq(a).ask-aq(b).ask||b.f-a.f);else list.sort(SORTS[f.sort][1]);const total=list.length;list=list.slice(0,80);const anyF=f.q||f.pos||f.div!==''||f.max||f.amin||f.amax||f.fmin||f.sort!=='f';
   const mine=t.pids.map(PL).filter(p=>p.sale);
   return `<div class="row" style="margin-bottom:8px">
    <label for="mq">Buscar</label><input id="mq" data-c="mq" value="${esc(f.q)}" placeholder="Jogador ou clube" style="width:160px">
-   <label for="mp">Posição</label><select id="mp" data-c="mp"><option value="">Todas</option>${['G','D','M','A'].map(p=>`<option value="${p}" ${f.pos===p?'selected':''}>${POSN[p]}</option>`).join('')}</select>
+   ${V6()?`<button class="btn sm ${UI.mkt.sec?'on':''}" data-a="msec" title="Inclui quem faz a posição escolhida como secundária">${UI.mkt.sec?'✓ ':''}+ secundária</button>`:''}<label for="mp">Posição</label><select id="mp" data-c="mp"><option value="">Todas</option>${V6()?DPS.map(p=>`<option value="${p}" ${f.pos===p?'selected':''}>${POSL[p]}</option>`).join(''):['G','D','M','A'].map(p=>`<option value="${p}" ${f.pos===p?'selected':''}>${POSN[p]}</option>`).join('')}</select>
    <label for="md">Divisão</label><select id="md" data-c="md"><option value="">Todas</option>${DIVN.map((n,i)=>`<option value="${i}" ${f.div===String(i)?'selected':''}>${i===3?'América do Sul (Libertadores)':i===4?'Europa (Champions)':n}</option>`).join('')}</select>
    <label for="mm">Valor até (R$ mi)</label><input id="mm" data-c="mm" type="number" min="0" step="0.5" value="${esc(f.max)}" style="width:80px">
   </div>
@@ -1304,13 +1372,13 @@ function mktHTML(){const t=UT();if(!t||ME().fired)return noClub();const f=UI.mkt
    <label for="mamin">Idade de</label><input id="mamin" data-c="mamin" type="number" min="16" max="45" value="${esc(f.amin)}" style="width:64px">
    <label for="mamax">até</label><input id="mamax" data-c="mamax" type="number" min="16" max="45" value="${esc(f.amax)}" style="width:64px">
    <label for="mfmin">Força mínima</label><input id="mfmin" data-c="mfmin" type="number" min="25" max="99" value="${esc(f.fmin)}" style="width:64px">
-   <label for="msort">Ordenar por</label><select id="msort" data-c="msort">${sortOpts(['f','gl','avg','cavg','a','cpj','les','safe','v','vd'],f.sort)}<option value="ask" ${f.sort==='ask'?'selected':''}>Preço pedido (mais barato)</option></select>
+   <label for="msort">Ordenar por</label><select id="msort" data-c="msort">${sortOpts(['f','gl','avg','cavg','a','cpj','les','safe','v','vd'].concat(V6()?['pot']:[]),f.sort)}<option value="ask" ${f.sort==='ask'?'selected':''}>Preço pedido (mais barato)</option></select>
    <button class="btn sm ${f.can?'on':''}" data-a="mcan" aria-pressed="${f.can}">${f.can?'✓ ':''}Só quem posso contratar</button>
    ${anyF?'<button class="btn sm" data-a="mclear">Limpar filtros</button>':''}
   </div>
   <p class="small">Caixa disponível: <b>${money(t.cash)}</b> · ${total} jogadores encontrados${total>80?' (mostrando os 80 primeiros)':''}. ${f.can?'Mostrando só quem aceita vir e cujo preço pedido cabe no seu caixa. ':''}Toque num jogador para ver o preço pedido e fazer proposta.${f.sort==='avg'?' Na ordenação por média da temporada, só entra no topo quem tem 3 jogos ou mais.':f.sort==='cavg'?' Na ordenação por média da carreira, só entra no topo quem tem 5 jogos ou mais.':''} Média carreira = gols ÷ jogos desde o início do jogo; o número entre parênteses é a quantidade de jogos.${ONLINE()?' Os jogadores do clube do seu amigo não aparecem aqui. Se vocês dois comprarem o mesmo jogador na mesma rodada, vale a compra de quem criou a partida.':''}</p>
-  <div class="scroll sunk"><table class="grid"><thead><tr><th>Pos</th><th>Jogador</th><th>Clube</th><th class="n">Força</th><th class="n">Idade</th><th class="n">J</th><th class="n">Gols</th><th class="n">Média temp.</th><th class="n">Média carreira</th><th class="n" title="Cartões ÷ jogos na carreira">CA/J</th><th class="n" title="Lesões na carreira e rodadas perdidas">Lesões</th><th class="n">Valor</th><th class="n" title="Quanto o clube dele pede para vender">Pedido</th><th class="n">Salário</th><th>Situação</th></tr></thead><tbody>
-  ${list.length?list.map(p=>`<tr class="click" data-a="pinfo" data-v="${p.id}"><td>${posTag(p.p)}</td><td>${esc(p.n)}</td><td>${tbox(p.t,'sm')}</td><td class="n"><b>${p.f}</b></td><td class="n">${p.a}</td><td class="n">${p.gm}</td><td class="n">${p.gl}</td><td class="n">${avgTxt(p.gl,p.gm)}</td><td class="n">${avgTxt(p.tgj||0,p.tj||0)}${p.tj?`<span class="small muted"> (${p.tj}j)</span>`:''}</td><td class="n">${cpjTxt(p)}</td><td class="n">${injTxt(p)}</td><td class="n">${money(value(p))}</td><td class="n">${(()=>{const a=aq(p);return a.refuse?'<span class="small muted">não vem</span>':`<b style="color:${a.ask>t.cash?'var(--alerta)':'inherit'}">${money(a.ask)}</b>`;})()}</td><td class="n">${money(p.sal)}</td><td>${pStatus(p)}</td></tr>`).join(''):`<tr><td colspan="15">Nenhum jogador com esses filtros.${f.can?' O filtro "Só quem posso contratar" está ligado: desligue para ver todos.':''}</td></tr>`}
+  <div class="scroll sunk"><table class="grid"><thead><tr><th>Pos</th><th>Jogador</th><th>Clube</th><th class="n">Força</th><th class="n">Idade</th>${V6()?'<th>Potencial</th>':''}<th class="n">J</th><th class="n">Gols</th><th class="n">Média temp.</th><th class="n">Média carreira</th><th class="n" title="Cartões ÷ jogos na carreira">CA/J</th><th class="n" title="Lesões na carreira e rodadas perdidas">Lesões</th><th class="n">Valor</th><th class="n" title="Quanto o clube dele pede para vender">Pedido</th><th class="n">Salário</th><th>Situação</th></tr></thead><tbody>
+  ${list.length?list.map(p=>`<tr class="click" data-a="pinfo" data-v="${p.id}"><td>${posTag2(p)}</td><td>${esc(p.n)}</td><td>${tbox(p.t,'sm')}</td><td class="n"><b>${p.f}</b></td><td class="n">${p.a}</td>${V6()?`<td class="small">${potTxt(p)}${p.gem?' <span class="tag sale">joia</span>':''}</td>`:''}<td class="n">${p.gm}</td><td class="n">${p.gl}</td><td class="n">${avgTxt(p.gl,p.gm)}</td><td class="n">${avgTxt(p.tgj||0,p.tj||0)}${p.tj?`<span class="small muted"> (${p.tj}j)</span>`:''}</td><td class="n">${cpjTxt(p)}</td><td class="n">${injTxt(p)}</td><td class="n">${money(value(p))}</td><td class="n">${(()=>{const a=aq(p);return a.refuse?'<span class="small muted">não vem</span>':`<b style="color:${a.ask>t.cash?'var(--alerta)':'inherit'}">${money(a.ask)}</b>`;})()}</td><td class="n">${money(p.sal)}</td><td>${pStatus(p)}</td></tr>`).join(''):`<tr><td colspan="15">Nenhum jogador com esses filtros.${f.can?' O filtro "Só quem posso contratar" está ligado: desligue para ver todos.':''}</td></tr>`}
   </tbody></table></div>
   <h3>Seus jogadores à venda</h3>${mine.length?`<p>${mine.map(p=>`<a href="#" data-a="pinfo" data-v="${p.id}">${esc(p.n)}</a> (${money(value(p))})`).join(' · ')}</p>`:'<p class="small muted">Nenhum. Abra a ficha de um jogador do seu elenco e coloque à venda para receber propostas.</p>'}`;}
 function finHTML(){const t=UT();const mg=ME();if(!t||mg.fired)return noClub();if(mg.ledger)return finHTML5(t,mg);const F=mg.fin,L=mg.finLast;const rows=[['Bilheteria','bil'],['Cotas de TV','tv'],['Patrocínio','pat'],['Venda de jogadores','ven'],['Premiações','pre'],['Compra de jogadores','com'],['Salários','sal'],['Manutenção do estádio','man'],['Obras','obr'],['Juros do empréstimo','jur']];
@@ -1494,7 +1562,7 @@ function evIcon(t){return {goal:'GOL',yc:'CA',rc:'CV',inj:'LES',sub:'SUB',pen:'P
 function renderLive(){const L=UI.live;if(!L||UI.screen!=='live')return;const mine=L.ms.find(m=>m.mine);const rv=ONLINE()?rival():null;const rvm=rv?L.ms.find(m=>!m.mine&&(m.fx.h===rv.tid||m.fx.a===rv.tid)):null;
   $('#lv-ban').innerHTML=L.banner?`<div class="banner">${esc(L.banner)}</div>`:'';
   const minTxt=L.done?'Encerrado':L.min===0?'Aguardando apito':L.min<=45?`${L.min}' · 1º tempo`:L.min<=90?`${L.min}' · 2º tempo`:`${L.min}' · prorrogação`;
-  if(mine){const ms=mine.s[mine.s[0].user?0:1];$('#lv-top').innerHTML=`<div class="board"><div class="side">${tbox(mine.fx.h)}<span class="small">${esc(TM(mine.fx.h).std)}</span></div>
+  if(mine){const ms=mine.s[mine.s[0].user?0:1];$('#lv-top').innerHTML=`<div class="board"><div class="side">${tbox(mine.fx.h)}<span class="small">${esc(TM(mine.fx.h).std)}${mine.fx.pub?` · <b>${num(mine.fx.pub)}</b> pagantes · renda ${money(mine.fx.pub*(TM(mine.fx.h).ticket||LGP(TM(mine.fx.h).div).tk))}`:''}</span></div>
      <div><div class="sc">${mine.g[0]} : ${mine.g[1]}</div><div class="mn">${minTxt}${mine.pen?` · pên. ${mine.pen[0]}x${mine.pen[1]}`:''}</div></div>
      <div class="side r">${tbox(mine.fx.a)}<span class="small">Postura: ${POSTS[ms.post]} · trocas ${ms.subs}/5</span></div></div>
      ${rvm?`<div class="small" style="margin-top:6px">Seu amigo: ${tbox(rvm.fx.h,'sm')} <b>${rvm.g[0]} x ${rvm.g[1]}</b> ${tbox(rvm.fx.a,'sm')}</div>`:''}
@@ -1507,13 +1575,13 @@ function renderLive(){const L=UI.live;if(!L||UI.screen!=='live')return;const min
     <button class="btn" data-a="lskip">Ir para o fim</button>`;
   const list=L.ms.filter(m=>m.comp===L.tab);
   $('#lv-list').innerHTML=list.map(m=>{const last=m.ev.filter(e=>e.type==='goal'||e.type==='rc'||e.type==='pen').slice(-1)[0];const c=m.mine?'mine':(isHuman(m.fx.h)||isHuman(m.fx.a))?'rvm':'';
-    return `<div class="mrow ${c} ${m.flash>0?'flash':''}" data-a="lmatch" data-v="${L.ms.indexOf(m)}" tabindex="0">${tbox(m.fx.h)}<span class="sc">${m.g[0]} - ${m.g[1]}</span>${tbox(m.fx.a)}<span class="last">${last?`${last.m}' ${evIcon(last.type)} ${esc(last.txt)}`:''}${m.pen?` · pên. ${m.pen[0]}x${m.pen[1]}`:''}</span></div>`;}).join('');
+    return `<div class="mrow ${c} ${m.flash>0?'flash':''}" data-a="lmatch" data-v="${L.ms.indexOf(m)}" tabindex="0">${tbox(m.fx.h)}<span class="sc">${m.g[0]} - ${m.g[1]}</span>${tbox(m.fx.a)}<span class="last">${m.fx.pub?`<span class="pubc">${num(m.fx.pub)} pag.</span> `:''}${last?`${last.m}' ${evIcon(last.type)} ${esc(last.txt)}`:''}${m.pen?` · pên. ${m.pen[0]}x${m.pen[1]}`:''}</span></div>`;}).join('');
 }
 function subsModal(){const L=UI.live;const m=L.ms.find(x=>x.mine);if(!m)return;const i=m.s[0].user?0:1;const sd=m.s[i];
   const on=sd.on.map(PL),bn=sd.bench.map(PL).filter(p=>p&&avail(p));
   showModal('Substituições',`<p class="small" style="margin-top:0">Trocas usadas: <b>${sd.subs}/5</b>. Escolha quem sai e quem entra.</p>
-   <div class="cols"><div><h3>Sai</h3><select id="sout" size="11" style="width:100%">${on.map(p=>`<option value="${p.id}">${p.p} · ${esc(p.n)} (${p.f})${p.inj>0?' · lesionado':''}</option>`).join('')}</select></div>
-   <div><h3>Entra</h3><select id="sin" size="11" style="width:100%">${bn.map(p=>`<option value="${p.id}">${p.p} · ${esc(p.n)} (${p.f})</option>`).join('')}</select></div></div>
+   <div class="cols"><div><h3>Sai</h3><select id="sout" size="11" style="width:100%">${on.map(p=>`<option value="${p.id}">${sd.slot?sd.slot[p.id]:p.p} · ${esc(p.n)} (${sd.slot?effF(p,sd.slot[p.id]):p.f})${p.inj>0?' · lesionado':''}</option>`).join('')}</select></div>
+   <div><h3>Entra</h3><select id="sin" size="11" style="width:100%">${bn.map(p=>`<option value="${p.id}">${V6()&&p.dp?p.dp:p.p} · ${esc(p.n)} (${p.f})</option>`).join('')}</select></div></div>
    <div class="row" style="margin-top:8px"><label for="spost">Postura</label><select id="spost">${POSTS.map((p,k)=>`<option value="${k}" ${k===sd.post?'selected':''}>${p}</option>`).join('')}</select></div>`,
    `<button class="btn" data-a="dosub" ${sd.subs>=5?'disabled':''}>Fazer troca</button><button class="btn go" data-a="closesub">Voltar ao jogo</button>`);}
 function matchModal(idx){const m=UI.live.ms[idx];showModal(`${TM(m.fx.h).name} ${m.g[0]} x ${m.g[1]} ${TM(m.fx.a).name}`,
@@ -1523,9 +1591,9 @@ function matchModal(idx){const m=UI.live.ms[idx];showModal(`${TM(m.fx.h).name} $
 function showModal(title,body,foot,locked){$('#modal').innerHTML=`<div class="ov" ${locked?'':'data-a="ovclose"'}><div class="win" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="tbar"><span>${esc(title)}</span>${locked?'':'<button class="x" data-a="close" aria-label="Fechar">×</button>'}</div><div class="body">${body}</div><div class="foot">${foot||''}</div></div></div>`;}
 function closeModal(){$('#modal').innerHTML='';UI.counter=null;if(UI.confirm!=='reset')UI.confirm=null;}
 function pModal(pid){const p=PL(pid);if(!p)return;const t=TM(p.t);const mine=p.t===myTid();const v=value(p);const ct=UI.counter&&UI.counter.pid===pid?UI.counter:null;const rv=!mine&&isHuman(p.t);
-  const body=`<div class="row">${posTag(p.p)} <b style="font-size:17px">${esc(p.n)}</b> ${tbox(p.t,'sm')}</div>
+  const body=`<div class="row">${posTag2(p)} <b style="font-size:17px">${esc(p.n)}</b> ${tbox(p.t,'sm')}</div>
    <div class="scroll"><table class="grid" style="margin-top:8px"><tbody>
-    <tr><td>Posição</td><td>${POSN[p.p]}</td><td>Idade</td><td>${p.a} anos</td></tr>
+    <tr><td>Posição</td><td>${V6()&&p.dp?`${POSL[p.dp]}${(p.sp||[]).length?`<br><span class="small">também: ${p.sp.map(x=>POSL[x]).join(', ')}</span>`:''}`:POSN[p.p]}</td><td>Idade</td><td>${p.a} anos</td></tr>${V6()?`<tr><td>Potencial</td><td><b>${potTxt(p)}</b>${p.gem?' <span class="tag sale">joia da base</span>':''}</td><td>Fora de função</td><td class="small">secundária 92% · vizinha 80% · outra 60%</td></tr>`:''}
     <tr><td>Força</td><td><b>${p.f}</b></td><td>Valor de mercado</td><td>${money(v)}</td></tr>
     <tr><td>Salário</td><td>${money(p.sal)}/mês</td><td>Situação</td><td>${pStatus(p)||'Disponível'}</td></tr>
     <tr><td>Temporada</td><td>${p.gm} jogos · ${p.gl} gols</td><td>Média na temporada</td><td><b>${avgTxt(p.gl,p.gm)}</b> gol/jogo</td></tr>
@@ -1534,7 +1602,7 @@ function pModal(pid){const p=PL(pid);if(!p)return;const t=TM(p.t);const mine=p.t
     <tr><td>Lesões (carreira)</td><td>${p.ti||0} lesões · ${p.tmi||0} rodadas fora</td><td>Risco de lesão</td><td><b>${riskTxt(p)}</b></td></tr></tbody></table></div>
    ${p.cs&&Object.keys(p.cs).length?`<div class="small" style="margin-top:6px"><b>Nesta temporada, por competição:</b> ${Object.entries(p.cs).map(([c,v])=>`${esc(compName(+c))}: ${v[0]} jogos, ${v[1]} gols`).join(' · ')}</div>`:''}
    ${S.v>=4&&S.mode!=='wc'?(()=>{const r=riskF(p);const pc=x=>{const d=Math.round((x-1)*100);return d===0?'0%':(d>0?'+':'')+d+'%';};return `<div class="small muted" style="margin-top:4px">Efeito no preço: lesões ${pc(r.fi)} · cartões ${pc(r.fc)} · desempenho ${pc(r.fp)}. Valor considera todos os torneios.</div>`;})():''}
-   <div class="grp"><span class="lg">Corrigir nome</span><div class="row"><input id="rn" value="${esc(p.n)}" maxlength="30"><button class="btn sm" data-a="rename" data-v="${pid}">Salvar nome</button></div></div>
+   ${V6()&&p.dp?`<div class="grp"><span class="lg">Corrigir posições</span><div class="row"><label for="pdp">Principal</label><select id="pdp">${DPS.map(x=>`<option value="${x}" ${x===p.dp?'selected':''}>${POSL[x]}</option>`).join('')}</select><label for="psp1">Também joga</label><select id="psp1"><option value="">—</option>${DPS.map(x=>`<option value="${x}" ${(p.sp||[])[0]===x?'selected':''}>${POSL[x]}</option>`).join('')}</select><select id="psp2" aria-label="Outra posição secundária"><option value="">—</option>${DPS.map(x=>`<option value="${x}" ${(p.sp||[])[1]===x?'selected':''}>${POSL[x]}</option>`).join('')}</select><button class="btn sm" data-a="setpos" data-v="${pid}">Salvar posições</button></div></div>`:''}<div class="grp"><span class="lg">Corrigir nome</span><div class="row"><input id="rn" value="${esc(p.n)}" maxlength="30"><button class="btn sm" data-a="rename" data-v="${pid}">Salvar nome</button></div></div>
    ${rv?'<p class="small muted">Este jogador é do clube do seu amigo e não está à venda.</p>':''}
    ${!mine&&!rv&&UT()&&!ME().fired&&S.mode!=='wc'&&isLeague(UT())?(()=>{const A=askInfo(p,UT());const cash=UT().cash;const full=UT().pids.length>=32;return A.refuse?`<div class="grp"><span class="lg">Proposta de compra</span><p style="margin:0">${esc(p.n)} não aceita jogar no ${esc(UT().name)} agora: o ${esc(t.name)} tem muito mais prestígio. Tente outro jogador ou volte quando seu clube crescer.</p></div><div hidden>`:`<div class="grp"><span class="lg">Proposta de compra</span><p style="margin:0 0 6px">O ${esc(t.name)} pede <b>${money(A.ask)}</b>${A.top?' (é um dos 3 melhores do elenco)':''}. Seu caixa: <b>${money(cash)}</b>.${A.ask>cash?` <span style="color:var(--alerta)">Faltam ${money(A.ask-cash)}: venda jogadores ou pegue empréstimo em Finanças.</span>`:''}${full?' <span style="color:var(--alerta)">Seu elenco está cheio (32).</span>':''}</p>`;})()+`<div class="row"><label for="bid">Valor (R$ mi)</label><input id="bid" type="number" min="0" step="0.05" value="${(askInfo(p,UT()).ask/1e6).toFixed(2)}" style="width:110px"><button class="btn" data-a="bid" data-v="${pid}">Enviar proposta</button></div>
      <p class="small muted" style="margin-bottom:0">Oferta abaixo do pedido pode render contraproposta. Novo salário ≈ ${money(Math.round(Math.max(p.sal,salFor(p))*1.1/1000)*1000)}/mês.</p>
@@ -1552,7 +1620,7 @@ function showSummary(){const s=S.lastSummary;if(!s)return;if(s.wc){showWCSummary
    ${s.lg?Object.entries(s.lg).map(([c,id])=>line('Campeão '+LGS[c].n,[id])).join(''):''}
    ${line('Rebaixados da A',s.dn0)}${line('Sobem para a A',s.up1)}${line('Rebaixados da B',s.dn1)}${line('Sobem para a B',s.up2)}
    <h3>Artilheiros</h3><div class="small">${s.scorers.map((x,i)=>`${DIVN[i]}: ${esc(x)}`).join('<br>')}</div>
-   <p class="small muted">${s.retired} jogadores se aposentaram. Os elencos envelheceram um ano e as categorias de base revelaram novos atletas.</p>`,
+   ${s.retNames&&s.retNames.length?`<h3>Aposentadorias</h3><div class="small">${s.retNames.map(esc).join(' · ')}</div>`:''}${s.gems&&s.gems.length?`<h3>Joias reveladas</h3><div class="small">${s.gems.map(esc).join(' · ')}</div>`:''}<p class="small muted">${s.retired} jogadores se aposentaram. Os elencos envelheceram um ano e as categorias de base revelaram novos atletas.</p>`,
    `<button class="btn go" data-a="sumok">TEMPORADA ${S.year} ▶</button>`,true);}
 function showFired(){const mg=ME();const offers=mg.firedOffers||[];
   showModal('Você foi demitido',`<p style="margin-top:0">A diretoria perdeu a confiança no seu trabalho e sua reputação caiu. Escolha um dos clubes que querem você:</p>
@@ -1592,12 +1660,23 @@ const ACT={
   wcload:()=>{const s=loadWC();if(s){stopOnline();S=s;UI.me=0;UI.screen='hub';UI.tab='elenco';render();afterModals();}},
   wcend:()=>{lsDel(WC_KEY);closeModal();S=null;UI.screen='start';UI.wcPick=null;render();},
   wcquit:()=>{save();S=null;UI.screen='start';render();},
-  cyc:v=>{if(!canEdit())return;const t=UT();const id=+v;const p=PL(id);if(t.xi.includes(id)){t.xi=t.xi.filter(x=>x!==id);if(t.bench.length<7)t.bench.push(id);}
+  cyc:v=>{if(!canEdit())return;const t=UT();const id=+v;const p=PL(id);if(V6()){normSlots(t);const i=t.sl.indexOf(id);if(i>=0){t.sl[i]=null;if(t.bench.length<7)t.bench.push(id);}else if(t.bench.includes(id)){t.bench=t.bench.filter(x=>x!==id);}else{if(!avail(p)){toast(`${p.n} está indisponível.`);return;}const sl=slotsOf(t);let bi=-1,bv=-1;t.sl.forEach((x,j)=>{if(x==null){const e=p.f*fit(p,sl[j]);if(e>bv){bv=e;bi=j;}}});if(bi>=0)t.sl[bi]=id;else if(t.bench.length<7){t.bench.push(id);toast('Time completo: jogador foi para o banco. Toque numa vaga do campo para trocar.');}else{toast('Titulares e banco estão completos.');return;}}t.xi=t.sl.filter(x=>x!=null);persistSoon();render();return;}if(t.xi.includes(id)){t.xi=t.xi.filter(x=>x!==id);if(t.bench.length<7)t.bench.push(id);}
     else if(t.bench.includes(id)){t.bench=t.bench.filter(x=>x!==id);}
     else{if(!avail(p)){toast(`${p.n} está indisponível.`);return;}if(t.xi.length<11)t.xi.push(id);else if(t.bench.length<7){t.bench.push(id);toast('Já há 11 titulares. Jogador foi para o banco.');}else{toast('Titulares e banco estão completos.');return;}}
     persistSoon();render();},
+  slot:v=>{const t=UT();if(!t)return;normSlots(t);const i=+v;const pos=slotsOf(t)[i];const cur=t.sl[i];
+    const list=t.pids.map(PL).sort((a,b)=>b.f*fit(b,pos)-a.f*fit(a,pos)||b.f-a.f);
+    showModal(`Vaga: ${POSL[pos]} (${pos})`,`<p class="small" style="margin-top:0">Força aqui = força × aproveitamento na posição. Escolher alguém que já é titular troca os dois de vaga.</p><div class="scroll sunk" style="max-height:60vh"><table class="grid"><thead><tr><th>Pos</th><th>Jogador</th><th class="n">Força</th><th class="n">Aqui</th><th>Onde está</th></tr></thead><tbody>
+      ${list.map(p=>{const ft=fit(p,pos);const w=t.sl.includes(p.id)?'titular ('+slotsOf(t)[t.sl.indexOf(p.id)]+')':t.bench.includes(p.id)?'banco':'fora';return `<tr class="click ${p.id===cur?'me':''}" data-a="slotpick" data-v="${i}:${p.id}"><td>${posTag2(p)}</td><td>${esc(p.n)} ${pStatus(p)}</td><td class="n">${p.f}</td><td class="n"><b style="color:${ft>=1?'var(--verde)':ft>=.8?'inherit':'var(--alerta)'}">${effF(p,pos)}</b> <span class="small muted">${Math.round(ft*100)}%</span></td><td class="small">${w}</td></tr>`;}).join('')}</tbody></table></div>`,
+      `${cur!=null?`<button class="btn" data-a="slotclear" data-v="${i}">Deixar vaga livre</button>`:''}<button class="btn" data-a="close">Fechar</button>`);},
+  slotpick:v=>{if(!canEdit())return;const [i,id]=v.split(':').map(Number);const t=UT();const p=PL(id);if(!avail(p)){toast(`${p.n} está indisponível.`);return;}
+    const j=t.sl.indexOf(id);const prev=t.sl[i];if(j>=0){t.sl[j]=prev;t.sl[i]=id;}else{t.sl[i]=id;t.bench=t.bench.filter(x=>x!==id);if(prev!=null&&t.bench.length<7)t.bench.push(prev);}
+    t.xi=t.sl.filter(x=>x!=null);closeModal();persistSoon();render();},
+  slotclear:v=>{if(!canEdit())return;const t=UT();const id=t.sl[+v];t.sl[+v]=null;if(id!=null&&t.bench.length<7)t.bench.push(id);t.xi=t.sl.filter(x=>x!=null);closeModal();persistSoon();render();},
+  setpos:v=>{const pid=+v;const dp=($('#pdp')||{}).value;const sp=[($('#psp1')||{}).value,($('#psp2')||{}).value].filter(Boolean);doAct({k:'setpos',pid,dp,sp});render();pModal(pid);toast('Posições atualizadas.');},
   elpos:v=>{UI.el.pos=v||'';render();},
   mclear:()=>{UI.mkt={pos:'',div:'',max:'',q:'',amin:'',amax:'',fmin:'',sort:'f',can:UI.mkt.can};render();},
+  msec:()=>{UI.mkt.sec=!UI.mkt.sec;render();},
   mcan:()=>{UI.mkt.can=!UI.mkt.can;render();},
   auto:()=>{if(!canEdit())return;autoLineup(UT());persistSoon();render();toast('Time escalado pelo auxiliar técnico.');},
   pinfo:(v,el,e)=>{e.preventDefault();UI.counter=null;UI.confirm=null;pModal(+v);},
