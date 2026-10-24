@@ -15,7 +15,7 @@
   --win:#d4d0c8; --win-lt:#ffffff; --win-sh:#808080; --win-dk:#3a3a3a; --win-pr:#c4c0b7;
   --paper:#ffffff; --row:#f2f0ea; --line:#e0ddd4;
   --ink:#141414; --muted:#57534a;
-  --azul:#002776; --verde:#009c3b; --amarelo:#ffdf00; --alerta:#b3121b; --me:#fff2a8; --rv:#dcebff;
+  --azul:#002776; --verde:#009c3b; --amarelo:#ffdf00; --alerta:#b3121b; --me:#fff2a8; --rv:#dcebff; --warn:#ffe1e1;
   --f-display:'Bungee',Impact,'Arial Black',sans-serif;
   --f-body:'Archivo',Tahoma,Verdana,sans-serif;
   --f-data:'Barlow Condensed','Arial Narrow',Arial,sans-serif;
@@ -62,6 +62,7 @@ table.grid{border-collapse:collapse;width:100%;font-family:var(--f-data);font-si
 .grid tr:nth-child(even) td{background:var(--row)}
 .grid tr.me td{background:var(--me)}
 .grid tr.rv td{background:var(--rv)}
+.grid tr.warn td{background:var(--warn)}
 .grid td.n,.grid th.n{text-align:right}
 .grid td.c,.grid th.c{text-align:center}
 .grid tr.click{cursor:pointer}
@@ -236,7 +237,7 @@ function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt
 function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
-const UI={screen:'start',tab:'elenco',div:null,artDiv:null,resDiv:null,startDiv:0,pickTid:null,mkt:{pos:'',div:'',max:'',q:''},live:null,counter:null,confirm:null,me:0,on:null,lobby:[],mine:[],pool:'A',timer:120};
+const UI={screen:'start',tab:'elenco',div:null,artDiv:null,resDiv:null,startDiv:0,pickTid:null,mkt:{pos:'',div:'',max:'',q:'',amin:'',amax:'',fmin:'',sort:'f'},el:{pos:'',sort:'pos'},live:null,counter:null,confirm:null,me:0,on:null,lobby:[],mine:[],pool:'A',timer:120};
 const CFG=Object.assign({speed:1,halfStop:true},lsGet('fb_cfg')||{});
 const saveCfg=()=>lsSet('fb_cfg',CFG);
 const TM=id=>S.teams[id];
@@ -339,7 +340,7 @@ function simMinute(m,min){
   for(let i=0;i<2;i++){const sd=m.s[i];if(!sd.on.length)continue;
     const r=st[i].atk/st[1-i].def/.62;const p=Math.min(.07,.0142*r*r*(i===0?1.1:.92));
     if(R()<p){const sc=pickWeighted(sd.on.map(PL),p=>p.p==='A'?p.f*5:p.p==='M'?p.f*2.2:p.p==='D'?p.f*.6:p.f*.02);
-      m.g[i]++;sc.gl++;sc.tg++;m.flash=3;addEv(m,min,'goal',i,`${sc.n}`);}
+      m.g[i]++;sc.gl++;sc.tg++;sc.tgj=(sc.tgj||0)+1;m.flash=3;addEv(m,min,'goal',i,`${sc.n}`);}
     if(R()<.024){const p=pick(sd.on.map(PL));if(sd.yel.has(p.id)){addEv(m,min,'rc',i,`${p.n} (2º amarelo)`);p.ps+=1;removeOn(m,i,p.id);}else{sd.yel.add(p.id);p.yc++;if(p.yc>=3){p.ps+=1;p.yc=0;}addEv(m,min,'yc',i,p.n);}}
     if(R()<.0009&&sd.on.length){const p=pick(sd.on.map(PL));p.ps+=ri(1,2);addEv(m,min,'rc',i,p.n);removeOn(m,i,p.id);aiAfterLoss(m,i,p,min);}
     if(R()<.0028&&sd.on.length){const p=pick(sd.on.map(PL));p.inj=ri(1,5)+1;addEv(m,min,'inj',i,`${p.n} (${p.inj-1} rod.)`);
@@ -389,7 +390,7 @@ function finishMatchday(headless){
   L.ms.forEach(m=>m.s.forEach(sd=>sd.served.forEach(id=>{const p=PL(id);if(p)p.sus=Math.max(0,p.sus-1);})));
   Object.values(S.P).forEach(p=>{if(p.inj>0)p.inj--;if(p.ps){p.sus+=p.ps;p.ps=0;}});
   for(const m of L.ms){const fx=m.fx;fx.hg=m.g[0];fx.ag=m.g[1];fx.ev=m.ev.filter(e=>e.type==='goal'||e.type==='rc'||e.type==='pen').map(e=>[e.m,e.side,e.type,e.txt]);
-    m.s.forEach(sd=>sd.app.forEach(id=>{const p=PL(id);if(p)p.gm++;}));
+    m.s.forEach(sd=>sd.app.forEach(id=>{const p=PL(id);if(p){p.gm++;p.tj=(p.tj||0)+1;}}));
     if(m.pen){fx.pen=m.pen;}
     if(ev.t==='L'){const H=TM(fx.h).tb,A=TM(fx.a).tb;H.j++;A.j++;H.gp+=fx.hg;H.gc+=fx.ag;A.gp+=fx.ag;A.gc+=fx.hg;
       if(fx.hg>fx.ag){H.v++;A.d++;H.pts+=3;H.f.push('V');A.f.push('D');}else if(fx.hg<fx.ag){A.v++;H.d++;A.pts+=3;A.f.push('V');H.f.push('D');}else{H.e++;A.e++;H.pts++;A.pts++;H.f.push('E');A.f.push('E');}
@@ -625,6 +626,7 @@ async function openOnline(gid){
   toast('Sincronizando com o servidor...');
   await catchUp();
   replayPending();
+  if(!fresh&&cache.lu&&cache.turn===S.turn&&!UI.on.sent){MODE='preview';applyAct(UI.me,cache.lu);}
   render();
   if(fresh&&S.turn===0)showDraw();else afterModals();
   subscribeTurn();
@@ -648,7 +650,7 @@ function subscribeTurn(){const o=UI.on;if(!o)return;if(o.unsub)o.unsub();const n
     else if(UI.screen==='hub')updateOnlineBox();},e=>{toast(dbErr(e));});}
 function onlineTurnDone(){const o=UI.on;o.base=JSON.stringify(S);o.pending=[];o.sent=false;o.rivalReady=false;o.running=false;o.sentAt=null;o.rivalSeenAt=null;saveOnline();subscribeTurn();
   try{DB.doc('games/'+o.gid).update({turn:S.turn,year:S.year});}catch(e){}}
-function saveOnline(){const o=UI.on;if(!o)return;UI.saved=lsSet('fb_on_'+o.gid,{slot:o.slot,base:o.base,pending:o.pending});}
+function saveOnline(){const o=UI.on;if(!o)return;const t=UT();UI.saved=lsSet('fb_on_'+o.gid,{slot:o.slot,base:o.base,pending:o.pending,turn:S.turn,lu:t&&!o.sent?{k:'lineup',form:t.form,post:t.post,xi:t.xi.slice(),bench:t.bench.slice()}:null});}
 async function sendReady(auto){const o=UI.on;if(o.sent)return;const mg=ME();if(mg.fired&&!auto){toast('Escolha seu novo clube antes.');showFired();return;}
   const t=UT();const acts=o.pending.concat(t?[{k:'lineup',form:t.form,post:t.post,xi:t.xi.slice(),bench:t.bench.slice()}]:[]);
   o.sent=true;updateOnlineBox();
@@ -767,19 +769,28 @@ function hubHTML(){const t=UT();const ev=curEv();const mg=ME();const fx=fixtureO
 function tabHTML(){switch(UI.tab){case 'elenco':return elencoHTML();case 'tabela':return tabelaHTML();case 'rodada':return rodadaHTML();case 'calendario':return calHTML();case 'copa':return copaHTML();case 'artilharia':return artHTML();case 'mercado':return mktHTML();case 'financas':return finHTML();case 'clube':return clubeHTML();case 'caixa':return caixaHTML();case 'historico':return histHTML();case 'opcoes':return optHTML();}return '';}
 
 function pStatus(p){let s='';if(p.inj>0)s+=`<span class="tag inj">Lesão ${p.inj}</span>`;if(p.sus>0)s+=`<span class="tag sus">Suspenso ${p.sus}</span>`;if(p.yc===2)s+=`<span class="tag sus">2 CA</span>`;if(p.sale)s+=`<span class="tag sale">À venda</span>`;return s;}
+// média de gols por jogo; só entra no ranking de média quem tem pelo menos 3 jogos
+const avgNum=p=>p.gm?p.gl/p.gm:0;
+const avgTxt=(g,j)=>j?(g/j).toFixed(2).replace('.',','):'—';
+const SORTS={pos:['Posição',(a,b)=>PORD[a.p]-PORD[b.p]||b.f-a.f],f:['Força',(a,b)=>b.f-a.f],a:['Idade (mais novo)',(a,b)=>a.a-b.a||b.f-a.f],gl:['Gols',(a,b)=>b.gl-a.gl||a.gm-b.gm||b.f-a.f],
+  avg:['Média de gols',(a,b)=>((b.gm>=3?avgNum(b):-1)-(a.gm>=3?avgNum(a):-1))||b.gl-a.gl||b.f-a.f],gm:['Jogos',(a,b)=>b.gm-a.gm||b.f-a.f],v:['Valor (mais barato)',(a,b)=>value(a)-value(b)||b.f-a.f],vd:['Valor (mais caro)',(a,b)=>value(b)-value(a)]};
+function sortOpts(keys,cur){return keys.map(k=>`<option value="${k}" ${cur===k?'selected':''}>${SORTS[k][0]}</option>`).join('');}
+let persistT;function persistSoon(){clearTimeout(persistT);persistT=setTimeout(()=>{if(ONLINE())saveOnline();else save();},700);}
 function noClub(){return '<p>Você está sem clube no momento.</p>';}
 function elencoHTML(){const t=UT();if(!t||ME().fired)return noClub();
-  const ps=t.pids.map(PL).sort((a,b)=>PORD[a.p]-PORD[b.p]||b.f-a.f);
+  const E=UI.el;const all=t.pids.map(PL);const ps=all.filter(p=>!E.pos||p.p===E.pos).sort(SORTS[E.sort][1]);
   const cnt={G:0,D:0,M:0,A:0};t.xi.forEach(id=>cnt[PL(id).p]++);
-  const s=strength({on:t.xi,post:t.post});
-  return `<div class="row" style="justify-content:space-between;margin-bottom:8px">
+  const s=strength({on:t.xi,post:t.post});const bad=t.xi.map(PL).filter(p=>!avail(p));
+  return `${bad.length?`<div class="banner" style="margin:-10px -10px 10px;background:var(--warn)">${bad.length===1?'1 titular está indisponível':bad.length+' titulares estão indisponíveis'} (${bad.map(p=>esc(p.n)).join(', ')}). Troque agora ou o auxiliar troca na hora do jogo.</div>`:''}<div class="row" style="justify-content:space-between;margin-bottom:8px">
    <div class="row"><label for="form">Esquema</label><select id="form" data-c="form">${Object.keys(FORMS).map(f=>`<option ${f===t.form?'selected':''}>${f}</option>`).join('')}</select>
    <label for="post">Postura</label><select id="post" data-c="post">${POSTS.map((p,i)=>`<option value="${i}" ${i===t.post?'selected':''}>${p}</option>`).join('')}</select>
    <button class="btn" data-a="auto">Escalar automático</button></div>
    <div class="small"><b>Titulares ${t.xi.length}/11</b> · Reservas ${t.bench.length}/7 · Em campo: ${cnt.G} G · ${cnt.D} D · ${cnt.M} M · ${cnt.A} A · Ataque ${Math.round(s.atk)} / Defesa ${Math.round(s.def)}</div></div>
    <p class="small muted" style="margin:0 0 6px">Toque no quadrado da esquerda para alternar: T titular, R reserva, vazio fora do jogo. Toque no nome para abrir a ficha.${ONLINE()?' No modo online a postura vale para o jogo inteiro e lesionados são trocados automaticamente.':''}</p>
-   <div class="scroll sunk"><table class="grid"><thead><tr><th class="c">Esc.</th><th>Pos</th><th>Jogador</th><th class="n">Força</th><th class="n">Idade</th><th class="n">J</th><th class="n">Gols</th><th>Situação</th><th class="n">Valor</th><th class="n">Salário/mês</th></tr></thead><tbody>
-   ${ps.map(p=>{const k=t.xi.includes(p.id)?'T':t.bench.includes(p.id)?'R':'';return `<tr><td class="c"><button class="st ${k}" data-a="cyc" data-v="${p.id}" aria-label="Alternar escalação de ${esc(p.n)}">${k||'·'}</button></td><td>${posTag(p.p)}</td><td><a href="#" data-a="pinfo" data-v="${p.id}" style="color:inherit;font-weight:${p.f>=80?700:500}">${esc(p.n)}</a></td><td class="n">${p.f}</td><td class="n">${p.a}</td><td class="n">${p.gm}</td><td class="n">${p.gl}</td><td>${pStatus(p)}</td><td class="n">${money(value(p))}</td><td class="n">${money(p.sal)}</td></tr>`;}).join('')}
+   <div class="row" style="margin-bottom:6px"><span class="lbl">Mostrar</span>${[['','Todos'],['G','Goleiros'],['D','Defensores'],['M','Meio-campo'],['A','Atacantes']].map(([k,n])=>`<button class="btn sm ${E.pos===k?'on':''}" data-a="elpos" data-v="${k}">${n} (${k?all.filter(p=>p.p===k).length:all.length})</button>`).join('')}
+    <label for="elsort" class="small">Ordenar por</label><select id="elsort" data-c="elsort">${sortOpts(['pos','f','a','gl','avg','gm','vd'],E.sort)}</select></div>
+   <div class="scroll sunk"><table class="grid"><thead><tr><th class="c">Esc.</th><th>Pos</th><th>Jogador</th><th class="n">Força</th><th class="n">Idade</th><th class="n">J</th><th class="n">Gols</th><th class="n" title="Gols por jogo na temporada">Média</th><th>Situação</th><th class="n">Valor</th><th class="n">Salário/mês</th></tr></thead><tbody>
+   ${ps.map(p=>{const k=t.xi.includes(p.id)?'T':t.bench.includes(p.id)?'R':'';return `<tr class="${k&&!avail(p)?'warn':''}"><td class="c"><button class="st ${k}" data-a="cyc" data-v="${p.id}" aria-label="Alternar escalação de ${esc(p.n)}">${k||'·'}</button></td><td>${posTag(p.p)}</td><td><a href="#" data-a="pinfo" data-v="${p.id}" style="color:inherit;font-weight:${p.f>=80?700:500}">${esc(p.n)}</a></td><td class="n">${p.f}</td><td class="n">${p.a}</td><td class="n">${p.gm}</td><td class="n">${p.gl}</td><td class="n">${avgTxt(p.gl,p.gm)}</td><td>${pStatus(p)}</td><td class="n">${money(value(p))}</td><td class="n">${money(p.sal)}</td></tr>`;}).join('')}
    </tbody></table></div>`;}
 function zone(d,i){if(d===0)return i<6?'zone-l':i>=16?'zone-dn':'';if(d===1)return i<4?'zone-up':i>=16?'zone-dn':'';return i<4?'zone-up':'';}
 function rowCls(tid){return tid===myTid()?'me':isHuman(tid)?'rv':'';}
@@ -808,22 +819,30 @@ function copaHTML(){const c=S.cup;return `<h2>Copa do Brasil ${S.year}</h2>${c.c
   ${c.rounds.slice().reverse().map((r,k)=>{const s=c.rounds.length-1-k;return `<h3>${STAGES[s]}</h3><div class="scroll sunk"><table class="grid"><tbody>${r.map(fxRow).join('')}</tbody></table></div>`;}).join('')}`;}
 function artHTML(){const t=UT();const d=UI.artDiv??(t?t.div:0);const list=Object.values(S.P).filter(p=>TM(p.t).div===d&&p.gl>0).sort((a,b)=>b.gl-a.gl||a.gm-b.gm).slice(0,25);
   return `<div class="row" style="margin-bottom:8px">${DIVN.map((n,i)=>`<button class="btn ${i===d?'on':''}" data-a="adiv" data-v="${i}">${n}</button>`).join('')}</div>
-  <div class="scroll sunk"><table class="grid"><thead><tr><th class="n">#</th><th>Jogador</th><th>Clube</th><th class="n">Gols</th><th class="n">Jogos</th></tr></thead><tbody>
-  ${list.length?list.map((p,i)=>`<tr class="${rowCls(p.t)} click" data-a="pinfo" data-v="${p.id}"><td class="n">${i+1}</td><td>${posTag(p.p)} ${esc(p.n)}</td><td>${tbox(p.t)}</td><td class="n"><b>${p.gl}</b></td><td class="n">${p.gm}</td></tr>`).join(''):'<tr><td colspan="5">Nenhum gol marcado ainda.</td></tr>'}
-  </tbody></table></div><p class="small muted">Gols em todas as competições da temporada.</p>`;}
+  <div class="scroll sunk"><table class="grid"><thead><tr><th class="n">#</th><th>Jogador</th><th>Clube</th><th class="n">Gols</th><th class="n">Jogos</th><th class="n">Média</th></tr></thead><tbody>
+  ${list.length?list.map((p,i)=>`<tr class="${rowCls(p.t)} click" data-a="pinfo" data-v="${p.id}"><td class="n">${i+1}</td><td>${posTag(p.p)} ${esc(p.n)}</td><td>${tbox(p.t)}</td><td class="n"><b>${p.gl}</b></td><td class="n">${p.gm}</td><td class="n">${avgTxt(p.gl,p.gm)}</td></tr>`).join(''):'<tr><td colspan="6">Nenhum gol marcado ainda.</td></tr>'}
+  </tbody></table></div><p class="small muted">Gols em todas as competições da temporada. Média = gols ÷ jogos. Empate em gols: fica na frente quem jogou menos.</p>`;}
 function mktHTML(){const t=UT();if(!t||ME().fired)return noClub();const f=UI.mkt;const mx=parseFloat(f.max)||0;const q=(f.q||'').toLowerCase();
-  let list=Object.values(S.P).filter(p=>p.t!==t.id&&!isHuman(p.t)&&(!f.pos||p.p===f.pos)&&(f.div===''||TM(p.t).div===+f.div)&&(!mx||value(p)<=mx*1e6)&&(!q||p.n.toLowerCase().includes(q)||TM(p.t).name.toLowerCase().includes(q)));
-  list.sort((a,b)=>b.f-a.f);const total=list.length;list=list.slice(0,80);
+  const amin=parseInt(f.amin)||0,amax=parseInt(f.amax)||0,fmin=parseInt(f.fmin)||0;
+  let list=Object.values(S.P).filter(p=>p.t!==t.id&&!isHuman(p.t)&&(!f.pos||p.p===f.pos)&&(f.div===''||TM(p.t).div===+f.div)&&(!mx||value(p)<=mx*1e6)&&(!amin||p.a>=amin)&&(!amax||p.a<=amax)&&(!fmin||p.f>=fmin)&&(!q||p.n.toLowerCase().includes(q)||TM(p.t).name.toLowerCase().includes(q)));
+  list.sort(SORTS[f.sort][1]);const total=list.length;list=list.slice(0,80);const anyF=f.q||f.pos||f.div!==''||f.max||f.amin||f.amax||f.fmin||f.sort!=='f';
   const mine=t.pids.map(PL).filter(p=>p.sale);
   return `<div class="row" style="margin-bottom:8px">
    <label for="mq">Buscar</label><input id="mq" data-c="mq" value="${esc(f.q)}" placeholder="Jogador ou clube" style="width:160px">
    <label for="mp">Posição</label><select id="mp" data-c="mp"><option value="">Todas</option>${['G','D','M','A'].map(p=>`<option value="${p}" ${f.pos===p?'selected':''}>${POSN[p]}</option>`).join('')}</select>
    <label for="md">Divisão</label><select id="md" data-c="md"><option value="">Todas</option>${DIVN.map((n,i)=>`<option value="${i}" ${f.div===String(i)?'selected':''}>${n}</option>`).join('')}</select>
-   <label for="mm">Valor até (R$ mi)</label><input id="mm" data-c="mm" type="number" min="0" step="0.5" value="${esc(f.max)}" style="width:90px">
+   <label for="mm">Valor até (R$ mi)</label><input id="mm" data-c="mm" type="number" min="0" step="0.5" value="${esc(f.max)}" style="width:80px">
   </div>
-  <p class="small">Caixa disponível: <b>${money(t.cash)}</b> · ${total} jogadores encontrados${total>80?' (mostrando os 80 melhores)':''}. Toque num jogador para fazer proposta.${ONLINE()?' Os jogadores do clube do seu amigo não aparecem aqui. Se vocês dois comprarem o mesmo jogador na mesma rodada, vale a compra de quem criou a partida.':''}</p>
-  <div class="scroll sunk"><table class="grid"><thead><tr><th>Pos</th><th>Jogador</th><th>Clube</th><th class="n">Força</th><th class="n">Idade</th><th class="n">Valor</th><th class="n">Salário</th></tr></thead><tbody>
-  ${list.map(p=>`<tr class="click" data-a="pinfo" data-v="${p.id}"><td>${posTag(p.p)}</td><td>${esc(p.n)}</td><td>${tbox(p.t,'sm')}</td><td class="n"><b>${p.f}</b></td><td class="n">${p.a}</td><td class="n">${money(value(p))}</td><td class="n">${money(p.sal)}</td></tr>`).join('')}
+  <div class="row" style="margin-bottom:8px">
+   <label for="mamin">Idade de</label><input id="mamin" data-c="mamin" type="number" min="16" max="45" value="${esc(f.amin)}" style="width:64px">
+   <label for="mamax">até</label><input id="mamax" data-c="mamax" type="number" min="16" max="45" value="${esc(f.amax)}" style="width:64px">
+   <label for="mfmin">Força mínima</label><input id="mfmin" data-c="mfmin" type="number" min="25" max="99" value="${esc(f.fmin)}" style="width:64px">
+   <label for="msort">Ordenar por</label><select id="msort" data-c="msort">${sortOpts(['f','gl','avg','a','v','vd'],f.sort)}</select>
+   ${anyF?'<button class="btn sm" data-a="mclear">Limpar filtros</button>':''}
+  </div>
+  <p class="small">Caixa disponível: <b>${money(t.cash)}</b> · ${total} jogadores encontrados${total>80?' (mostrando os 80 melhores)':''}. Toque num jogador para fazer proposta.${f.sort==='avg'?' Na ordenação por média, só entra no topo quem tem 3 jogos ou mais.':''}${ONLINE()?' Os jogadores do clube do seu amigo não aparecem aqui. Se vocês dois comprarem o mesmo jogador na mesma rodada, vale a compra de quem criou a partida.':''}</p>
+  <div class="scroll sunk"><table class="grid"><thead><tr><th>Pos</th><th>Jogador</th><th>Clube</th><th class="n">Força</th><th class="n">Idade</th><th class="n">J</th><th class="n">Gols</th><th class="n">Média</th><th class="n">Valor</th><th class="n">Salário</th><th>Situação</th></tr></thead><tbody>
+  ${list.length?list.map(p=>`<tr class="click" data-a="pinfo" data-v="${p.id}"><td>${posTag(p.p)}</td><td>${esc(p.n)}</td><td>${tbox(p.t,'sm')}</td><td class="n"><b>${p.f}</b></td><td class="n">${p.a}</td><td class="n">${p.gm}</td><td class="n">${p.gl}</td><td class="n">${avgTxt(p.gl,p.gm)}</td><td class="n">${money(value(p))}</td><td class="n">${money(p.sal)}</td><td>${pStatus(p)}</td></tr>`).join(''):'<tr><td colspan="11">Nenhum jogador com esses filtros.</td></tr>'}
   </tbody></table></div>
   <h3>Seus jogadores à venda</h3>${mine.length?`<p>${mine.map(p=>`<a href="#" data-a="pinfo" data-v="${p.id}">${esc(p.n)}</a> (${money(value(p))})`).join(' · ')}</p>`:'<p class="small muted">Nenhum. Abra a ficha de um jogador do seu elenco e coloque à venda para receber propostas.</p>'}`;}
 function finHTML(){const t=UT();const mg=ME();if(!t||mg.fired)return noClub();const F=mg.fin,L=mg.finLast;const rows=[['Bilheteria','bil'],['Cotas de TV','tv'],['Patrocínio','pat'],['Venda de jogadores','ven'],['Premiações','pre'],['Compra de jogadores','com'],['Salários','sal'],['Manutenção do estádio','man'],['Obras','obr'],['Juros do empréstimo','jur']];
@@ -919,8 +938,9 @@ function pModal(pid){const p=PL(pid);if(!p)return;const t=TM(p.t);const mine=p.t
    <div class="scroll"><table class="grid" style="margin-top:8px"><tbody>
     <tr><td>Posição</td><td>${POSN[p.p]}</td><td>Idade</td><td>${p.a} anos</td></tr>
     <tr><td>Força</td><td><b>${p.f}</b></td><td>Valor de mercado</td><td>${money(v)}</td></tr>
-    <tr><td>Salário</td><td>${money(p.sal)}/mês</td><td>Jogos / gols (temp.)</td><td>${p.gm} / ${p.gl}</td></tr>
-    <tr><td>Gols na carreira (jogo)</td><td>${p.tg}</td><td>Situação</td><td>${pStatus(p)||'Disponível'}</td></tr></tbody></table></div>
+    <tr><td>Salário</td><td>${money(p.sal)}/mês</td><td>Situação</td><td>${pStatus(p)||'Disponível'}</td></tr>
+    <tr><td>Temporada</td><td>${p.gm} jogos · ${p.gl} gols</td><td>Média na temporada</td><td><b>${avgTxt(p.gl,p.gm)}</b> gol/jogo</td></tr>
+    <tr><td>Carreira (no jogo)</td><td>${p.tj||0} jogos · ${p.tgj||0} gols</td><td>Média na carreira</td><td><b>${avgTxt(p.tgj||0,p.tj||0)}</b> gol/jogo</td></tr></tbody></table></div>
    <div class="grp"><span class="lg">Corrigir nome</span><div class="row"><input id="rn" value="${esc(p.n)}" maxlength="30"><button class="btn sm" data-a="rename" data-v="${pid}">Salvar nome</button></div></div>
    ${rv?'<p class="small muted">Este jogador é do clube do seu amigo e não está à venda.</p>':''}
    ${!mine&&!rv&&UT()&&!ME().fired?`<div class="grp"><span class="lg">Proposta de compra</span><div class="row"><label for="bid">Valor (R$ mi)</label><input id="bid" type="number" min="0" step="0.05" value="${(v/1e6).toFixed(2)}" style="width:110px"><button class="btn" data-a="bid" data-v="${pid}">Enviar proposta</button></div>
@@ -973,8 +993,10 @@ const ACT={
   cyc:v=>{if(!canEdit())return;const t=UT();const id=+v;const p=PL(id);if(t.xi.includes(id)){t.xi=t.xi.filter(x=>x!==id);if(t.bench.length<7)t.bench.push(id);}
     else if(t.bench.includes(id)){t.bench=t.bench.filter(x=>x!==id);}
     else{if(!avail(p)){toast(`${p.n} está indisponível.`);return;}if(t.xi.length<11)t.xi.push(id);else if(t.bench.length<7){t.bench.push(id);toast('Já há 11 titulares. Jogador foi para o banco.');}else{toast('Titulares e banco estão completos.');return;}}
-    render();},
-  auto:()=>{if(!canEdit())return;autoLineup(UT());render();toast('Time escalado pelo auxiliar técnico.');},
+    persistSoon();render();},
+  elpos:v=>{UI.el.pos=v||'';render();},
+  mclear:()=>{UI.mkt={pos:'',div:'',max:'',q:'',amin:'',amax:'',fmin:'',sort:'f'};render();},
+  auto:()=>{if(!canEdit())return;autoLineup(UT());persistSoon();render();toast('Time escalado pelo auxiliar técnico.');},
   pinfo:(v,el,e)=>{e.preventDefault();UI.counter=null;UI.confirm=null;pModal(+v);},
   rename:v=>{const n=(($('#rn')||{}).value||'').trim();if(!n)return;doAct({k:'rename',pid:+v,n});render();pModal(+v);toast('Nome atualizado.');},
   sale:v=>{const p=PL(+v);doAct({k:'sale',pid:+v,on:!p.sale});render();pModal(+v);},
@@ -1019,13 +1041,16 @@ const ACT={
 document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a;if(ACT[a]){if(el.tagName==='A')e.preventDefault();ACT[a](el.dataset.v,el,e);}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList&&e.target.classList.contains('mrow'))ACT.lmatch(e.target.dataset.v);if(e.key==='Escape'&&$('#modal').innerHTML&&$('#modal .ov[data-a]'))closeModal();});
 document.addEventListener('change',e=>{const c=e.target.dataset.c;if(!c)return;const v=e.target.value;
-  if(c==='form'){if(!canEdit()){render();return;}const t=UT();t.form=v;autoLineup(t);render();toast(`Esquema ${v}: time reescalado.`);}
-  else if(c==='post'){if(!canEdit()){render();return;}UT().post=+v;render();}
+  if(c==='form'){if(!canEdit()){render();return;}const t=UT();t.form=v;autoLineup(t);persistSoon();render();toast(`Esquema ${v}: time reescalado.`);}
+  else if(c==='post'){if(!canEdit()){render();return;}UT().post=+v;persistSoon();render();}
   else if(c==='half'){CFG.halfStop=e.target.checked;saveCfg();}
   else if(c==='asub'){doAct({k:'autosub',v:e.target.checked});}
   else if(c==='pool'){UI.pool=v;}
   else if(c==='timer'){UI.timer=+v;}
   else if(c==='gtimer'&&UI.on){DB.doc('games/'+UI.on.gid).update({timer:+v}).then(()=>toast('Tempo atualizado para os dois.'),e=>toast(dbErr(e)));}
+  else if(c==='elsort'){UI.el.sort=v;render();}
+  else if(c==='msort'){UI.mkt.sort=v;render();}
+  else if(c==='mamin'){UI.mkt.amin=v;render();}else if(c==='mamax'){UI.mkt.amax=v;render();}else if(c==='mfmin'){UI.mkt.fmin=v;render();}
   else if(c==='mp'){UI.mkt.pos=v;render();}else if(c==='md'){UI.mkt.div=v;render();}else if(c==='mm'){UI.mkt.max=v;render();}});
 let mqT;document.addEventListener('input',e=>{if(e.target.dataset.c==='mq'){UI.mkt.q=e.target.value;clearTimeout(mqT);mqT=setTimeout(()=>{render();const i=$('#mq');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},350);}
   else if(e.target.id==='mgr'){UI.mgr=e.target.value;}});
