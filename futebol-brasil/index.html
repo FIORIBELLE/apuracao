@@ -102,6 +102,10 @@ textarea{font:12px/1.3 ui-monospace,Consolas,monospace;width:100%;min-height:90p
 .picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
 .picker .tb{width:100%;cursor:pointer;padding:5px 8px}
 .picker .tb.sel{outline:3px solid var(--azul);outline-offset:1px}
+.wcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.wcg>div{display:flex;flex-direction:column;gap:4px;min-width:0}
+.wcg .tb{width:100%;cursor:pointer;padding:4px 8px}
+.wcg .tb.sel{outline:3px solid var(--azul);outline-offset:1px}
 /* ao vivo */
 .board{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;padding:12px;background:#0b1d12;color:#f5f5f5;border:2px solid;border-color:var(--win-sh) var(--win-lt) var(--win-lt) var(--win-sh)}
 .board .side{display:flex;flex-direction:column;gap:4px;min-width:0;align-items:flex-start}
@@ -112,7 +116,7 @@ textarea{font:12px/1.3 ui-monospace,Consolas,monospace;width:100%;min-height:90p
 .feed{max-height:180px;overflow:auto;font-family:var(--f-data);font-size:15px;padding:4px 8px}
 .feed div{padding:1px 0}
 .ev{display:inline-block;min-width:34px;text-align:center;font-size:11px;font-weight:700;padding:0 3px;margin-right:6px;border:1px solid #0005}
-.ev.goal{background:var(--verde);color:#fff}.ev.yc{background:var(--amarelo)}.ev.rc{background:var(--alerta);color:#fff}.ev.inj{background:#fff;color:var(--alerta)}.ev.sub{background:#cfd8ea}.ev.pen{background:var(--azul);color:#fff}
+.ev.goal{background:var(--verde);color:#fff}.ev.yc{background:var(--amarelo)}.ev.rc{background:var(--alerta);color:#fff}.ev.inj{background:#fff;color:var(--alerta)}.ev.sub{background:#cfd8ea}.ev.et{background:var(--azul);color:#fff}.ev.pen{background:var(--azul);color:#fff}
 .mlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:0 12px}
 .mrow{display:grid;grid-template-columns:auto 52px auto minmax(0,1fr);gap:6px;align-items:center;padding:3px 6px;border-bottom:1px solid var(--line);cursor:pointer;background:var(--paper)}
 .mrow .sc{font:700 18px var(--f-data);text-align:center;font-variant-numeric:tabular-nums}
@@ -209,7 +213,7 @@ const T0=[
 ['Maranhão','MARANHÃO',2,'#0b5fb4','#ffffff','#c8102e',38,'Castelão (MA)',40000,''],
 ['Barra-SC','BARRA',2,'#c8102e','#ffffff','#111111',38,'Arena Barra',5000,'']
 ];
-const DIVN=['Série A','Série B','Série C'];
+const DIVN=['Série A','Série B','Série C','América do Sul','Europa'];
 const STAGES=['1ª fase','Oitavas de final','Quartas de final','Semifinal','Final'];
 const CUP_AFTER=[3,8,13,18,24];
 const FORMS={'4-4-2':[4,4,2],'4-3-3':[4,3,3],'3-5-2':[3,5,2],'4-5-1':[4,5,1],'5-3-2':[5,3,2],'3-4-3':[3,4,3],'5-4-1':[5,4,1],'4-2-4':[4,2,4]};
@@ -256,28 +260,29 @@ function salFor(p){return Math.max(4000,Math.round(Math.pow(Math.max(p.f-35,1)/1
 function genName(used){for(let k=0;k<50;k++){const n=R()<.3?pick(NICK):pick(FIRST)+' '+pick(LAST);if(!used.has(n)){used.add(n);return n;}}return pick(FIRST)+' '+pick(LAST)+' '+ri(2,9);}
 function mkP(n,pos,f,a,tid){const p={id:S.nid++,n,p:pos,f:clamp(Math.round(f),25,96),a,t:tid,inj:0,sus:0,ps:0,yc:0,gl:0,gm:0,tg:0,sale:false};p.sal=salFor(p);S.P[p.id]=p;return p;}
 const baseF=t=>34+t.rep*.55;
-function youth(t,used){const pos=pick(['G','D','D','M','M','A','A']);const p=mkP(genName(used),pos,baseF(t)-ri(8,18),ri(17,19),t.id);t.pids.push(p.id);return p;}
-function buildSquad(t,str){
+function youth(t,used){const pos=pick(['G','D','D','M','M','A','A']);const p=mkP(genNameP(used,t.pool),pos,baseF(t)-ri(8,18),ri(17,19),t.id);t.pids.push(p.id);return p;}
+function buildSquad(t,str,needOv){
   const used=new Set();
   if(str){for(const raw of str.split(';')){const tk=raw.trim().split(/\s+/);if(tk.length<3)continue;const pos=tk[0];let f,a,end=tk.length;
     if(/^\d+$/.test(tk[end-1])&&/^\d+$/.test(tk[end-2])){a=+tk[end-1];f=+tk[end-2];end-=2;}else{f=+tk[end-1];a=pos==='G'?ri(22,34):ri(20,32);end-=1;}
     const n=tk.slice(1,end).join(' ');used.add(n);t.pids.push(mkP(n,pos,f,a,t.id).id);}}
-  const need={G:3,D:8,M:8,A:5};const have={G:0,D:0,M:0,A:0};t.pids.forEach(id=>have[PL(id).p]++);
+  const need=needOv||{G:3,D:8,M:8,A:5};const have={G:0,D:0,M:0,A:0};t.pids.forEach(id=>have[PL(id).p]++);
   const bf=baseF(t);const isNew=!str;
-  for(const pos of ['G','D','M','A']){let k=0;while(have[pos]<need[pos]){const starter=isNew&&k<({G:1,D:4,M:4,A:2})[pos];const f=starter?bf+ri(-4,5)+(R()<.12?ri(4,8):0):bf-(str?ri(6,14):ri(3,12));t.pids.push(mkP(genName(used),pos,f,pos==='G'?ri(20,34):ri(18,33),t.id).id);have[pos]++;k++;}}
+  for(const pos of ['G','D','M','A']){let k=0;while(have[pos]<need[pos]){const starter=have[pos]<({G:1,D:4,M:4,A:2})[pos];const f=starter?bf+ri(-4,5)+(R()<.12?ri(4,8):0):bf-(str?ri(6,14):ri(3,12));t.pids.push(mkP(genNameP(used,t.pool),pos,f,pos==='G'?ri(20,34):ri(18,33),t.id).id);have[pos]++;k++;}}
 }
 
 /* ====================== NOVO JOGO ====================== */
-function newWorld(seed){
-  S={v:2,seed,rng:seed|0,year:2026,md:0,turn:0,nid:1,P:{},teams:[],mgr:[],news:[],history:[],lastSummary:null};
+function newWorld(seed,ver){
+  S={v:ver||2,seed,rng:seed|0,year:2026,md:0,turn:0,nid:1,P:{},teams:[],mgr:[],news:[],history:[],lastSummary:null};
   T0.forEach((d,i)=>{const t={id:i,name:d[0],short:d[1],div:d[2],c:[d[3],d[4],d[5]],rep:d[6],std:d[7],cap:d[8],pids:[],xi:[],bench:[],form:pick(['4-4-2','4-4-2','4-3-3','4-3-3','3-5-2','4-5-1']),post:1,loan:0,ticket:[60,35,20][d[2]]};
     t.cash=Math.round(t.rep*t.rep*[6000,3000,1500][t.div]/1e5)*1e5;S.teams.push(t);buildSquad(t,d[9]);});
+  if(S.v>=3)addExtTeams();
 }
 function mkMgr(name,tid,uid){return {name,uid:uid||null,tid,rep:35,conf:60,titles:[],seasons:0,fin:null,finLast:null,offers:[],jobs:[],fired:false,firedOffers:null,autoSub:true};}
 function startCareer(){S.mgr.forEach(mg=>{const u=TM(mg.tid);u.form='4-4-2';mg.rep=clamp(Math.round(20+u.rep*.3),20,60);});
   newSeason();S.mgr.forEach((mg,k)=>{autoLineup(TM(mg.tid));news(`${mg.name} assume o comando do ${TM(mg.tid).name}. A diretoria espera ${expectTxt(TM(mg.tid))}.`,'job',k);});}
-function newGame(name,tid){newWorld(Math.floor(Math.random()*2147483646)+1);S.mgr=[mkMgr(name,tid)];startCareer();}
-function newOnlineGame(g){newWorld(g.seed);const pool=S.teams.filter(t=>g.pool==='all'||t.div===0).map(t=>t.id);const a=pick(pool);const b=pick(pool.filter(x=>x!==a));
+function newGame(name,tid){newWorld(Math.floor(Math.random()*2147483646)+1,3);S.mgr=[mkMgr(name,tid)];startCareer();}
+function newOnlineGame(g){newWorld(g.seed,g.ver||2);const pool=S.teams.filter(t=>(g.pool==='all'&&t.div<=2)||t.div===0).map(t=>t.id);const a=pick(pool);const b=pick(pool.filter(x=>x!==a));
   S.online=true;S.mgr=[mkMgr(g.hostName||'Anfitrião',a,g.host),mkMgr(g.guestName||'Convidado',b,g.guest)];startCareer();}
 const emptyFin=()=>({bil:0,tv:0,pat:0,ven:0,pre:0,sal:0,com:0,obr:0,jur:0,man:0});
 function newSeason(){
@@ -287,7 +292,9 @@ function newSeason(){
   const cupT=S.teams.filter(t=>t.div===0).map(t=>t.id).concat(S.teams.filter(t=>t.div===1).sort((a,b)=>b.rep-a.rep||a.id-b.id).slice(0,12).map(t=>t.id));
   shuffle(cupT);const r0=[];for(let i=0;i<32;i+=2)r0.push({h:cupT[i],a:cupT[i+1],hg:null,ag:null});
   S.cup={rounds:[r0],champ:null,vice:null};
-  S.cal=[];for(let r=0;r<38;r++){S.cal.push({t:'L',r});const ci=CUP_AFTER.indexOf(r);if(ci>=0)S.cal.push({t:'C',s:ci});}
+  const v3=S.v>=3;if(v3)newContinental();
+  S.cal=[];for(let r=0;r<38;r++){S.cal.push({t:'L',r});const ci=CUP_AFTER.indexOf(r);if(ci>=0)S.cal.push({t:'C',s:ci});
+    if(v3){const xi=XAFTER.indexOf(r);if(xi>=0)S.cal.push({t:'X',d:xi});if(r===MUN_AFTER)S.cal.push({t:'M'});}}
   S.mgr.forEach(mg=>{mg.fin=emptyFin();mg.finLast=null;mg.conf=Math.max(mg.conf,45);});
 }
 function roundRobin(ids){const n=ids.length;let arr=shuffle(ids.slice());const rounds=[];
@@ -326,7 +333,7 @@ function strength(sd){let g=0,D=0,M=0,A=0,hasG=false;
 function prepSide(tid){const t=TM(tid);const k=mgrIdx(tid);const human=k>=0&&!S.mgr[k].fired;if(!human)autoLineup(t);
   const served=t.pids.filter(id=>PL(id).sus>0);
   return {tid,on:t.xi.slice(0,11),bench:t.bench.slice(),subs:0,post:human?t.post:1,human,auto:human?S.mgr[k].autoSub||S.online:true,user:tid===myTid(),served,app:new Set(t.xi),yel:new Set(),out:new Set()};}
-function mkMatch(fx,comp){const m={fx,comp,s:[prepSide(fx.h),prepSide(fx.a)],g:[0,0],ev:[],flash:0,done:false};m.mine=m.s[0].user||m.s[1].user;return m;}
+function mkMatch(fx,comp){const m={fx,comp,s:[prepSide(fx.h),prepSide(fx.a)],g:[0,0],ev:[],flash:0,done:false,ko:comp===3||!!fx.ko,et:!!fx.et,neu:!!fx.n};m.mine=m.s[0].user||m.s[1].user;return m;}
 function addEv(m,min,type,side,txt){m.ev.push({m:min,type,side,txt});}
 function pickWeighted(list,w){let tot=0;const ws=list.map(x=>{const v=w(x);tot+=v;return v;});let r=R()*tot;for(let i=0;i<list.length;i++){r-=ws[i];if(r<=0)return list[i];}return list[list.length-1];}
 function bestBench(sd,pos){const b=sd.bench.map(PL).filter(p=>p&&avail(p));let c=b.filter(p=>p.p===pos);if(!c.length)c=b.filter(p=>p.p!=='G');if(!c.length)c=b;return c.sort((x,y)=>y.f-x.f)[0];}
@@ -338,7 +345,7 @@ function simMinute(m,min){
     if(min>=70&&diff<0)sd.post=2;else if(min>=75&&diff>0)sd.post=0;else if(min>=60)sd.post=1;}
   const st=[strength(m.s[0]),strength(m.s[1])];
   for(let i=0;i<2;i++){const sd=m.s[i];if(!sd.on.length)continue;
-    const r=st[i].atk/st[1-i].def/.62;const p=Math.min(.07,.0142*r*r*(i===0?1.1:.92));
+    const r=st[i].atk/st[1-i].def/.62;const p=Math.min(.07,.0142*r*r*(m.neu?1:(i===0?1.1:.92)));
     if(R()<p){const sc=pickWeighted(sd.on.map(PL),p=>p.p==='A'?p.f*5:p.p==='M'?p.f*2.2:p.p==='D'?p.f*.6:p.f*.02);
       m.g[i]++;sc.gl++;sc.tg++;sc.tgj=(sc.tgj||0)+1;m.flash=3;addEv(m,min,'goal',i,`${sc.n}`);}
     if(R()<.024){const p=pick(sd.on.map(PL));if(sd.yel.has(p.id)){addEv(m,min,'rc',i,`${p.n} (2º amarelo)`);p.ps+=1;removeOn(m,i,p.id);}else{sd.yel.add(p.id);p.yc++;if(p.yc>=3){p.ps+=1;p.yc=0;}addEv(m,min,'yc',i,p.n);}}
@@ -357,33 +364,43 @@ function penalties(m){const s=[0,0];const kick=i=>{const g=m.s[1-i].on.map(PL).f
 
 /* ====================== RODADA ====================== */
 function curEv(){return S.cal[S.md];}
-function evLabel(ev){return ev.t==='L'?`${ev.r+1}ª rodada do Brasileirão`:`Copa do Brasil · ${STAGES[ev.s]}`;}
+function evLabel(ev){if(ev.t==='L')return `${ev.r+1}ª rodada do Brasileirão`;if(ev.t==='C')return `Copa do Brasil · ${STAGES[ev.s]}`;
+  if(ev.t==='X')return contLabel(ev.d);if(ev.t==='M')return 'Mundial de Clubes · Final';if(ev.t==='W')return `Copa do Mundo · ${WCST[ev.s]}`;return '';}
+function evFixtures(ev){const o=[];if(!ev)return o;
+  if(ev.t==='L'){for(let d=0;d<3;d++)S.fx[d][ev.r].forEach(fx=>o.push([fx,d]));}
+  else if(ev.t==='C')(S.cup.rounds[ev.s]||[]).forEach(fx=>o.push([fx,3]));
+  else if(ev.t==='X')return contFix(ev.d);
+  else if(ev.t==='M'){if(S.mun&&S.mun.fx)o.push([S.mun.fx,7]);}
+  else if(ev.t==='W')wcFix(ev.s).forEach(fx=>o.push([fx,8]));
+  return o;}
 function fixtureOf(tid,ev){if(tid==null||!ev)return null;
-  if(ev.t==='L'){return S.fx[TM(tid).div][ev.r].find(f=>f.h===tid||f.a===tid)||null;}
-  const r=S.cup.rounds[ev.s];return r?r.find(f=>f.h===tid||f.a===tid)||null:null;}
+  if(ev.t==='L'){const d=TM(tid).div;return d<=2?S.fx[d][ev.r].find(f=>f.h===tid||f.a===tid)||null:null;}
+  const x=evFixtures(ev).find(([f])=>f.h===tid||f.a===tid);return x?x[0]:null;}
 function startMatchday(headless){
   const ev=curEv();if(!ev)return;
   const changed=S.mgr.map(mg=>mg.tid!=null&&!mg.fired?checkLineup(TM(mg.tid)):false);
   if(!headless&&changed[UI.me])toast('Escalação ajustada: jogadores indisponíveis foram trocados.');
   const ms=[];
-  if(ev.t==='L'){for(let d=0;d<3;d++)S.fx[d][ev.r].forEach(fx=>ms.push(mkMatch(fx,d)));}
-  else S.cup.rounds[ev.s].forEach(fx=>ms.push(mkMatch(fx,3)));
+  evFixtures(ev).forEach(([fx,c])=>ms.push(mkMatch(fx,c)));
   const mine=ms.find(m=>m.mine);
-  UI.live={ms,min:0,paused:false,done:false,tab:mine?mine.comp:(ev.t==='C'?3:0),ev,timer:null,banner:''};
-  if(headless){while(UI.live.min<90){UI.live.min++;ms.forEach(m=>{simMinute(m,UI.live.min);m.injPause=null;});}endLive();return;}
+  UI.live={ms,min:0,paused:false,done:false,tab:mine?mine.comp:(ms[0]?ms[0].comp:0),ev,timer:null,banner:''};
+  if(headless){const L=UI.live;while(L.min<(L.end||90)||L.min<90){stepMin(L);ms.forEach(m=>{m.injPause=null;});}endLive();return;}
   UI.backup=JSON.stringify(S);UI.screen='live';render();
 }
 const SPEEDS=[380,150,50,6];
 function scheduleTick(){const L=UI.live;clearTimeout(L.timer);if(L.paused||L.done)return;L.timer=setTimeout(tick,SPEEDS[CFG.speed]);}
+function stepMin(L){L.min++;L.ms.forEach(m=>{if(L.min<=90||m.inET)simMinute(m,L.min);});
+  if(L.min===90){L.ms.forEach(m=>{if(m.et&&m.g[0]===m.g[1]){m.inET=true;L.end=120;addEv(m,90,'et',0,'Empate: vai para a prorrogação');}});}}
 function tick(){const L=UI.live;if(!L||L.paused||L.done)return;
-  L.min++;L.ms.forEach(m=>simMinute(m,L.min));
+  stepMin(L);
   if(L.min===45&&CFG.halfStop&&L.ms.some(m=>m.mine)){L.paused=true;L.banner=ONLINE()?'Intervalo. Toque em Retomar para o 2º tempo.':'Intervalo. Faça substituições ou mude a postura antes do 2º tempo.';}
   const ip=L.ms.find(m=>m.injPause);if(ip&&L.min<90){if(ip.mine&&!ONLINE()){L.paused=true;L.banner=`${ip.injPause} se lesionou. Faça a substituição.`;}ip.injPause=null;}
-  if(L.min>=90)endLive();
+  if(L.min===90&&L.end===120&&L.ms.some(m=>m.mine&&m.inET)&&!L.done){L.paused=true;L.banner='Fim do tempo normal. Prorrogação de 30 minutos e, se continuar empatado, pênaltis.';}
+  if(L.min>=(L.end||90))endLive();
   renderLive();scheduleTick();}
-function skipLive(){const L=UI.live;clearTimeout(L.timer);while(L.min<90){L.min++;L.ms.forEach(m=>{simMinute(m,L.min);m.injPause=null;});}L.ms.forEach(m=>m.flash=0);endLive();L.paused=false;renderLive();}
+function skipLive(){const L=UI.live;clearTimeout(L.timer);while(L.min<(L.end||90)||L.min<90){stepMin(L);L.ms.forEach(m=>{m.injPause=null;});}L.ms.forEach(m=>m.flash=0);endLive();L.paused=false;renderLive();}
 function endLive(){const L=UI.live;if(L.done)return;L.done=true;L.banner='Fim de jogo.';
-  if(L.ev.t==='C')L.ms.forEach(m=>{if(m.g[0]===m.g[1]){m.pen=penalties(m);addEv(m,90,'pen',m.pen[0]>m.pen[1]?0:1,`Pênaltis ${m.pen[0]} x ${m.pen[1]}`);}});}
+  L.ms.forEach(m=>{if(m.ko&&m.g[0]===m.g[1]){m.pen=penalties(m);addEv(m,90,'pen',m.pen[0]>m.pen[1]?0:1,`Pênaltis ${m.pen[0]} x ${m.pen[1]}`);}});}
 
 function finishMatchday(headless){
   const L=UI.live;const ev=L.ev;const res=S.mgr.map(()=>null);
@@ -392,24 +409,32 @@ function finishMatchday(headless){
   for(const m of L.ms){const fx=m.fx;fx.hg=m.g[0];fx.ag=m.g[1];fx.ev=m.ev.filter(e=>e.type==='goal'||e.type==='rc'||e.type==='pen').map(e=>[e.m,e.side,e.type,e.txt]);
     m.s.forEach(sd=>sd.app.forEach(id=>{const p=PL(id);if(p){p.gm++;p.tj=(p.tj||0)+1;}}));
     if(m.pen){fx.pen=m.pen;}
-    if(ev.t==='L'){const H=TM(fx.h).tb,A=TM(fx.a).tb;H.j++;A.j++;H.gp+=fx.hg;H.gc+=fx.ag;A.gp+=fx.ag;A.gc+=fx.hg;
+    if(m.ko){fx.w=(fx.hg>fx.ag||(fx.pen&&fx.pen[0]>fx.pen[1]))?fx.h:fx.a;}
+    else if(m.comp===5)updTb(S.lib.tb[fx.h],S.lib.tb[fx.a],fx.hg,fx.ag);
+    else if(m.comp===6)updTb(S.ucl.tb[fx.h],S.ucl.tb[fx.a],fx.hg,fx.ag);
+    else if(m.comp===8)updTb(TM(fx.h).tb,TM(fx.a).tb,fx.hg,fx.ag);
+    else if(ev.t==='L'){const H=TM(fx.h).tb,A=TM(fx.a).tb;H.j++;A.j++;H.gp+=fx.hg;H.gc+=fx.ag;A.gp+=fx.ag;A.gc+=fx.hg;
       if(fx.hg>fx.ag){H.v++;A.d++;H.pts+=3;H.f.push('V');A.f.push('D');}else if(fx.hg<fx.ag){A.v++;H.d++;A.pts+=3;A.f.push('V');H.f.push('D');}else{H.e++;A.e++;H.pts++;A.pts++;H.f.push('E');A.f.push('E');}
       [H,A].forEach(x=>{if(x.f.length>5)x.f.shift();});}
-    else{fx.w=(fx.hg>fx.ag||(fx.pen&&fx.pen[0]>fx.pen[1]))?fx.h:fx.a;}
-    S.mgr.forEach((mg,k)=>{const u=mg.tid;if(u!=null&&(fx.h===u||fx.a===u)){const home=fx.h===u;const gf=home?fx.hg:fx.ag,ga=home?fx.ag:fx.hg;res[k]={fx,home,gf,ga,opp:home?fx.a:fx.h,res:ev.t==='C'?(fx.w===u?'V':'D'):(gf>ga?'V':gf<ga?'D':'E')};}});
+    S.mgr.forEach((mg,k)=>{const u=mg.tid;if(u!=null&&(fx.h===u||fx.a===u)){const home=fx.h===u;const gf=home?fx.hg:fx.ag,ga=home?fx.ag:fx.hg;res[k]={fx,home,gf,ga,opp:home?fx.a:fx.h,res:m.ko?(fx.w===u?'V':'D'):(gf>ga?'V':gf<ga?'D':'E'),ko:m.ko};}});
   }
+  if(S.mode==='wc'){advanceWC(ev.s);S.mgr.forEach((mg,k)=>{const r=res[k];if(r){const o=TM(r.opp);news(`${evLabel(ev)}: ${TM(r.fx.h).name} ${r.fx.hg} x ${r.fx.ag} ${TM(r.fx.a).name}${r.fx.pen?` (pênaltis ${r.fx.pen[0]} x ${r.fx.pen[1]})`:''}.`,r.res==='D'?'bad':'',k);}});}
+  else{
   S.mgr.forEach((mg,k)=>roundFinance(mg,ev,res[k]));
-  S.teams.forEach(t=>{if(!isHuman(t.id))t.cash+=Math.round([9e5,2e5,4e4][t.div]*t.rep/70);});
+  S.teams.forEach(t=>{if(!isHuman(t.id))t.cash+=Math.round([9e5,2e5,4e4,6e5,15e5][t.div]*t.rep/70);});
   S.mgr.forEach((mg,k)=>{if(res[k]&&!mg.fired)boardAfter(mg,k,ev,res[k]);});
   if(ev.t==='C')advanceCup(ev.s);
+  if(ev.t==='X')advanceCont(ev.d);
+  if(ev.t==='M')finishMundial();
   if(S.md%3===2)aiTransfers();
   S.mgr.forEach((mg,k)=>{genOffers(mg,k);genJobs(mg,k);mg.offers=mg.offers.filter(o=>o.exp>S.md);mg.jobs=mg.jobs.filter(j=>j.exp>S.md);});
   S.mgr.forEach(mg=>{if(mg.fired&&!mg.firedOffers)mg.firedOffers=firedOffers(mg);});
+  }
   S.md++;S.turn++;
-  if(S.md>=S.cal.length)seasonEnd();
+  if(S.mode!=='wc'&&S.md>=S.cal.length)seasonEnd();
   UI.live=null;
   if(headless)return;
-  UI.screen='hub';UI.tab=ev.t==='C'?'copa':'rodada';UI.resDiv=null;
+  UI.screen='hub';UI.tab=ev.t==='C'?'copa':(ev.t==='X'||ev.t==='M')?'continental':ev.t==='W'?(ev.s<3?'grupos':'mata'):'rodada';UI.resDiv=null;
   if(ONLINE())onlineTurnDone();else save();
   render();afterModals();
 }
@@ -417,7 +442,7 @@ function attendance(t,opp){const fans=t.rep*t.rep*9;const pts=t.tb.f.reduce((s,x
   const oppF=1+(TM(opp).rep-50)/150;const ref=[60,35,20][t.div];const pf=clamp(Math.pow(ref/Math.max(1,t.ticket),1.15),.12,1.6);
   return Math.round(Math.min(t.cap,fans*form*oppF*pf*(.9+R()*.2)));}
 function roundFinance(mg,ev,ur){if(mg.tid==null)return;const t=TM(mg.tid);const L={bil:0,tv:0,pat:0,sal:0,man:0,jur:0,pub:0};
-  if(ur&&ur.home){L.pub=attendance(t,ur.opp);L.bil=L.pub*t.ticket*(ev.t==='C'?1.2:1);}
+  if(ur&&ur.home){L.pub=attendance(t,ur.opp);L.bil=L.pub*t.ticket*(ev.t==='C'?1.2:(ev.t==='X'||ev.t==='M')?1.5:1);}
   if(ev.t==='L'){L.tv=[9e5,3e5,6e4][t.div];L.pat=t.rep*[11000,5000,1800][t.div];}
   L.sal=-Math.round(t.pids.reduce((s,id)=>s+PL(id).sal,0)*.25);L.man=-Math.round(t.cap*4);
   L.jur=-Math.round(t.loan*.012);
@@ -432,7 +457,8 @@ function tablePos(tid){const t=TM(tid);return sortedTable(t.div).findIndex(x=>x.
 function boardAfter(mg,k,ev,r){const t=TM(mg.tid);
   if(ev.t==='L'){mg.conf+=r.res==='V'?3:r.res==='E'?.5:-3.5;mg.rep+=r.res==='V'?.35:r.res==='E'?.05:-.25;
     if(ev.r>=5){const diff=expectedPos(t)-tablePos(t.id);mg.conf+=diff*.2;}}
-  else{if(r.res==='V'){mg.conf+=3;mg.rep+=.6;}else{mg.conf-=t.div===0?5:1;}}
+  else if(r.ko){if(r.res==='V'){mg.conf+=3;mg.rep+=.6;}else{mg.conf-=ev.t==='C'?(t.div===0?5:1):4;}}
+  else{mg.conf+=r.res==='V'?2:r.res==='E'?0:-2;mg.rep+=r.res==='V'?.4:0;}
   if(t.cash<-t.rep*2e5)mg.conf-=4;
   mg.conf=clamp(mg.conf,0,100);mg.rep=clamp(mg.rep,1,100);
   const opp=TM(r.opp);const sc=r.home?`${t.name} ${r.fx.hg} x ${r.fx.ag} ${opp.name}`:`${opp.name} ${r.fx.hg} x ${r.fx.ag} ${t.name}`;
@@ -462,29 +488,29 @@ function evalBid(mg,p,amt){const t=TM(p.t),u=TM(mg.tid);const v=value(p);
   if(u.pids.length>=32)return {ok:false,msg:'Seu elenco já tem 32 jogadores. Venda ou dispense alguém antes.'};
   if(u.cash<amt)return {ok:false,msg:`Caixa insuficiente. Você tem ${money(u.cash)}.`};
   if(t.rep-u.rep>22&&(p.id*7+S.year)%10<6)return {ok:false,msg:`${p.n} não quer jogar no ${u.name} agora.`};
-  const need=v*(top?1.35:1.05)*(t.div<u.div?1.1:1);
+  const need=v*(top?1.35:1.05)*(t.div<u.div&&t.div<=2?1.1:1)*(t.div===4?1.5:1);
   if(amt>=need)return {ok:true};
   if(amt>=need*.72)return {ok:false,counter:Math.ceil(need/1e4)*1e4,msg:`O ${t.name} recusou, mas aceita negociar.`};
   return {ok:false,msg:`O ${t.name} considerou a proposta muito baixa.`};}
 function genOffers(mg,k){if(mg.tid==null||mg.fired)return;const u=TM(mg.tid);
   u.pids.map(PL).forEach(p=>{const v=value(p);const unsolicited=!p.sale&&p.f>=baseF(u)+8&&R()<.02;
     if((p.sale&&R()<.4)||unsolicited){if(mg.offers.some(o=>o.pid===p.id))return;
-      const buyers=S.teams.filter(t=>!isHuman(t.id)&&t.cash>v*.8&&Math.abs(t.div-u.div)<=1&&(unsolicited?t.rep>=u.rep-5:true));if(!buyers.length)return;
+      const buyers=S.teams.filter(t=>!isHuman(t.id)&&t.cash>v*.8&&(t.div<=2?Math.abs(t.div-u.div)<=1:t.rep>=u.rep&&p.f>=baseF(u))&&(unsolicited?t.rep>=u.rep-5:true));if(!buyers.length)return;
       const b=pick(buyers);const amt=Math.round(v*(unsolicited?1+R()*.4:.75+R()*.45)/1e4)*1e4;
       mg.offers.push({id:S.nid++,pid:p.id,from:b.id,amt,exp:S.md+3});news(`Proposta: o ${b.name} oferece ${money(amt)} por ${p.n}.`,'ofr',k);}});}
-function aiTransfers(){for(let k=0;k<3;k++){const buyers=S.teams.filter(t=>!isHuman(t.id)&&t.pids.length<30).sort((a,b)=>b.rep-a.rep||a.id-b.id).slice(0,32);const b=pick(buyers);if(!b)return;
+function aiTransfers(){for(let k=0;k<3;k++){const buyers=S.teams.filter(t=>!isHuman(t.id)&&isDom(t)&&t.pids.length<30).sort((a,b)=>b.rep-a.rep||a.id-b.id).slice(0,32);const b=pick(buyers);if(!b)return;
   const pos=pick(['G','D','D','M','M','A','A']);const mine=b.pids.map(PL).filter(p=>p.p===pos).sort((x,y)=>y.f-x.f);const ref=mine[Math.min(1,mine.length-1)];const lvl=ref?ref.f:50;
-  const cands=Object.values(S.P).filter(p=>p.p===pos&&p.t!==b.id&&!isHuman(p.t)&&TM(p.t).rep<b.rep&&TM(p.t).pids.length>19&&p.f>lvl&&value(p)<=b.cash*.6&&p.a<32);
+  const cands=Object.values(S.P).filter(p=>p.p===pos&&p.t!==b.id&&!isHuman(p.t)&&isDom(TM(p.t))&&TM(p.t).rep<b.rep&&TM(p.t).pids.length>19&&p.f>lvl&&value(p)<=b.cash*.6&&p.a<32);
   if(!cands.length)continue;const p=cands.sort((x,y)=>y.f-x.f||x.id-y.id)[ri(0,Math.min(3,cands.length-1))];const from=TM(p.t);const fee=Math.round(value(p)*(1+R()*.2)/1e4)*1e4;
   movePlayer(p.id,b.id,fee);news(`Mercado: ${p.n} deixa o ${from.name} e acerta com o ${b.name} por ${money(fee)}.`,'');}}
 function genJobs(mg,k){const t=mg.tid!=null?TM(mg.tid):null;if(!t||S.md<8||mg.fired||mg.jobs.length)return;
   const p=.03+Math.max(0,mg.rep-45)/500;if(R()>p)return;
-  const c=S.teams.filter(x=>!isHuman(x.id)&&x.rep>t.rep+3&&x.rep<=mg.rep+22);if(!c.length)return;const j=pick(c);
+  const c=S.teams.filter(x=>!isHuman(x.id)&&isDom(x)&&x.rep>t.rep+3&&x.rep<=mg.rep+22);if(!c.length)return;const j=pick(c);
   mg.jobs.push({tid:j.id,exp:S.md+3});news(`Convite: a diretoria do ${j.name} quer você como técnico. Responda na Caixa de entrada.`,'job',k);}
 function takeJob(mg,k,tid){const old=mg.tid!=null?TM(mg.tid):null;if(old){old.pids.forEach(id=>PL(id).sale=false);old.post=1;}
   mg.tid=tid;mg.conf=60;mg.jobs=[];mg.offers=[];mg.fired=false;mg.firedOffers=null;mg.fin=emptyFin();mg.finLast=null;const t=TM(tid);if(!FORMS[t.form])t.form='4-4-2';autoLineup(t);
   news(`${mg.name} é o novo técnico do ${t.name}. Meta: ${expectTxt(t)}.`,'job');}
-function firedOffers(mg){const cur=mg.tid!=null?TM(mg.tid):null;let c=S.teams.filter(x=>!isHuman(x.id)&&x.rep<=Math.max(45,mg.rep+5)&&(!cur||x.rep<cur.rep));
+function firedOffers(mg){const cur=mg.tid!=null?TM(mg.tid):null;let c=S.teams.filter(x=>!isHuman(x.id)&&isDom(x)&&x.rep<=Math.max(45,mg.rep+5)&&(!cur||x.rep<cur.rep));
   c=shuffle(c).sort((a,b)=>b.div-a.div).slice(0,8);c=shuffle(c).slice(0,3);
   if(c.length<2)c=shuffle(S.teams.filter(x=>x.div===2&&!isHuman(x.id))).slice(0,3);return c.map(x=>x.id);}
 
@@ -531,6 +557,7 @@ function seasonEnd(){
   const prizes=[[3e7,2e6],[5e6,4e5],[1.5e6,1e5]];
   tabs.forEach((tab,d)=>tab.forEach((t,i)=>{const pr=(20-i)*prizes[d][1]+(i===0?prizes[d][0]:0);t.cash+=pr;const k=mgrIdx(t.id);if(k>=0)S.mgr[k].fin.pre+=pr;}));
   const up1=tabs[1].slice(0,4),up2=tabs[2].slice(0,4),dn0=tabs[0].slice(16),dn1=tabs[1].slice(16);
+  if(S.v>=3){const q=[];if(S.cup.champ!=null&&TM(S.cup.champ).div<=2&&!dn0.some(t=>t.id===S.cup.champ))q.push(S.cup.champ);for(const t of tabs[0]){if(q.length>=6)break;if(!q.includes(t.id)&&!dn0.includes(t))q.push(t.id);}S.libNext=q;}
   const per=S.mgr.map(mg=>{if(mg.tid==null||mg.fired)return {pos:null,div:null,verdict:'Você terminou a temporada sem clube.'};const ut=TM(mg.tid);
     const pos=tabs[ut.div].findIndex(t=>t.id===ut.id)+1;const exp=expectedPos(ut);
     let dc=(exp-pos)*1.5;if(pos===1){dc+=30;mg.titles.push(`${DIVN[ut.div]} ${S.year}`);mg.rep+=[15,8,5][ut.div];}
@@ -540,7 +567,7 @@ function seasonEnd(){
     const verdict=mg.conf<=12?'A diretoria decidiu não renovar com você.':mg.conf<40?'A diretoria está insatisfeita, mas mantém você no cargo.':'A diretoria aprovou o seu trabalho.';
     if(mg.conf<=12){mg.fired=true;mg.firedOffers=null;}
     return {pos,div:ut.div,tid:ut.id,verdict};});
-  S.history.unshift({y:S.year,A:champ[0],B:champ[1],C:champ[2],cup:S.cup.champ,us:per.map(x=>x.pos?{tid:x.tid,div:x.div,pos:x.pos}:null),art:scorers[0]});
+  S.history.unshift({y:S.year,A:champ[0],B:champ[1],C:champ[2],cup:S.cup.champ,lib:S.lib?S.lib.champ:null,ucl:S.ucl?S.ucl.champ:null,mun:S.mun?S.mun.champ:null,us:per.map(x=>x.pos?{tid:x.tid,div:x.div,pos:x.pos}:null),art:scorers[0]});
   dn0.forEach(t=>{t.div=1;t.rep=clamp(t.rep-4,30,99);});dn1.forEach(t=>{t.div=2;t.rep=clamp(t.rep-4,30,99);});
   up1.forEach(t=>{t.div=0;t.rep=clamp(t.rep+5,30,99);});up2.forEach(t=>{t.div=1;t.rep=clamp(t.rep+4,30,99);});
   tabs.forEach(tab=>tab.forEach((t,i)=>{if(!dn0.includes(t)&&!dn1.includes(t)&&!up1.includes(t)&&!up2.includes(t))t.rep=clamp(t.rep+(10-i)*.25,30,99);}));
@@ -550,20 +577,257 @@ function seasonEnd(){
   retired.forEach(p=>{const t=TM(p.t);t.pids=t.pids.filter(x=>x!==p.id);t.xi=t.xi.filter(x=>x!==p.id);t.bench=t.bench.filter(x=>x!==p.id);if(p.f>=74||isHuman(t.id))news(`${p.n} (${t.name}) anuncia aposentadoria aos ${p.a} anos.`,'');delete S.P[p.id];});
   S.teams.forEach(t=>{const used=new Set(t.pids.map(i=>PL(i).n));const hu=isHuman(t.id);const n=hu?2:ri(1,3);for(let i=0;i<n;i++)youth(t,used);
     const cnt={G:0,D:0,M:0,A:0};t.pids.forEach(id=>cnt[PL(id).p]++);const need={G:3,D:7,M:7,A:4};
-    if(!hu){for(const pos in need)while(cnt[pos]<need[pos]){t.pids.push(mkP(genName(used),pos,baseF(t)-ri(2,10),ri(20,30),t.id).id);cnt[pos]++;}
+    if(!hu){for(const pos in need)while(cnt[pos]<need[pos]){t.pids.push(mkP(genNameP(used,t.pool),pos,baseF(t)-ri(2,10),ri(20,30),t.id).id);cnt[pos]++;}
       while(t.pids.length>30){const w=t.pids.map(PL).sort((a,b)=>a.f-b.f||a.id-b.id)[0];t.pids=t.pids.filter(x=>x!==w.id);delete S.P[w.id];}}
-    else if(cnt.G<2){t.pids.push(mkP(genName(used),'G',baseF(t)-8,ri(20,28),t.id).id);}
+    else if(cnt.G<2){t.pids.push(mkP(genNameP(used,t.pool),'G',baseF(t)-8,ri(20,28),t.id).id);}
     t.pids.forEach(id=>{const p=PL(id);p.sal=Math.max(p.sal,Math.round(salFor(p)*.8/1000)*1000);});});
   S.mgr.forEach(mg=>{mg.offers=[];mg.jobs=[];});
-  S.lastSummary={y:S.year,champ,cup:S.cup.champ,up1:up1.map(t=>t.id),up2:up2.map(t=>t.id),dn0:dn0.map(t=>t.id),dn1:dn1.map(t=>t.id),scorers,per,retired:retired.length};
+  S.lastSummary={y:S.year,champ,cup:S.cup.champ,lib:S.lib?S.lib.champ:null,ucl:S.ucl?S.ucl.champ:null,mun:S.mun?S.mun.champ:null,up1:up1.map(t=>t.id),up2:up2.map(t=>t.id),dn0:dn0.map(t=>t.id),dn1:dn1.map(t=>t.id),scorers,per,retired:retired.length};
   S.year++;S.mgr.forEach(mg=>mg.seasons++);newSeason();
   S.mgr.forEach((mg,k)=>{if(mg.fired){mg.firedOffers=firedOffers(mg);return;}if(mg.tid!=null)autoLineup(TM(mg.tid));
-    if(mg.rep>55&&R()<.5){const c=S.teams.filter(x=>!isHuman(x.id)&&x.rep>TM(mg.tid).rep+3&&x.rep<=mg.rep+22);if(c.length){const j=pick(c);mg.jobs.push({tid:j.id,exp:S.md+3});news(`Convite: o ${j.name} quer contratar você para ${S.year}.`,'job',k);}}});
+    if(mg.rep>55&&R()<.5){const c=S.teams.filter(x=>!isHuman(x.id)&&isDom(x)&&x.rep>TM(mg.tid).rep+3&&x.rep<=mg.rep+22);if(c.length){const j=pick(c);mg.jobs.push({tid:j.id,exp:S.md+3});news(`Convite: o ${j.name} quer contratar você para ${S.year}.`,'job',k);}}});
 }
+
+/* ====================== COPAS INTERNACIONAIS E COPA DO MUNDO ====================== */
+// nomes por idioma para os elencos gerados de clubes estrangeiros e seleções
+const NP={
+ es:{f:['Juan','Carlos','Diego','Santiago','Matías','Nicolás','Lucas','Facundo','Agustín','Martín','Sebastián','Andrés','Felipe','José','Luis','Miguel','Alejandro','Franco','Gonzalo','Emiliano','Kevin','Brian','Cristian','Jhon','Yerson'],l:['González','Rodríguez','Fernández','López','Martínez','Gómez','Pérez','Sánchez','Romero','Díaz','Álvarez','Torres','Ruiz','Ramírez','Flores','Acosta','Benítez','Medina','Herrera','Castro','Vargas','Rojas','Morales','Ortiz','Cáceres','Mendoza']},
+ en:{f:['James','Jack','Harry','Oliver','Charlie','Thomas','George','Jacob','Ryan','Liam','Mason','Callum','Luke','Ben','Jordan','Tyler','Kyle','Connor','Lewis','Jamie'],l:['Smith','Jones','Taylor','Brown','Wilson','Evans','Walker','Wright','Robinson','Thompson','White','Hughes','Edwards','Green','Hall','Wood','Harris','Clarke','Cooper','Ward','Turner']},
+ it:{f:['Marco','Luca','Alessandro','Andrea','Matteo','Lorenzo','Davide','Federico','Simone','Riccardo','Giacomo','Nicolò','Francesco','Gianluca','Stefano'],l:['Rossi','Russo','Ferrari','Esposito','Bianchi','Romano','Colombo','Ricci','Marino','Greco','Gallo','Conti','De Luca','Mancini','Giordano','Rizzo','Lombardi','Moretti']},
+ de:{f:['Lukas','Leon','Jonas','Niklas','Felix','Maximilian','Paul','Tim','Jan','Florian','Kevin','Julian','Moritz','Tobias','David'],l:['Müller','Schmidt','Schneider','Fischer','Weber','Meyer','Wagner','Becker','Schulz','Hoffmann','Koch','Richter','Klein','Wolf','Neumann','Schwarz','Zimmermann','Krüger','Hartmann','Lange']},
+ fr:{f:['Lucas','Hugo','Théo','Nathan','Louis','Enzo','Mathis','Jules','Antoine','Maxime','Yanis','Moussa','Bastien','Clément','Adrien','Kylian'],l:['Martin','Bernard','Dubois','Thomas','Robert','Richard','Petit','Durand','Leroy','Moreau','Simon','Laurent','Lefebvre','Michel','Fournier','Diallo','Traoré','Koné','Camara','Roux']},
+ pt:{f:['João','Rúben','Diogo','Tiago','Gonçalo','Pedro','André','Rafael','Bruno','Nuno','Francisco','Rodrigo','Miguel','Ricardo','Fábio'],l:['Silva','Santos','Ferreira','Pereira','Oliveira','Costa','Rodrigues','Martins','Sousa','Fernandes','Gonçalves','Gomes','Lopes','Marques','Alves','Almeida','Ribeiro','Pinto','Carvalho','Teixeira']},
+ nl:{f:['Daan','Sem','Luuk','Bram','Jesse','Thijs','Stijn','Ruben','Lars','Tim','Milan','Joey','Jordy','Kenneth','Wout','Arne'],l:['de Jong','Jansen','de Vries','van den Berg','van Dijk','Bakker','Visser','Smit','Meijer','de Boer','Mulder','Peeters','Janssens','Maes','Jacobs','Willems','Claes','Hermans','Vermeulen','Martens']},
+ tr:{f:['Emre','Burak','Mert','Kerem','Arda','Ozan','Cengiz','Hakan','Yusuf','Okan','Barış','Kaan','Oğuz','Serkan','Efe'],l:['Yılmaz','Kaya','Demir','Şahin','Çelik','Yıldız','Yıldırım','Öztürk','Aydın','Özdemir','Arslan','Doğan','Kılıç','Aslan','Çetin','Kara','Koç','Kurt']},
+ gr:{f:['Giorgos','Kostas','Dimitris','Nikos','Giannis','Christos','Vasilis','Panagiotis','Sotiris','Andreas'],l:['Papadopoulos','Pappas','Georgiou','Nikolaidis','Oikonomou','Vlachos','Karagiannis','Dimitriou','Konstantinou','Ioannou','Charalambous']},
+ nord:{f:['Erik','Lars','Magnus','Ole','Kristian','Jonas','Sander','Emil','Mathias','Oscar','Viktor','Andreas','Rasmus','Mikkel','Anders'],l:['Hansen','Johansen','Olsen','Larsen','Andersen','Pedersen','Nilsen','Kristiansen','Jensen','Nielsen','Berg','Haugen','Lindqvist','Karlsson','Nilsson','Eriksson']},
+ slav:{f:['Tomáš','Jakub','Lukáš','Ondřej','Marek','Ivan','Luka','Marko','Petar','Filip','Josip','Ante','Mateo','Stefan','Nikola','Dario'],l:['Novák','Svoboda','Dvořák','Černý','Procházka','Horvat','Kovačević','Babić','Marić','Jurić','Petrović','Hodžić','Begić','Popović','Kovač']},
+ eu:{f:['Kairat','Arman','Nursultan','Daniyar','Rustam','Elvin','Rahil','Emin','Andreas','Marios','Ramil','Bahlul'],l:['Abdullayev','Mammadov','Aliyev','Huseynov','Seitkali','Zhakupov','Mustafayev','Antoniou','Loizou','Kassymov','Ismayilov']},
+ ar:{f:['Mohamed','Ahmed','Youssef','Omar','Ali','Hamza','Karim','Amine','Mahmoud','Abdullah','Khalid','Salem','Bilal','Ayoub','Hakim','Ismail','Nasser','Sami'],l:['Benali','El Amrani','Mansour','Hassan','Saleh','Haddad','Bennani','Belkacem','Ziani','Fathi','Hamdi','Al-Hamad','Kamal','Saber','Zaki','Brahimi','Rahman','Khaled']},
+ ja:{f:['Takumi','Daichi','Kaoru','Wataru','Ritsu','Ko','Ayase','Hiroki','Yuto','Daizen','Shogo','Keito','Junya','Kento'],l:['Suzuki','Tanaka','Watanabe','Ito','Yamamoto','Nakamura','Kobayashi','Kato','Yoshida','Yamada','Sasaki','Matsumoto','Inoue','Kimura','Hayashi','Shimizu']},
+ ko:{rev:true,f:['Min-jae','Jae-sung','Kang-in','Hee-chan','Seung-ho','Woo-young','Gue-sung','Young-woo','Jin-su','Tae-hwan','Hyun-woo','Sung-jin'],l:['Kim','Lee','Park','Choi','Jung','Kang','Cho','Yoon','Jang','Lim','Hwang','Son']},
+ fa:{f:['Mehdi','Ali','Saman','Sardar','Alireza','Mohammad','Majid','Milad','Ehsan','Hossein','Reza','Omid'],l:['Rezaei','Hosseini','Mohammadi','Karimi','Ahmadi','Moradi','Jafari','Rahimi','Sadeghi','Kazemi','Nazari']},
+ af:{f:['Kwame','Kofi','Thomas','Jordan','Mohammed','Lamine','Ismaïla','Pape','Cheikh','Serge','Wilfried','Franck','Yves','Percy','Themba','Lyle','Teboho','Chancel','Gaël'],l:['Mensah','Asante','Boateng','Owusu','Ayew','Diallo','Sarr','Ndiaye','Gueye','Koné','Kouassi','Bakambu','Mbemba','Mokoena','Zwane','Foster','Tau','Kalala','Mukendi']},
+ uz:{f:['Eldor','Abbosbek','Jaloliddin','Otabek','Oston','Jasur','Khojimat','Sherzod','Rustam','Dostonbek'],l:['Shomurodov','Fayzullaev','Masharipov','Shukurov','Urunov','Khamrobekov','Ergashev','Nasrullaev','Alikulov','Erkinov']}
+};
+// [nome, curto, região, cor fundo, cor texto, faixa, prestígio, estádio, idioma, jogadores conhecidos]
+const EXT=[
+['Paris Saint-Germain','PSG','EU','#004170','#ffffff','#da291c',96,'Parc des Princes','fr','G Chevalier 82 24;D Hakimi 88 27;D Marquinhos 85 32;D Pacho 84 24;D Nuno Mendes 88 23;M Vitinha 89 25;M João Neves 88 21;M Fabián Ruiz 84 29;A Dembélé 91 29;A Kvaratskhelia 89 25;A Doué 86 20;A Barcola 85 23;A Gonçalo Ramos 82 24'],
+['Real Madrid','REAL MADRID','EU','#ffffff','#1c2c5b','#febe10',96,'Santiago Bernabéu','es','G Courtois 89 34;D Carvajal 84 34;D Militão 85 28;D Rüdiger 85 33;D Huijsen 84 21;D Alexander-Arnold 86 27;D Carreras 82 23;M Valverde 89 28;M Bellingham 90 23;M Tchouaméni 86 26;M Camavinga 85 23;M Arda Güler 85 21;A Vinícius Júnior 91 26;A Mbappé 93 28;A Rodrygo 85 25'],
+['Manchester City','MAN CITY','EU','#6cabdd','#ffffff','#1c2c5b',95,'Etihad Stadium','en','G Donnarumma 89 27;D Rúben Dias 87 29;D Gvardiol 86 24;D Aké 81 31;D Khusanov 80 22;M Rodri 90 30;M Reijnders 86 28;M Bernardo Silva 85 32;M Foden 86 26;M Cherki 84 23;A Haaland 92 26;A Marmoush 84 27;A Doku 84 24'],
+['Bayern de Munique','BAYERN','EU','#dc052d','#ffffff','',95,'Allianz Arena','de','G Neuer 85 40;D Kimmich 88 31;D Upamecano 85 28;D Tah 85 30;D Davies 83 26;M Musiala 89 23;M Goretzka 82 31;M Pavlović 83 22;A Kane 91 33;A Olise 89 25;A Luis Díaz 87 29;A Gnabry 83 31'],
+['Liverpool','LIVERPOOL','EU','#c8102e','#ffffff','',95,'Anfield','en','G Alisson 88 34;D Van Dijk 88 35;D Konaté 85 27;D Frimpong 84 26;D Kerkez 82 23;M Mac Allister 87 28;M Szoboszlai 86 26;M Gravenberch 86 24;M Wirtz 88 23;A Salah 89 34;A Isak 88 27;A Ekitiké 85 24;A Gakpo 84 27'],
+['Arsenal','ARSENAL','EU','#ef0107','#ffffff','#063672',95,'Emirates Stadium','en','G Raya 87 31;D Saliba 89 25;D Gabriel Magalhães 88 29;D Timber 85 25;D Calafiori 82 24;M Rice 89 27;M Ødegaard 87 28;M Zubimendi 86 27;M Eze 85 28;A Saka 89 25;A Gyökeres 87 28;A Martinelli 84 25;A Madueke 82 24'],
+['Barcelona','BARCELONA','EU','#a50044','#ffdf00','#004d98',95,'Camp Nou','es','G Joan García 85 25;D Koundé 86 28;D Cubarsí 86 19;D Araújo 84 27;D Balde 84 23;M Pedri 90 24;M Frenkie de Jong 86 29;M Gavi 84 22;M Fermín López 84 23;A Lamine Yamal 92 19;A Raphinha 89 30;A Lewandowski 85 38;A Rashford 82 29'],
+['Inter de Milão','INTER','EU','#0068a8','#111111','',92,'San Siro','it','G Sommer 84 38;D Bastoni 86 27;D Acerbi 80 38;D Akanji 84 31;D Dimarco 85 29;D Dumfries 84 30;M Barella 87 29;M Çalhanoğlu 86 32;M Mkhitaryan 81 37;A Lautaro Martínez 89 29;A Thuram 85 29;A Bonny 80 23'],
+['Chelsea','CHELSEA','EU','#034694','#ffffff','',92,'Stamford Bridge','en','G Robert Sánchez 82 29;D Reece James 85 27;D Colwill 83 23;D Cucurella 84 28;D Chalobah 81 27;M Caicedo 88 25;M Enzo Fernández 86 25;M Cole Palmer 88 24;A João Pedro 85 25;A Estêvão 84 19;A Pedro Neto 83 26;A Garnacho 82 22'],
+['Atlético de Madrid','ATLÉTICO MAD','EU','#cb3524','#ffffff','#262f61',90,'Metropolitano','es','G Oblak 87 33;D Le Normand 82 30;D Giménez 82 31;D Hancko 81 28;D Llorente 83 31;M Koke 81 34;M Barrios 84 25;M Baena 84 25;M Gallagher 82 26;A Julián Álvarez 89 26;A Griezmann 84 35;A Sørloth 82 31'],
+['Borussia Dortmund','DORTMUND','EU','#fde100','#111111','',89,'Signal Iduna Park','de','G Kobel 86 28;D Schlotterbeck 84 26;D Anton 81 30;D Bensebaini 79 31;M Brandt 82 30;M Nmecha 81 25;M Sabitzer 80 32;A Guirassy 86 30;A Adeyemi 82 24;A Beier 80 23'],
+['Bayer Leverkusen','LEVERKUSEN','EU','#e32221','#111111','',88,'BayArena','de','G Flekken 81 32;D Tapsoba 83 27;D Grimaldo 84 30;M Andrich 81 31;M Aleix García 82 28;M Malik Tillman 81 24;A Schick 83 30'],
+['Napoli','NAPOLI','EU','#12a0d7','#ffffff','',89,'Diego Armando Maradona','it','G Milinković-Savić 82 29;D Di Lorenzo 83 33;D Buongiorno 83 27;D Rrahmani 82 32;M Lobotka 84 32;M McTominay 87 29;M De Bruyne 86 35;M Anguissa 83 30;A Højlund 83 23;A Politano 81 33;A Lang 80 27'],
+['Juventus','JUVENTUS','EU','#ffffff','#111111','',88,'Allianz Stadium','it','G Di Gregorio 82 29;D Bremer 85 29;D Kalulu 81 26;D Cambiaso 82 26;M Locatelli 82 28;M Khéphren Thuram 82 25;M Koopmeiners 81 28;A Kenan Yıldız 87 21;A Vlahović 83 26;A Jonathan David 83 26;A Conceição 82 23'],
+['Atalanta','ATALANTA','EU','#1e71b8','#111111','',86,'Gewiss Stadium','it','G Carnesecchi 82 26;D Scalvini 80 22;D Kolašinac 79 33;M De Roon 80 35;M Éderson 83 27;M De Ketelaere 83 25;A Scamacca 81 27;A Lookman 84 29'],
+['Tottenham','TOTTENHAM','EU','#ffffff','#132257','',87,'Tottenham Hotspur Stadium','en','G Vicario 83 29;D Cristian Romero 86 28;D Van de Ven 85 25;D Porro 83 26;M Bentancur 81 29;M Palhinha 83 31;M Xavi Simons 85 23;M Kudus 84 26;A Solanke 82 29;A Richarlison 80 29'],
+['Newcastle','NEWCASTLE','EU','#111111','#ffffff','',87,"St James' Park",'en','G Pope 83 34;D Botman 83 26;D Trippier 80 36;D Tino Livramento 82 23;M Bruno Guimarães 87 28;M Tonali 85 26;M Joelinton 82 29;A Gordon 84 25;A Woltemade 83 24;A Wissa 81 29'],
+['Benfica','BENFICA','EU','#e83030','#ffffff','',85,'Estádio da Luz','pt','G Trubin 83 25;D Otamendi 80 38;D António Silva 82 22;M Aursnes 81 30;M Sudakov 82 23;A Pavlidis 83 27;A Lukebakio 80 28'],
+['Sporting','SPORTING','EU','#008057','#ffffff','',85,'José Alvalade','pt','G Rui Silva 80 32;D Diomande 83 22;M Hjulmand 84 27;M Trincão 83 26;M Pedro Gonçalves 83 28;A Luis Suárez 83 28'],
+['Villarreal','VILLARREAL','EU','#ffe667','#005187','',84,'Estadio de la Cerámica','es','A Gerard Moreno 81 34;A Mikautadze 81 25'],
+['Athletic Club','ATHLETIC','EU','#ee2523','#ffffff','#111111',84,'San Mamés','es','G Unai Simón 85 29;D Vivian 82 27;M Sancet 82 26;A Nico Williams 86 24;A Iñaki Williams 81 32'],
+['Eintracht Frankfurt','FRANKFURT','EU','#111111','#e1000f','',83,'Deutsche Bank Park','de','D Koch 80 29;M Larsson 81 21;A Burkardt 80 26'],
+['PSV','PSV','EU','#ed1c24','#ffffff','',83,'Philips Stadion','nl','M Veerman 81 27;A Til 80 27;A Saibari 80 25'],
+['Olympique de Marseille','MARSEILLE','EU','#ffffff','#2faee0','',84,'Vélodrome','fr','G Rulli 81 34;M Højbjerg 81 31;A Greenwood 85 25;A Aubameyang 79 37;A Gouiri 81 26'],
+['Monaco','MONACO','EU','#e51b22','#ffffff','',83,'Stade Louis II','fr','M Golovin 80 30;A Minamino 79 31;A Ansu Fati 79 23;A Embolo 79 29'],
+['Ajax','AJAX','EU','#ffffff','#d2122e','',81,'Johan Cruijff ArenA','nl','M Klaassen 78 33;A Weghorst 78 34'],
+['Galatasaray','GALATASARAY','EU','#a90432','#fdb912','',83,'Rams Park','tr','G Çakır 79 30;M Torreira 80 30;M Lemina 79 32;A Osimhen 87 27;A Icardi 80 33;A Leroy Sané 83 30;A Barış Alper Yılmaz 81 26'],
+['Club Brugge','BRUGGE','EU','#0076c0','#111111','',80,'Jan Breydel','nl','A Tzolis 80 24'],
+['Olympiacos','OLYMPIACOS','EU','#e2001a','#ffffff','',79,'Karaiskakis','gr','A El Kaabi 81 32'],
+['Slavia Praga','SLAVIA PRAGA','EU','#ffffff','#d01c1f','',77,'Fortuna Arena','slav',''],
+['Copenhague','COPENHAGUE','EU','#ffffff','#003b8e','',77,'Parken','nord',''],
+['Union Saint-Gilloise','UNION SG','EU','#fcd116','#003a70','',77,'Joseph Marien','fr',''],
+['Bodø/Glimt','BODØ/GLIMT','EU','#ffd400','#111111','',77,'Aspmyra','nord',''],
+['Qarabağ','QARABAĞ','EU','#111111','#ffffff','',74,'Tofiq Bahramov','eu',''],
+['Pafos','PAFOS','EU','#0b3b8c','#ffffff','',71,'Stelios Kyriakides','eu',''],
+['Kairat','KAIRAT','EU','#ffd400','#111111','',69,'Central Stadium (Almaty)','eu',''],
+// Libertadores
+['Estudiantes','ESTUDIANTES','SA','#e2001a','#ffffff','',80,'Jorge Luis Hirschi','es',''],
+['Independiente Medellín','DIM','SA','#d50000','#0033a0','',72,'Atanasio Girardot','es',''],
+['Cusco FC','CUSCO','SA','#ffd400','#111111','',62,'Garcilaso','es',''],
+['Nacional','NACIONAL-URU','SA','#ffffff','#003da5','#d50000',77,'Gran Parque Central','es',''],
+['Universitario','UNIVERSITARIO','SA','#f5f0dc','#8b0000','',73,'Monumental (Lima)','es',''],
+['Coquimbo Unido','COQUIMBO','SA','#ffd400','#111111','',68,'Francisco Sánchez Rumoroso','es',''],
+['Deportes Tolima','TOLIMA','SA','#7a1630','#ffd400','',70,'Manuel Murillo Toro','es',''],
+['Bolívar','BOLÍVAR','SA','#5ab4e5','#ffffff','',71,'Hernando Siles','es',''],
+['Deportivo La Guaira','LA GUAIRA','SA','#ff7f00','#0033a0','',62,'Olímpico de la UCV','es',''],
+['Independiente Rivadavia','IND. RIVADAVIA','SA','#0033a0','#ffffff','',71,'Bautista Gargantini','es',''],
+['Boca Juniors','BOCA JUNIORS','SA','#003da5','#ffd400','',84,'La Bombonera','es','G Marchesín 79 37;M Paredes 83 31;A Merentiel 79 29;A Cavani 78 39;A Zeballos 79 24'],
+['Universidad Católica','U. CATÓLICA','SA','#ffffff','#0033a0','#d50000',72,'Claro Arena','es',''],
+['Barcelona SC','BARCELONA SC','SA','#ffd400','#111111','#d50000',72,'Monumental Banco Pichincha','es',''],
+['Peñarol','PEÑAROL','SA','#ffd400','#111111','',77,'Campeón del Siglo','es',''],
+['Independiente Santa Fe','SANTA FE','SA','#d50000','#ffffff','',72,'El Campín','es',''],
+['Platense','PLATENSE','SA','#ffffff','#5c3a21','',71,'Ciudad de Vicente López','es',''],
+['Cerro Porteño','CERRO PORTEÑO','SA','#d50000','#0033a0','',75,'La Nueva Olla','es',''],
+['Junior','JUNIOR','SA','#ffffff','#d50000','#0033a0',74,'Roberto Meléndez','es',''],
+['Sporting Cristal','S. CRISTAL','SA','#5ab4e5','#ffffff','',71,'Alberto Gallardo','es',''],
+['LDU Quito','LDU QUITO','SA','#ffffff','#0033a0','#d50000',79,'Rodrigo Paz Delgado','es',''],
+['Lanús','LANÚS','SA','#7a1630','#ffffff','',78,'La Fortaleza','es',''],
+['Always Ready','ALWAYS READY','SA','#ffffff','#d50000','',64,'Municipal de El Alto','es',''],
+['Independiente del Valle','IND. DEL VALLE','SA','#111111','#ffffff','#0033a0',78,'Banco Guayaquil','es',''],
+['Libertad','LIBERTAD','SA','#111111','#ffffff','',74,'La Huerta','es',''],
+['Rosario Central','ROSARIO CENTRAL','SA','#0033a0','#ffd400','',78,'Gigante de Arroyito','es','A Di María 84 38'],
+['Universidad Central','U. CENTRAL','SA','#ffffff','#7a1630','',62,'Olímpico de la UCV','es','']
+];
+// grupos reais da Libertadores 2026 (sorteio de 19/03/2026)
+const LIBG2026=[['Flamengo','Estudiantes','Cusco FC','Independiente Medellín'],['Nacional','Universitario','Coquimbo Unido','Deportes Tolima'],['Fluminense','Bolívar','Deportivo La Guaira','Independiente Rivadavia'],['Boca Juniors','Cruzeiro','Universidad Católica','Barcelona SC'],['Peñarol','Corinthians','Independiente Santa Fe','Platense'],['Palmeiras','Cerro Porteño','Junior','Sporting Cristal'],['LDU Quito','Lanús','Always Ready','Mirassol'],['Independiente del Valle','Libertad','Rosario Central','Universidad Central']];
+const XAFTER=[1,4,6,9,11,15,17,20,22,26,28,31,33],MUN_AFTER=36;
+const LIBST=['1ª rodada','2ª rodada','3ª rodada','4ª rodada','5ª rodada','6ª rodada','','','Oitavas de final','Quartas de final','Semifinal','Final'];
+const UCLST=['1ª rodada','2ª rodada','3ª rodada','4ª rodada','5ª rodada','6ª rodada','7ª rodada','8ª rodada','Playoff','Oitavas de final','Quartas de final','Semifinal','Final'];
+const COMPN=['Série A','Série B','Série C','Copa do Brasil','','Libertadores','Champions League','Mundial de Clubes','Copa do Mundo'];
+const isDom=t=>t.div<=2;
+function genNameP(used,pool){const P=NP[pool];if(!P)return genName(used);for(let k=0;k<60;k++){const a=pick(P.f),b=pick(P.l);const n=P.rev?b+' '+a:a+' '+b;if(!used.has(n)){used.add(n);return n;}}return pick(P.f)+' '+pick(P.l)+' '+ri(2,9);}
+function addExtTeams(){const base=S.teams.length;EXT.forEach((d,i)=>{const t={id:base+i,name:d[0],short:d[1],div:d[2]==='SA'?3:4,ext:d[2],c:[d[3],d[4],d[5]],rep:d[6],std:d[7],cap:40000,pool:d[8],pids:[],xi:[],bench:[],form:pick(['4-4-2','4-3-3','4-3-3','4-5-1']),post:1,loan:0,ticket:0};
+  t.cash=Math.round(t.rep*t.rep*8000/1e5)*1e5;S.teams.push(t);buildSquad(t,d[9]);});}
+const teamByName=n=>S.teams.find(t=>t.name===n);
+const mkFx=(h,a,o)=>Object.assign({h,a,hg:null,ag:null},o||{});
+const emptyTb=()=>({j:0,v:0,e:0,d:0,gp:0,gc:0,pts:0,f:[]});
+function updTb(H,A,hg,ag){H.j++;A.j++;H.gp+=hg;H.gc+=ag;A.gp+=ag;A.gc+=hg;
+  if(hg>ag){H.v++;A.d++;H.pts+=3;H.f.push('V');A.f.push('D');}else if(hg<ag){A.v++;H.d++;A.pts+=3;A.f.push('V');H.f.push('D');}else{H.e++;A.e++;H.pts++;A.pts++;H.f.push('E');A.f.push('E');}
+  [H,A].forEach(x=>{if(x.f.length>5)x.f.shift();});}
+const sortTb=(ids,tb)=>ids.slice().sort((a,b)=>{const x=tb[a],y=tb[b];return y.pts-x.pts||(y.gp-y.gc)-(x.gp-x.gc)||y.gp-x.gp||y.v-x.v||cmpName(TM(a),TM(b));});
+function groupRounds(g){const P=[[0,1,2,3],[0,2,1,3],[0,3,1,2]];const r=P.map(p=>[[g[p[0]],g[p[1]]],[g[p[2]],g[p[3]]]]);return r.concat(r.map(x=>x.map(([h,a])=>[a,h])));}
+// Libertadores: 6 brasileiros + 26 estrangeiros, 8 grupos de 4
+function newContinental(){
+  const sa=S.teams.filter(t=>t.ext==='SA').map(t=>t.id),eu=S.teams.filter(t=>t.ext==='EU').map(t=>t.id);
+  let groups;
+  if(S.year===2026&&!S.libNext){groups=LIBG2026.map(g=>g.map(n=>teamByName(n).id));}
+  else{const br=(S.libNext||[]).slice(0,6);while(br.length<6){const c=S.teams.filter(t=>t.div===0&&!br.includes(t.id)).sort((a,b)=>b.rep-a.rep||a.id-b.id)[0];br.push(c.id);}
+    const pots=[[],[],[],[]];const fo=shuffle(sa.slice()).sort((a,b)=>TM(b).rep-TM(a).rep);
+    groups=[[],[],[],[],[],[],[],[]];const brs=shuffle(br.slice());const gi=shuffle([0,1,2,3,4,5,6,7]);brs.forEach((id,k)=>groups[gi[k]].push(id));
+    let k=0;for(const id of fo){while(groups[k%8].length>=4)k++;groups[k%8].push(id);k++;}
+    groups.forEach(g=>shuffle(g));}
+  const tb={};groups.flat().forEach(id=>tb[id]=emptyTb());
+  const gfx=[0,1,2,3,4,5].map(()=>[]);groups.forEach((g,gi)=>groupRounds(g).forEach((r,ri2)=>r.forEach(([h,a])=>gfx[ri2].push(mkFx(h,a,{c:5,gr:gi})))));
+  S.lib={groups,tb,gfx,ko:[],champ:null,vice:null};
+  const ul=shuffle(eu.slice());const rr=roundRobin(ul).slice(0,8).map(r=>r.map(f=>mkFx(f.h,f.a,{c:6})));const utb={};eu.forEach(id=>utb[id]=emptyTb());
+  S.ucl={teams:eu,lr:rr,tb:utb,ko:[],champ:null,vice:null};
+  S.mun={fx:null,champ:null};
+}
+function contFix(d){const o=[];if(!S.lib)return o;
+  if(d<6)S.lib.gfx[d].forEach(fx=>o.push([fx,5]));else if(d>=8&&d<=11)(S.lib.ko[d-8]||[]).forEach(fx=>o.push([fx,5]));
+  if(d<8)S.ucl.lr[d].forEach(fx=>o.push([fx,6]));else(S.ucl.ko[d-8]||[]).forEach(fx=>o.push([fx,6]));return o;}
+function koPairs(ids,o){const r=[];for(let i=0;i<ids.length;i+=2)r.push(mkFx(ids[i],ids[i+1],Object.assign({ko:true},o)));return r;}
+function advanceCont(d){const L=S.lib,U=S.ucl;const prize=(ids,v)=>ids.forEach(id=>{TM(id).cash+=v;const k=mgrIdx(id);if(k>=0)S.mgr[k].fin.pre+=v;});
+  if(d<6)L.gfx[d].forEach(fx=>{if(fx.hg>fx.ag)prize([fx.h],15e5);else if(fx.ag>fx.hg)prize([fx.a],15e5);});
+  if(d===5){const first=[],second=[];L.groups.forEach(g=>{const s=sortTb(g,L.tb);first.push(s[0]);second.push(s[1]);});prize(first.concat(second),4e6);
+    const r=[];for(let i=0;i<8;i++)r.push(mkFx(first[i],second[(i+1)%8],{c:5,ko:true}));L.ko[0]=r;
+    S.mgr.forEach((mg,k)=>{if(mg.tid!=null&&L.groups.flat().includes(mg.tid)&&!first.concat(second).includes(mg.tid)){mg.conf=clamp(mg.conf-6,0,100);news(`O ${TM(mg.tid).name} caiu na fase de grupos da Libertadores.`,'bad',k);}});}
+  if(d>=8&&d<=10){const w=L.ko[d-8].map(f=>f.w);prize(w,[6e6,9e6,12e6][d-8]);L.ko[d-7]=koPairs(w,{c:5}).map(f=>d===10?Object.assign(f,{n:true,et:true}):f);}
+  if(d===11){const f=L.ko[3][0];L.champ=f.w;L.vice=f.w===f.h?f.a:f.h;prize([L.champ],8e7);prize([L.vice],35e6);news(`${TM(L.champ).name} é campeão da Libertadores ${S.year}!`,isHuman(L.champ)?'job':'');
+    S.mgr.forEach(mg=>{if(mg.tid===L.champ){mg.titles.push(`Libertadores ${S.year}`);mg.rep=clamp(mg.rep+18,1,100);mg.conf=clamp(mg.conf+25,0,100);}});}
+  if(d===7){const s=sortTb(U.teams,U.tb);U.order=s;const r=[];for(let i=8;i<16;i++)r.push(mkFx(s[i],s[31-i],{c:6,ko:true}));U.ko[0]=r;}
+  if(d===8){const s=U.order;const pw=U.ko[0].map(f=>f.w);const r=[];for(let i=0;i<8;i++)r.push(mkFx(s[i],pw[7-i],{c:6,ko:true}));U.ko[1]=r;}
+  if(d>=9&&d<=11){const w=U.ko[d-8].map(f=>f.w);U.ko[d-7]=koPairs(w,{c:6}).map(f=>d===11?Object.assign(f,{n:true,et:true}):f);}
+  if(d===12){const f=U.ko[4][0];U.champ=f.w;U.vice=f.w===f.h?f.a:f.h;news(`${TM(U.champ).name} é campeão da Champions League!`,'');
+    if(L.champ!=null)S.mun.fx=mkFx(L.champ,U.champ,{c:7,ko:true,n:true,et:true});}
+}
+function finishMundial(){const f=S.mun.fx;if(!f)return;S.mun.champ=f.w;const v=f.w===f.h?f.a:f.h;[[f.w,3e7],[v,15e6]].forEach(([id,x])=>{TM(id).cash+=x;const k=mgrIdx(id);if(k>=0)S.mgr[k].fin.pre+=x;});
+  news(`${TM(f.w).name} é campeão do Mundial de Clubes ${S.year}!`,isHuman(f.w)?'job':'');S.mgr.forEach(mg=>{if(mg.tid===f.w){mg.titles.push(`Mundial de Clubes ${S.year}`);mg.rep=clamp(mg.rep+15,1,100);}});}
+function contLabel(d){const a=LIBST[d]?`Libertadores ${LIBST[d]}`:'',b=UCLST[d]?`Champions ${UCLST[d]}`:'';return [a,b].filter(Boolean).join(' · ');}
+
+/* ---------- Copa do Mundo 2026 ---------- */
+// [nome, curto, fundo, texto, faixa, força, idioma, grupo, jogadores conhecidos]
+const NAT=[
+['México','MÉXICO','#006847','#ffffff','#ce1126',80,'es','A','G Malagón 77 29;D Montes 78 29;D Vásquez 78 27;M Edson Álvarez 80 28;M Lira 78 23;A Raúl Jiménez 79 35;A Santiago Giménez 81 25;A Lozano 78 30'],
+['África do Sul','ÁFRICA DO SUL','#007a4d','#ffb612','',72,'af','A',''],
+['Coreia do Sul','COREIA DO SUL','#c60c30','#ffffff','#003478',79,'ko','A','D Kim Min-jae 85 29;M Lee Kang-in 82 25;A Son Heung-min 83 33;A Hwang Hee-chan 78 30'],
+['Tchéquia','TCHÉQUIA','#d7141a','#ffffff','#11457e',77,'slav','A','A Schick 83 30'],
+['Canadá','CANADÁ','#d80621','#ffffff','',77,'en','B','D Davies 83 25;A Jonathan David 83 26'],
+['Bósnia e Herzegovina','BÓSNIA','#002395','#fecb00','',75,'slav','B','A Džeko 76 40'],
+['Catar','CATAR','#8a1538','#ffffff','',70,'ar','B',''],
+['Suíça','SUÍÇA','#d52b1e','#ffffff','',81,'de','B','G Kobel 86 28;D Akanji 84 30;M Xhaka 82 33'],
+['Brasil','BRASIL','#ffdf00','#009c3b','#002776',92,'br','C','G Alisson 88 33;G Ederson 85 32;G Bento 79 27;D Marquinhos 85 32;D Gabriel Magalhães 88 28;D Militão 84 28;D Wesley 80 22;D Danilo 76 35;D Alex Sandro 76 35;D Douglas Santos 78 32;M Casemiro 82 34;M Bruno Guimarães 87 28;M Lucas Paquetá 83 28;M Andrey Santos 80 22;A Vinícius Júnior 91 25;A Raphinha 89 29;A Rodrygo 85 25;A Estêvão 84 19;A Matheus Cunha 85 27;A João Pedro 84 24;A Gabriel Martinelli 84 25;A Richarlison 80 29'],
+['Marrocos','MARROCOS','#c1272d','#ffffff','#006233',85,'ar','C','G Bounou 83 35;D Hakimi 88 27;D Aguerd 81 30;D Mazraoui 80 28;M Amrabat 79 30;M Ounahi 79 26;A Brahim Díaz 83 26;A Ezzalzouli 80 24;A En-Nesyri 80 29'],
+['Haiti','HAITI','#00209f','#ffffff','#d21034',64,'fr','C',''],
+['Escócia','ESCÓCIA','#0065bd','#ffffff','',77,'en','C','D Robertson 81 32;M McTominay 87 29'],
+['Estados Unidos','EUA','#ffffff','#0a3161','#b31942',81,'en','D','G Matt Turner 77 32;D Robinson 80 29;D Richards 79 26;M McKennie 81 27;M Adams 79 27;M Musah 79 23;A Pulisic 85 27;A Weah 79 26;A Balogun 79 24'],
+['Paraguai','PARAGUAI','#d52b1e','#ffffff','#0038a8',77,'es','D','D Gustavo Gómez 81 33;M Almirón 78 32;A Enciso 79 22'],
+['Austrália','AUSTRÁLIA','#ffcd00','#00843d','',76,'en','D',''],
+['Turquia','TURQUIA','#e30a17','#ffffff','',80,'tr','D','M Çalhanoğlu 86 32;M Arda Güler 85 21;A Kenan Yıldız 87 21'],
+['Alemanha','ALEMANHA','#ffffff','#111111','',90,'de','E','G ter Stegen 84 34;D Rüdiger 85 33;D Tah 85 30;D Schlotterbeck 84 26;D Raum 81 28;M Kimmich 88 31;M Wirtz 88 23;M Musiala 89 23;M Goretzka 82 31;A Havertz 84 27;A Woltemade 83 24;A Sané 83 30;A Gnabry 83 30'],
+['Curaçao','CURAÇAO','#002b7f','#f9e814','',64,'nl','E',''],
+['Costa do Marfim','COSTA DO MARFIM','#f77f00','#ffffff','#009e60',78,'af','E','D Kossounou 80 25;A Amad Diallo 82 23'],
+['Equador','EQUADOR','#ffdd00','#034ea2','#ed1c24',81,'es','E','D Hincapié 83 24;D Pacho 84 24;M Caicedo 88 24;A Enner Valencia 77 36'],
+['Holanda','HOLANDA','#ff6600','#ffffff','',89,'nl','F','G Verbruggen 82 23;D Van Dijk 88 34;D De Ligt 83 26;D Dumfries 84 30;D Frimpong 84 25;D Timber 85 25;M Frenkie de Jong 86 29;M Reijnders 86 27;M Gravenberch 86 24;M Xavi Simons 85 23;A Gakpo 84 27;A Depay 82 32'],
+['Japão','JAPÃO','#0b2e8a','#ffffff','',82,'ja','F','G Zion Suzuki 79 23;D Itakura 79 29;D Tomiyasu 79 27;M Endo 80 33;M Kamada 80 29;M Kubo 83 25;A Mitoma 82 29;A Ueda 80 27;A Minamino 79 31;A Doan 80 28'],
+['Suécia','SUÉCIA','#fecc02','#006aa7','',79,'nord','F','A Isak 88 26;A Gyökeres 87 28'],
+['Tunísia','TUNÍSIA','#e70013','#ffffff','',74,'ar','F',''],
+['Bélgica','BÉLGICA','#c8102e','#ffd700','#111111',86,'nl','G','G Courtois 89 34;D Theate 80 26;D Castagne 79 30;M De Bruyne 86 35;M Tielemans 82 29;M Amadou Onana 81 24;A Doku 84 24;A Trossard 82 31;A Lukaku 80 33;A Openda 81 26'],
+['Egito','EGITO','#c8102e','#ffffff','#111111',77,'ar','G','A Salah 89 34;A Marmoush 84 27'],
+['Irã','IRÃ','#ffffff','#da0000','#239f40',77,'fa','G','A Taremi 79 34'],
+['Nova Zelândia','NOVA ZELÂNDIA','#ffffff','#111111','',66,'en','G',''],
+['Espanha','ESPANHA','#c60b1e','#ffc400','',95,'es','H','G Unai Simón 85 29;D Carvajal 84 34;D Laporte 83 32;D Cubarsí 86 19;D Cucurella 84 27;D Huijsen 84 21;M Rodri 90 30;M Pedri 90 23;M Zubimendi 86 27;M Fabián Ruiz 84 30;M Dani Olmo 84 28;A Lamine Yamal 92 18;A Nico Williams 86 23;A Oyarzabal 84 29;A Ferran Torres 82 26'],
+['Cabo Verde','CABO VERDE','#003893','#ffffff','#cf2027',69,'pt','H',''],
+['Arábia Saudita','ARÁBIA SAUDITA','#006c35','#ffffff','',72,'ar','H',''],
+['Uruguai','URUGUAI','#5ab4e5','#111111','',85,'es','H','G Rochet 80 33;D Ronald Araújo 84 27;D Giménez 82 31;D Olivera 81 28;M Valverde 89 27;M Bentancur 81 29;M Ugarte 82 25;M De Arrascaeta 86 32;A Darwin Núñez 82 27;A Pellistri 78 24'],
+['França','FRANÇA','#002654','#ffffff','#ed2939',95,'fr','I','G Maignan 87 30;D Saliba 89 25;D Upamecano 85 27;D Koundé 86 27;D Théo Hernández 84 28;D Konaté 85 27;M Tchouaméni 86 26;M Rabiot 83 31;M Kanté 80 35;M Zaïre-Emery 83 20;A Mbappé 93 27;A Dembélé 91 29;A Olise 89 24;A Doué 86 21;A Marcus Thuram 85 28'],
+['Senegal','SENEGAL','#00853f','#fdef42','#e31b23',81,'af','I','G Édouard Mendy 80 34;D Koulibaly 80 35;M Idrissa Gueye 79 36;M Pape Matar Sarr 81 23;A Nicolas Jackson 81 25;A Mané 80 34;A Ismaïla Sarr 80 28'],
+['Iraque','IRAQUE','#ffffff','#007a3d','#ce1126',70,'ar','I',''],
+['Noruega','NORUEGA','#ba0c2f','#ffffff','#00205b',82,'nord','I','D Ajer 78 28;M Ødegaard 87 27;M Berge 79 28;A Haaland 92 25;A Sørloth 82 30;A Nusa 80 21'],
+['Argentina','ARGENTINA','#75aadb','#ffffff','',94,'es','J','G Emiliano Martínez 87 33;G Rulli 81 34;D Molina 82 28;D Cristian Romero 86 28;D Lisandro Martínez 84 28;D Otamendi 79 38;D Tagliafico 80 33;M Mac Allister 87 27;M Enzo Fernández 86 25;M De Paul 84 32;M Paredes 82 31;M Lo Celso 81 30;A Messi 87 39;A Lautaro Martínez 89 28;A Julián Álvarez 89 26;A Nico González 81 28;A Almada 82 25'],
+['Argélia','ARGÉLIA','#ffffff','#006633','#d21034',77,'ar','J','D Aït-Nouri 81 25;A Mahrez 79 35'],
+['Áustria','ÁUSTRIA','#ed2939','#ffffff','',80,'de','J','D Alaba 80 34;M Sabitzer 80 32;M Laimer 81 29'],
+['Jordânia','JORDÂNIA','#ffffff','#ce1126','#007a3d',70,'ar','J',''],
+['Portugal','PORTUGAL','#da291c','#ffffff','#046a38',92,'pt','K','G Diogo Costa 86 26;D Rúben Dias 87 29;D Nuno Mendes 88 24;D Cancelo 83 32;D Gonçalo Inácio 83 24;M Vitinha 89 26;M João Neves 88 21;M Bruno Fernandes 87 31;M Bernardo Silva 85 31;A Cristiano Ronaldo 83 41;A Rafael Leão 85 27;A Pedro Neto 83 26;A Gonçalo Ramos 82 25'],
+['RD Congo','RD CONGO','#007fff','#f7d618','#ce1021',74,'af','K',''],
+['Uzbequistão','UZBEQUISTÃO','#ffffff','#1eb53a','#0099b5',72,'uz','K',''],
+['Colômbia','COLÔMBIA','#fcd116','#003893','#ce1126',85,'es','K','G Camilo Vargas 79 37;D Dávinson Sánchez 79 30;D Daniel Muñoz 81 27;D Yerry Mina 78 31;M Lerma 80 31;M James Rodríguez 80 35;M Jhon Arias 82 28;A Luis Díaz 87 29;A Jhon Durán 80 22;A Borré 78 30'],
+['Inglaterra','INGLATERRA','#ffffff','#cf081f','',93,'en','L','G Pickford 83 32;D Stones 83 32;D Guéhi 84 25;D Reece James 85 26;D Alexander-Arnold 86 27;M Rice 89 27;M Bellingham 90 22;M Foden 86 26;M Cole Palmer 88 24;A Kane 91 32;A Saka 89 24;A Eze 85 27;A Rashford 82 28'],
+['Croácia','CROÁCIA','#ffffff','#d81e05','#171796',85,'slav','L','G Livaković 82 31;D Gvardiol 86 24;D Šutalo 80 26;M Modrić 83 40;M Kovačić 83 32;M Sučić 81 22;A Kramarić 80 35;A Perišić 78 37'],
+['Gana','GANA','#ffffff','#111111','#fcd116',75,'af','L','A Kudus 84 26'],
+['Panamá','PANAMÁ','#da121a','#ffffff','#072357',70,'es','L','']
+];
+const WCST=['1ª rodada','2ª rodada','3ª rodada','16 avos de final','Oitavas de final','Quartas de final','Semifinais','Final e 3º lugar'];
+const GL='ABCDEFGHIJKL';
+function newWC(name,ni){const seed=Math.floor(Math.random()*2147483646)+1;
+  S={v:3,mode:'wc',seed,rng:seed,year:2026,md:0,turn:0,nid:1,P:{},teams:[],mgr:[],news:[],history:[],lastSummary:null};
+  NAT.forEach((d,i)=>{const t={id:i,name:d[0],short:d[1],div:9,nat:true,c:[d[2],d[3],d[4]],rep:d[5],std:'Copa do Mundo 2026',cap:0,pool:d[6],grp:d[7],pids:[],xi:[],bench:[],form:pick(['4-4-2','4-3-3','4-3-3','4-5-1']),post:1,loan:0,ticket:0,cash:0,tb:emptyTb()};
+    S.teams.push(t);buildSquad(t,d[8],{G:3,D:9,M:8,A:6});});
+  const groups=[...GL].map(g=>S.teams.filter(t=>t.grp===g).map(t=>t.id));
+  const gfx=[[],[],[]];groups.forEach((g,gi)=>groupRounds(g).slice(0,3).forEach((r,k)=>r.forEach(([h,a])=>gfx[k].push(mkFx(h,a,{c:8,gr:gi,n:true})))));
+  S.wc={groups,gfx,ko:[],champ:null,vice:null,third:null,done:false};
+  S.cal=WCST.map((x,s)=>({t:'W',s}));
+  S.mgr=[mkMgr(name,ni)];const u=TM(ni);u.form='4-4-2';S.teams.forEach(t=>autoLineup(t));
+  news(`${name} assume a seleção ${u.name === 'Estados Unidos' ? 'dos Estados Unidos' : 'de ' + u.name} na Copa do Mundo 2026. Grupo ${u.grp}.`,'job',0);
+}
+function wcFix(s){return s<3?S.wc.gfx[s]:(S.wc.ko[s-3]||[]);}
+function advanceWC(s){const W=S.wc;
+  if(s===2){const first=[],second=[],third=[];W.groups.forEach(g=>{const o=sortTb(g,Object.fromEntries(g.map(id=>[id,TM(id).tb])));first.push(o[0]);second.push(o[1]);third.push(o[2]);});
+    const rk=ids=>ids.slice().sort((a,b)=>{const x=TM(a).tb,y=TM(b).tb;return y.pts-x.pts||(y.gp-y.gc)-(x.gp-x.gc)||y.gp-x.gp||cmpName(TM(a),TM(b));});
+    const sec=rk(second),thr=rk(third).slice(0,8);const top=rk(first).concat(sec.slice(0,4));const bot=shuffle(sec.slice(4).concat(thr));
+    const grpOf=id=>TM(id).grp;const r=[];
+    for(const a of top){let j=bot.findIndex(b=>grpOf(b)!==grpOf(a));if(j<0)j=0;r.push(mkFx(a,bot[j],{c:8,ko:true,n:true,et:true}));bot.splice(j,1);}
+    // chaveamento: 1º contra 16º, 2º contra 15º... para os melhores se cruzarem só no fim
+    const ord=[0,15,7,8,3,12,4,11,1,14,6,9,2,13,5,10];W.ko[0]=ord.map(i=>r[i]);
+    const out=W.groups.flat().filter(id=>!top.includes(id)&&!sec.includes(id)&&!thr.includes(id));
+    S.mgr.forEach((mg,k)=>{if(out.includes(mg.tid))news(`A ${TM(mg.tid).name} foi eliminada na fase de grupos.`,'bad',k);else if(mg.tid!=null)news(`A ${TM(mg.tid).name} está classificada para os 16 avos de final!`,'job',k);});}
+  if(s>=3&&s<=5){const w=W.ko[s-3].map(f=>f.w);W.ko[s-2]=koPairs(w,{c:8,n:true,et:true});}
+  if(s===6){const sf=W.ko[3];const w=sf.map(f=>f.w),l=sf.map(f=>f.w===f.h?f.a:f.h);W.ko[4]=[mkFx(w[0],w[1],{c:8,ko:true,n:true,et:true,fin:true}),mkFx(l[0],l[1],{c:8,ko:true,n:true,et:true,third:true})];}
+  if(s>=3){W.ko[s-3].forEach(f=>{const l=f.w===f.h?f.a:f.h;S.mgr.forEach((mg,k)=>{if(mg.tid===l&&!f.third&&!f.fin)news(`A ${TM(l).name} foi eliminada nas ${WCST[s].toLowerCase()}.`,'bad',k);});});}
+  if(s===7){const f=W.ko[4][0],t3=W.ko[4][1];W.champ=f.w;W.vice=f.w===f.h?f.a:f.h;W.third=t3.w;W.done=true;
+    const top=Object.values(S.P).filter(p=>p.gl>0).sort((a,b)=>b.gl-a.gl||a.gm-b.gm)[0];
+    news(`${TM(W.champ).name} é campeã da Copa do Mundo 2026!`,'job');
+    S.lastSummary={wc:true,y:2026,champ:W.champ,vice:W.vice,third:W.third,top:top?`${top.n} (${TM(top.t).short}) ${top.gl} gols`:'-'};}
+}
+function wcResultTxt(tid){const W=S.wc;if(W.champ===tid)return 'Campeã do mundo!';if(W.vice===tid)return 'Vice-campeã';if(W.third===tid)return 'Terceiro lugar';
+  for(let s=W.ko.length-1;s>=0;s--){const f=(W.ko[s]||[]).find(x=>x.h===tid||x.a===tid);if(f){if(f.w==null)return `Disputando: ${WCST[s+3]}`;if(f.third)return 'Quarto lugar';return `Eliminada nas ${WCST[s+3].toLowerCase()}`;}}
+  return S.md>=3?'Eliminada na fase de grupos':'Fase de grupos';}
 
 /* ====================== SALVAR ====================== */
 const SAVE_KEY='futebolbrasil_v2';
-function save(){if(!S||ONLINE())return;UI.saved=lsSet(SAVE_KEY,S);}
+function save(){if(!S||ONLINE())return;UI.saved=lsSet(S.mode==='wc'?WC_KEY:SAVE_KEY,S);}
+const WC_KEY='futebolbrasil_copa';
+function loadWC(){const s=lsGet(WC_KEY);return s&&s.mode==='wc'?s:null;}
+// carreira solo antiga: os clubes estrangeiros entram agora e as copas internacionais começam na próxima temporada
+function upgradeSolo(o){if(!o||o.mode==='wc'||o.online||o.v>=3)return o;const keep=S;S=o;S.v=3;if(!S.teams.some(t=>t.ext))addExtTeams();S=keep;return o;}
 function loadSaved(){const s=lsGet(SAVE_KEY);if(s&&s.mgr)return s;return migrateV1(lsGet('futebolbrasil_v1'));}
 function migrateV1(o){if(!o||!o.user||!o.teams)return null;try{const u=o.user;
   o.mgr=[{name:u.name,uid:null,tid:u.tid,rep:u.rep,conf:u.conf,titles:u.titles||[],seasons:u.seasons||0,fin:o.fin||emptyFin(),finLast:o.finLast||null,offers:o.offers||[],jobs:o.jobs||[],fired:!!o.fired,firedOffers:null,autoSub:o.autoSub!==false}];
@@ -573,8 +837,9 @@ function migrateV1(o){if(!o||!o.user||!o.teams)return null;try{const u=o.user;
 function exportCode(){try{return btoa(unescape(encodeURIComponent(JSON.stringify(S))));}catch(e){return '';}}
 function importCode(c){try{const o=JSON.parse(decodeURIComponent(escape(atob(c.trim()))));if(!o||!o.teams||!o.P||!o.mgr)throw 0;return o;}catch(e){return null;}}
 function news(t,k,to){S.news.unshift({y:S.year,md:S.md,t,k:k||'',to:to==null?-1:to});if(S.news.length>250)S.news.length=250;}
-const sumKey=()=>'fb_seen_'+(ONLINE()?UI.on.gid:'solo');
-function afterModals(){if(!S)return;const s=S.lastSummary;if(s&&lsGet(sumKey())!==s.y&&UI.seenSum!==s.y){showSummary();return;}if(ME()&&ME().fired)showFired();}
+const sumKey=()=>'fb_seen_'+(ONLINE()?UI.on.gid:S&&S.mode==='wc'?'wc':'solo');
+const sumTag=s=>s.y+'_'+S.seed;
+function afterModals(){if(!S)return;const s=S.lastSummary;if(s&&lsGet(sumKey())!==sumTag(s)&&UI.seenSum!==sumTag(s)){showSummary();return;}if(ME()&&ME().fired)showFired();}
 
 /* ====================== ONLINE ====================== */
 let DB=null,USR=null,UID=null,CANW=null;
@@ -597,7 +862,7 @@ function subscribeLobby(){
 }
 async function createOnline(name){
   const ref=DB.collection('games').doc();
-  try{await ref.set({seed:Math.floor(Math.random()*2147483646)+1,pool:UI.pool,timer:UI.timer,host:UID,hostName:name,guest:null,guestName:'',status:'waiting',created:Date.now()});}
+  try{await ref.set({seed:Math.floor(Math.random()*2147483646)+1,pool:UI.pool,timer:UI.timer,ver:3,host:UID,hostName:name,guest:null,guestName:'',status:'waiting',created:Date.now()});}
   catch(e){toast(dbErr(e));return;}
   waitFor(ref.id);
 }
@@ -723,12 +988,13 @@ function startHTML(){const saved=loadSaved();const d=UI.startDiv;
    ${onlineStartHTML()}
    ${saved?`<div class="grp"><span class="lg">Carreira solo salva</span><div class="row"><span>${esc(saved.mgr[0].name)} · ${saved.mgr[0].tid!=null?esc(saved.teams[saved.mgr[0].tid].name):'sem clube'} · temporada ${saved.year}</span><button class="btn go" data-a="load">CONTINUAR</button></div></div>`:''}
    <div class="grp"><span class="lg">Nova carreira solo</span>
-    <div class="row" style="margin-bottom:8px">${DIVN.map((n,i)=>`<button class="btn ${i===d?'on':''}" data-a="sdiv" data-v="${i}">${n}</button>`).join('')}</div>
+    <div class="row" style="margin-bottom:8px">${DIVN.slice(0,3).map((n,i)=>`<button class="btn ${i===d?'on':''}" data-a="sdiv" data-v="${i}">${n}</button>`).join('')}</div>
     <div class="picker">${list.map(o=>`<button class="tb ${UI.pickTid===o.i?'sel':''}" data-a="pick" data-v="${o.i}" style="background:${o.x[3]};color:${o.x[4]};${o.x[5]?`box-shadow:inset 5px 0 0 ${o.x[5]}`:''}">${esc(o.x[1])}</button>`).join('')}</div>
     <div class="row" style="margin-top:10px;justify-content:space-between">
      <div class="small">${sel?`<b>${esc(sel[0])}</b> · ${DIVN[sel[2]]} · ${esc(sel[7])} (${num(sel[8])} lugares) · Prestígio ${sel[6]}`:'Clique em um clube para ver os detalhes.'}</div>
      <button class="btn go" data-a="begin" ${UI.pickTid==null?'disabled':''}>COMEÇAR CARREIRA</button></div>
    </div>
+   ${wcStartHTML()}
    <details class="grp"><summary class="small">Importar carreira solo por código de backup</summary><textarea id="imp" placeholder="Cole aqui o código gerado em Opções"></textarea><div class="row" style="margin-top:6px"><button class="btn" data-a="import">Importar</button></div></details>
    <p class="small muted">Times e estádios da temporada 2026. Os elencos da Série A usam os principais nomes conhecidos no início de 2026 e podem ter jogadores que já saíram; renomeie qualquer jogador na ficha dele. Séries B e C têm elencos gerados.</p>
   </div></div>`;}
@@ -741,8 +1007,8 @@ function waitHTML(){return `<div class="win"><div class="tbar"><span class="logo
     <li>Ele abre o link com a conta do Claude dele, digita o nome e toca em <b>Aceitar e entrar</b>.</li></ol></div>
    <div class="row" style="margin-top:12px"><button class="btn" data-a="wback">Voltar ao menu</button><button class="btn warn" data-a="odel" data-v="${esc(UI.waitGid||'')}">Cancelar partida</button></div></div></div>`;}
 
-const TABS=[['elenco','Elenco'],['tabela','Classificação'],['rodada','Rodada'],['calendario','Calendário'],['copa','Copa do Brasil'],['artilharia','Artilharia'],['mercado','Mercado'],['financas','Finanças'],['clube','Clube'],['caixa','Caixa de entrada'],['historico','Histórico'],['opcoes','Opções']];
-function hubHTML(){const t=UT();const ev=curEv();const mg=ME();const fx=fixtureOf(myTid(),ev);
+const TABS=[['elenco','Elenco'],['tabela','Classificação'],['rodada','Rodada'],['calendario','Calendário'],['copa','Copa do Brasil'],['continental','Libertadores e Champions'],['artilharia','Artilharia'],['mercado','Mercado'],['financas','Finanças'],['clube','Clube'],['caixa','Caixa de entrada'],['historico','Histórico'],['opcoes','Opções']];
+function hubHTML(){if(S.mode==='wc')return wcHubHTML();const t=UT();const ev=curEv();const mg=ME();const fx=fixtureOf(myTid(),ev);
   const pend=mg.offers.length+mg.jobs.length;
   let next='';
   if(!ev)next='<span>Temporada encerrada.</span>';
@@ -760,13 +1026,13 @@ function hubHTML(){const t=UT();const ev=curEv();const mg=ME();const fx=fixtureO
       <div class="lbl" style="margin-top:6px">Confiança da diretoria · ${Math.round(mg.conf)}%</div>
       <div class="meter sunk ${mg.conf<30?'low':''}"><i style="width:${mg.conf}%"></i></div>
       <div class="small muted" style="margin-top:4px">Meta: ${expectTxt(t)}</div>`:''}</div>
-    <div class="next">${next}${ONLINE()?`<div id="onl" class="next">${onlineBoxHTML()}</div>`:`<button class="btn go" data-a="play" ${ev&&!mg.fired?'':'disabled'}>JOGAR ▶</button>`}</div>
+    <div class="next">${next}${ONLINE()?`<div id="onl" class="next">${onlineBoxHTML()}</div>`:`<button class="btn go" data-a="play" ${ev&&!mg.fired?'':'disabled'}>${fx?'JOGAR ▶':'SIMULAR DATA ▶'}</button>`}</div>
    </div>
    <nav class="menu">${TABS.map(([k,n])=>`<button class="btn ${UI.tab===k?'on':''}" data-a="tab" data-v="${k}">${n}${k==='caixa'&&pend?`<span class="badge">${pend}</span>`:''}</button>`).join('')}</nav>
    <div class="content">${tabHTML()}</div>
    <div class="sbar"><span>${ev?esc(evLabel(ev)):'—'}</span><span>Data ${S.md+1} de ${S.cal.length}</span><span>${UI.saved===false?'Não foi possível salvar neste navegador':ONLINE()?'Sincronizado com seu amigo':'Salvo automaticamente'}</span></div>
   </div>`;}
-function tabHTML(){switch(UI.tab){case 'elenco':return elencoHTML();case 'tabela':return tabelaHTML();case 'rodada':return rodadaHTML();case 'calendario':return calHTML();case 'copa':return copaHTML();case 'artilharia':return artHTML();case 'mercado':return mktHTML();case 'financas':return finHTML();case 'clube':return clubeHTML();case 'caixa':return caixaHTML();case 'historico':return histHTML();case 'opcoes':return optHTML();}return '';}
+function tabHTML(){switch(UI.tab){case 'continental':return continentalHTML();case 'grupos':return wcGroupsHTML();case 'jogos':return wcJogosHTML();case 'mata':return wcMataHTML();case 'elenco':return elencoHTML();case 'tabela':return tabelaHTML();case 'rodada':return rodadaHTML();case 'calendario':return calHTML();case 'copa':return copaHTML();case 'artilharia':return artHTML();case 'mercado':return mktHTML();case 'financas':return finHTML();case 'clube':return clubeHTML();case 'caixa':return caixaHTML();case 'historico':return histHTML();case 'opcoes':return optHTML();}return '';}
 
 function pStatus(p){let s='';if(p.inj>0)s+=`<span class="tag inj">Lesão ${p.inj}</span>`;if(p.sus>0)s+=`<span class="tag sus">Suspenso ${p.sus}</span>`;if(p.yc===2)s+=`<span class="tag sus">2 CA</span>`;if(p.sale)s+=`<span class="tag sale">À venda</span>`;return s;}
 // média de gols por jogo; só entra no ranking de média quem tem pelo menos 3 jogos
@@ -790,13 +1056,13 @@ function elencoHTML(){const t=UT();if(!t||ME().fired)return noClub();
    <p class="small muted" style="margin:0 0 6px">Toque no quadrado da esquerda para alternar: T titular, R reserva, vazio fora do jogo. Toque no nome para abrir a ficha.${ONLINE()?' No modo online a postura vale para o jogo inteiro e lesionados são trocados automaticamente.':''}</p>
    <div class="row" style="margin-bottom:6px"><span class="lbl">Mostrar</span>${[['','Todos'],['G','Goleiros'],['D','Defensores'],['M','Meio-campo'],['A','Atacantes']].map(([k,n])=>`<button class="btn sm ${E.pos===k?'on':''}" data-a="elpos" data-v="${k}">${n} (${k?all.filter(p=>p.p===k).length:all.length})</button>`).join('')}
     <label for="elsort" class="small">Ordenar por</label><select id="elsort" data-c="elsort">${sortOpts(['pos','f','a','gl','avg','cavg','gm','vd'],E.sort)}</select></div>
-   <div class="scroll sunk"><table class="grid"><thead><tr><th class="c">Esc.</th><th>Pos</th><th>Jogador</th><th class="n">Força</th><th class="n">Idade</th><th class="n">J</th><th class="n">Gols</th><th class="n" title="Gols ÷ jogos na temporada">Média temp.</th><th class="n" title="Gols ÷ jogos na carreira, contados desde o início do jogo">Média carreira</th><th>Situação</th><th class="n">Valor</th><th class="n">Salário/mês</th></tr></thead><tbody>
-   ${ps.map(p=>{const k=t.xi.includes(p.id)?'T':t.bench.includes(p.id)?'R':'';return `<tr class="${k&&!avail(p)?'warn':''}"><td class="c"><button class="st ${k}" data-a="cyc" data-v="${p.id}" aria-label="Alternar escalação de ${esc(p.n)}">${k||'·'}</button></td><td>${posTag(p.p)}</td><td><a href="#" data-a="pinfo" data-v="${p.id}" style="color:inherit;font-weight:${p.f>=80?700:500}">${esc(p.n)}</a></td><td class="n">${p.f}</td><td class="n">${p.a}</td><td class="n">${p.gm}</td><td class="n">${p.gl}</td><td class="n">${avgTxt(p.gl,p.gm)}</td><td class="n">${avgTxt(p.tgj||0,p.tj||0)}${p.tj?`<span class="small muted"> (${p.tj}j)</span>`:''}</td><td>${pStatus(p)}</td><td class="n">${money(value(p))}</td><td class="n">${money(p.sal)}</td></tr>`;}).join('')}
+   <div class="scroll sunk"><table class="grid"><thead><tr><th class="c">Esc.</th><th>Pos</th><th>Jogador</th><th class="n">Força</th><th class="n">Idade</th><th class="n">J</th><th class="n">Gols</th><th class="n" title="Gols ÷ jogos na temporada">Média temp.</th><th class="n" title="Gols ÷ jogos na carreira, contados desde o início do jogo">Média carreira</th><th>Situação</th>${S.mode==='wc'?'':'<th class="n">Valor</th><th class="n">Salário/mês</th>'}</tr></thead><tbody>
+   ${ps.map(p=>{const k=t.xi.includes(p.id)?'T':t.bench.includes(p.id)?'R':'';return `<tr class="${k&&!avail(p)?'warn':''}"><td class="c"><button class="st ${k}" data-a="cyc" data-v="${p.id}" aria-label="Alternar escalação de ${esc(p.n)}">${k||'·'}</button></td><td>${posTag(p.p)}</td><td><a href="#" data-a="pinfo" data-v="${p.id}" style="color:inherit;font-weight:${p.f>=80?700:500}">${esc(p.n)}</a></td><td class="n">${p.f}</td><td class="n">${p.a}</td><td class="n">${p.gm}</td><td class="n">${p.gl}</td><td class="n">${avgTxt(p.gl,p.gm)}</td><td class="n">${avgTxt(p.tgj||0,p.tj||0)}${p.tj?`<span class="small muted"> (${p.tj}j)</span>`:''}</td><td>${pStatus(p)}</td>${S.mode==='wc'?'':`<td class="n">${money(value(p))}</td><td class="n">${money(p.sal)}</td>`}</tr>`;}).join('')}
    </tbody></table></div>`;}
 function zone(d,i){if(d===0)return i<6?'zone-l':i>=16?'zone-dn':'';if(d===1)return i<4?'zone-up':i>=16?'zone-dn':'';return i<4?'zone-up':'';}
 function rowCls(tid){return tid===myTid()?'me':isHuman(tid)?'rv':'';}
 function tabelaHTML(){const t=UT();const d=UI.div??(t?t.div:0);const tab=sortedTable(d);
-  return `<div class="row" style="margin-bottom:8px">${DIVN.map((n,i)=>`<button class="btn ${i===d?'on':''}" data-a="div" data-v="${i}">${n}</button>`).join('')}</div>
+  return `<div class="row" style="margin-bottom:8px">${DIVN.slice(0,3).map((n,i)=>`<button class="btn ${i===d?'on':''}" data-a="div" data-v="${i}">${n}</button>`).join('')}</div>
   <div class="scroll sunk"><table class="grid"><thead><tr><th class="n">#</th><th>Clube</th><th class="n">Pts</th><th class="n">J</th><th class="n">V</th><th class="n">E</th><th class="n">D</th><th class="n">GP</th><th class="n">GC</th><th class="n">SG</th><th>Últimos</th></tr></thead><tbody>
   ${tab.map((x,i)=>`<tr class="${rowCls(x.id)}"><td class="n ${zone(d,i)}">${i+1}</td><td>${tbox(x.id)}${isHuman(x.id)&&x.id!==myTid()?` <span class="small">${esc(S.mgr[mgrIdx(x.id)].name)}</span>`:''}</td><td class="n"><b>${x.tb.pts}</b></td><td class="n">${x.tb.j}</td><td class="n">${x.tb.v}</td><td class="n">${x.tb.e}</td><td class="n">${x.tb.d}</td><td class="n">${x.tb.gp}</td><td class="n">${x.tb.gc}</td><td class="n">${x.tb.gp-x.tb.gc}</td><td class="dots">${x.tb.f.map(r=>`<i class="${r}" title="${r}"></i>`).join('')}</td></tr>`).join('')}
   </tbody></table></div>
@@ -805,21 +1071,21 @@ function lastLeagueRound(){for(let i=S.md-1;i>=0;i--)if(S.cal[i].t==='L')return 
 function goalsLine(fx,side){return (fx.ev||[]).filter(e=>e[1]===side&&e[2]==='goal').map(e=>`${esc(e[3])} ${e[0]}'`).join(', ');}
 function fxRow(fx){const played=fx.hg!=null;const c=fx.h===myTid()||fx.a===myTid()?'me':isHuman(fx.h)||isHuman(fx.a)?'rv':'';return `<tr class="${c}"><td>${tbox(fx.h)}</td><td class="c"><b>${played?`${fx.hg} x ${fx.ag}`:'x'}</b>${fx.pen?`<div class="small">pên. ${fx.pen[0]}x${fx.pen[1]}</div>`:''}</td><td>${tbox(fx.a)}</td><td class="small" style="white-space:normal;min-width:180px">${played?[goalsLine(fx,0),goalsLine(fx,1)].filter(Boolean).join(' · ')||'—':''}</td></tr>`;}
 function rodadaHTML(){const t=UT();const d=UI.resDiv??(t?t.div:0);const lr=lastLeagueRound();const ev=curEv();const nr=ev?(ev.t==='L'?ev.r:(lr+1<38?lr+1:-1)):-1;
-  return `<div class="row" style="margin-bottom:8px">${DIVN.map((n,i)=>`<button class="btn ${i===d?'on':''}" data-a="rdiv" data-v="${i}">${n}</button>`).join('')}</div>
+  return `<div class="row" style="margin-bottom:8px">${DIVN.slice(0,3).map((n,i)=>`<button class="btn ${i===d?'on':''}" data-a="rdiv" data-v="${i}">${n}</button>`).join('')}</div>
   <div class="cols">
    <div><h2>${lr>=0?`${lr+1}ª rodada · resultados`:'Ainda sem jogos'}</h2>${lr>=0?`<div class="scroll sunk"><table class="grid"><tbody>${S.fx[d][lr].map(fxRow).join('')}</tbody></table></div>`:'<p class="muted">A temporada ainda não começou.</p>'}</div>
    <div><h2>${nr>=0?`Próxima: ${nr+1}ª rodada`:'Fim do campeonato'}</h2>${nr>=0?`<div class="scroll sunk"><table class="grid"><tbody>${S.fx[d][nr].map(fxRow).join('')}</tbody></table></div>`:''}</div>
   </div>`;}
 function calHTML(){const t=UT();if(!t)return noClub();const rows=[];
   S.cal.forEach((ev,i)=>{const fx=fixtureOf(t.id,ev);if(!fx)return;
-    const home=fx.h===t.id;const opp=home?fx.a:fx.h;let res='';if(fx.hg!=null){const gf=home?fx.hg:fx.ag,ga=home?fx.ag:fx.hg;const r=ev.t==='C'?(fx.w===t.id?'V':'D'):(gf>ga?'V':gf<ga?'D':'E');res=`<span class="dots"><i class="${r}"></i></span> ${gf} x ${ga}${fx.pen?` (pên. ${home?fx.pen[0]:fx.pen[1]}x${home?fx.pen[1]:fx.pen[0]})`:''}`;}
+    const home=fx.h===t.id;const opp=home?fx.a:fx.h;let res='';if(fx.hg!=null){const gf=home?fx.hg:fx.ag,ga=home?fx.ag:fx.hg;const r=(ev.t==='C'||fx.ko)?(fx.w===t.id?'V':'D'):(gf>ga?'V':gf<ga?'D':'E');res=`<span class="dots"><i class="${r}"></i></span> ${gf} x ${ga}${fx.pen?` (pên. ${home?fx.pen[0]:fx.pen[1]}x${home?fx.pen[1]:fx.pen[0]})`:''}`;}
     rows.push(`<tr class="${i===S.md?'me':''}"><td>${esc(evLabel(ev))}</td><td>${home?'Casa':'Fora'}</td><td>${tbox(opp)}</td><td>${res}</td></tr>`);});
   return `<h2>Calendário do ${esc(t.name)}</h2><div class="scroll sunk"><table class="grid"><thead><tr><th>Data</th><th>Mando</th><th>Adversário</th><th>Resultado</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;}
 function copaHTML(){const c=S.cup;return `<h2>Copa do Brasil ${S.year}</h2>${c.champ!=null?`<p class="trophy">Campeão: ${tbox(c.champ)} · Vice: ${tbox(c.vice)}</p>`:''}
   <p class="small muted">32 clubes (Série A + 12 da Série B), jogo único, empate decidido nos pênaltis. Prêmio por fase: R$ 2 mi a R$ 8 mi; campeão leva R$ 30 mi.</p>
   ${c.rounds.slice().reverse().map((r,k)=>{const s=c.rounds.length-1-k;return `<h3>${STAGES[s]}</h3><div class="scroll sunk"><table class="grid"><tbody>${r.map(fxRow).join('')}</tbody></table></div>`;}).join('')}`;}
-function artHTML(){const t=UT();const d=UI.artDiv??(t?t.div:0);const list=Object.values(S.P).filter(p=>TM(p.t).div===d&&p.gl>0).sort((a,b)=>b.gl-a.gl||a.gm-b.gm).slice(0,25);
-  return `<div class="row" style="margin-bottom:8px">${DIVN.map((n,i)=>`<button class="btn ${i===d?'on':''}" data-a="adiv" data-v="${i}">${n}</button>`).join('')}</div>
+function artHTML(){if(S.mode==='wc'){const list=Object.values(S.P).filter(p=>p.gl>0).sort((a,b)=>b.gl-a.gl||a.gm-b.gm).slice(0,25);return `<h2>Artilharia da Copa</h2><div class="scroll sunk"><table class="grid"><thead><tr><th class="n">#</th><th>Jogador</th><th>Seleção</th><th class="n">Gols</th><th class="n">Jogos</th><th class="n">Média</th></tr></thead><tbody>${list.length?list.map((p,i)=>`<tr class="${rowCls(p.t)} click" data-a="pinfo" data-v="${p.id}"><td class="n">${i+1}</td><td>${posTag(p.p)} ${esc(p.n)}</td><td>${tbox(p.t,'sm')}</td><td class="n"><b>${p.gl}</b></td><td class="n">${p.gm}</td><td class="n">${avgTxt(p.gl,p.gm)}</td></tr>`).join(''):'<tr><td colspan="6">Nenhum gol ainda.</td></tr>'}</tbody></table></div>`;}const t=UT();const d=UI.artDiv??(t?t.div:0);const list=Object.values(S.P).filter(p=>TM(p.t).div===d&&p.gl>0).sort((a,b)=>b.gl-a.gl||a.gm-b.gm).slice(0,25);
+  return `<div class="row" style="margin-bottom:8px">${DIVN.slice(0,3).map((n,i)=>`<button class="btn ${i===d?'on':''}" data-a="adiv" data-v="${i}">${n}</button>`).join('')}</div>
   <div class="scroll sunk"><table class="grid"><thead><tr><th class="n">#</th><th>Jogador</th><th>Clube</th><th class="n">Gols</th><th class="n">Jogos</th><th class="n">Média</th></tr></thead><tbody>
   ${list.length?list.map((p,i)=>`<tr class="${rowCls(p.t)} click" data-a="pinfo" data-v="${p.id}"><td class="n">${i+1}</td><td>${posTag(p.p)} ${esc(p.n)}</td><td>${tbox(p.t)}</td><td class="n"><b>${p.gl}</b></td><td class="n">${p.gm}</td><td class="n">${avgTxt(p.gl,p.gm)}</td></tr>`).join(''):'<tr><td colspan="6">Nenhum gol marcado ainda.</td></tr>'}
   </tbody></table></div><p class="small muted">Gols em todas as competições da temporada. Média = gols ÷ jogos. Empate em gols: fica na frente quem jogou menos.</p>`;}
@@ -831,7 +1097,7 @@ function mktHTML(){const t=UT();if(!t||ME().fired)return noClub();const f=UI.mkt
   return `<div class="row" style="margin-bottom:8px">
    <label for="mq">Buscar</label><input id="mq" data-c="mq" value="${esc(f.q)}" placeholder="Jogador ou clube" style="width:160px">
    <label for="mp">Posição</label><select id="mp" data-c="mp"><option value="">Todas</option>${['G','D','M','A'].map(p=>`<option value="${p}" ${f.pos===p?'selected':''}>${POSN[p]}</option>`).join('')}</select>
-   <label for="md">Divisão</label><select id="md" data-c="md"><option value="">Todas</option>${DIVN.map((n,i)=>`<option value="${i}" ${f.div===String(i)?'selected':''}>${n}</option>`).join('')}</select>
+   <label for="md">Divisão</label><select id="md" data-c="md"><option value="">Todas</option>${DIVN.map((n,i)=>`<option value="${i}" ${f.div===String(i)?'selected':''}>${i===3?'América do Sul (Libertadores)':i===4?'Europa (Champions)':n}</option>`).join('')}</select>
    <label for="mm">Valor até (R$ mi)</label><input id="mm" data-c="mm" type="number" min="0" step="0.5" value="${esc(f.max)}" style="width:80px">
   </div>
   <div class="row" style="margin-bottom:8px">
@@ -875,9 +1141,9 @@ function caixaHTML(){const mg=ME();const offs=mg.offers.map(o=>{const p=PL(o.pid
   const list=S.news.filter(n=>n.to==null||n.to<0||n.to===UI.me).slice(0,80);
   return `${offs||jobs?`<h2>Aguardando resposta</h2><div class="news sunk">${jobs}${offs}</div>`:''}
    <h2 style="margin-top:12px">Notícias</h2><div class="news sunk">${list.map(n=>`<div class="k-${n.k}"><span class="when">${n.y} · d${n.md}</span><span class="txt">${esc(n.t)}</span></div>`).join('')||'<div>Sem notícias.</div>'}</div>`;}
-function histHTML(){return `<h2>Histórico</h2>${S.history.length?`<div class="scroll sunk"><table class="grid"><thead><tr><th>Ano</th><th>Série A</th><th>Série B</th><th>Série C</th><th>Copa do Brasil</th><th>Artilheiro (A)</th>${S.mgr.map(m=>`<th>${esc(m.name)}</th>`).join('')}</tr></thead><tbody>
-  ${S.history.map(h=>`<tr><td>${h.y}</td><td>${tbox(h.A,'sm')}</td><td>${tbox(h.B,'sm')}</td><td>${tbox(h.C,'sm')}</td><td>${h.cup!=null?tbox(h.cup,'sm'):'-'}</td><td>${esc(h.art)}</td>${S.mgr.map((m,k)=>{const u=(h.us||[])[k];return `<td>${u?`${tbox(u.tid,'sm')} ${u.pos}º ${DIVN[u.div]}`:'-'}</td>`;}).join('')}</tr>`).join('')}</tbody></table></div>`:'<p class="muted">O histórico aparece ao fim da primeira temporada.</p>'}`;}
-function optHTML(){return `<div class="cols"><div>
+function histHTML(){return `<h2>Histórico</h2>${S.history.length?`<div class="scroll sunk"><table class="grid"><thead><tr><th>Ano</th><th>Série A</th><th>Série B</th><th>Série C</th><th>Copa do Brasil</th>${S.history.some(h=>h.lib!=null)?'<th>Libertadores</th><th>Champions</th><th>Mundial</th>':''}<th>Artilheiro (A)</th>${S.mgr.map(m=>`<th>${esc(m.name)}</th>`).join('')}</tr></thead><tbody>
+  ${S.history.map(h=>`<tr><td>${h.y}</td><td>${tbox(h.A,'sm')}</td><td>${tbox(h.B,'sm')}</td><td>${tbox(h.C,'sm')}</td><td>${h.cup!=null?tbox(h.cup,'sm'):'-'}</td>${S.history.some(x=>x.lib!=null)?['lib','ucl','mun'].map(k=>`<td>${h[k]!=null?tbox(h[k],'sm'):'-'}</td>`).join(''):''}<td>${esc(h.art)}</td>${S.mgr.map((m,k)=>{const u=(h.us||[])[k];return `<td>${u?`${tbox(u.tid,'sm')} ${u.pos}º ${DIVN[u.div]}`:'-'}</td>`;}).join('')}</tr>`).join('')}</tbody></table></div>`:'<p class="muted">O histórico aparece ao fim da primeira temporada.</p>'}`;}
+function optHTML(){if(S.mode==='wc')return `<div class="grp"><span class="lg">Partidas</span><div class="row"><span>Velocidade padrão</span>${['Lenta','Normal','Rápida','Turbo'].map((n,i)=>`<button class="btn sm ${CFG.speed===i?'on':''}" data-a="spd" data-v="${i}">${n}</button>`).join('')}</div><label class="row" style="margin-top:8px"><input type="checkbox" id="half" data-c="half" ${CFG.halfStop?'checked':''} style="min-height:0"> Parar no intervalo dos meus jogos</label></div><div class="grp"><span class="lg">Copa do Mundo</span><p class="small" style="margin-top:0">A Copa fica salva neste navegador. Sua carreira de clube continua salva separadamente.</p><button class="btn" data-a="wcquit">Voltar ao menu inicial</button></div>`;return `<div class="cols"><div>
   <div class="grp"><span class="lg">Partidas</span>
    <div class="row"><span>Velocidade padrão</span>${['Lenta','Normal','Rápida','Turbo'].map((n,i)=>`<button class="btn sm ${CFG.speed===i?'on':''}" data-a="spd" data-v="${i}">${n}</button>`).join('')}</div>
    <label class="row" style="margin-top:8px"><input type="checkbox" id="half" data-c="half" ${CFG.halfStop?'checked':''} style="min-height:0"> Parar no intervalo dos meus jogos</label>
@@ -895,17 +1161,77 @@ function optHTML(){return `<div class="cols"><div>
    <p><b>Temporada:</b> 38 rodadas por série, pontos corridos. Sobem os 4 primeiros das Séries B e C; caem os 4 últimos das Séries A e B. A Copa do Brasil acontece entre as rodadas.</p>
    <p><b>Diretoria:</b> resultados abaixo da meta derrubam a confiança. Se chegar perto de zero, você é demitido e precisa aceitar proposta de um clube menor. Bons trabalhos geram convites de clubes maiores.</p></div></div></div></div>`;}
 
+/* ---------- copas internacionais e Copa do Mundo ---------- */
+function miniTable(ids,tb,zf,lab){return `<div class="scroll sunk"><table class="grid"><thead><tr><th class="n">#</th><th>${lab||'Clube'}</th><th class="n">J</th><th class="n">V</th><th class="n">E</th><th class="n">D</th><th class="n">SG</th><th class="n">Pts</th></tr></thead><tbody>${ids.map((id,i)=>{const x=tb[id];return `<tr class="${rowCls(id)}"><td class="n ${zf?zf(i):''}">${i+1}</td><td>${tbox(id,'sm')}</td><td class="n">${x.j}</td><td class="n">${x.v}</td><td class="n">${x.e}</td><td class="n">${x.d}</td><td class="n">${x.gp-x.gc}</td><td class="n"><b>${x.pts}</b></td></tr>`;}).join('')}</tbody></table></div>`;}
+function koList(stages,names){return stages.map((r,k)=>r&&r.length?`<h3>${names[k]}</h3><div class="scroll sunk"><table class="grid"><tbody>${r.map(fxRow).join('')}</tbody></table></div>`:'').reverse().join('');}
+function continentalHTML(){
+  if(!S.lib)return `<h2>Copas internacionais</h2><p>A Libertadores, a Champions League e o Mundial de Clubes começam na próxima temporada desta carreira. Classificam-se os 6 primeiros do Brasileirão, com vaga garantida para o campeão da Copa do Brasil.</p>`;
+  const c=UI.ctab||'lib';const L=S.lib,U=S.ucl;
+  const btn=`<div class="row" style="margin-bottom:8px">${[['lib','Libertadores'],['ucl','Champions League'],['mun','Mundial de Clubes']].map(([k,n])=>`<button class="btn ${c===k?'on':''}" data-a="ctab" data-v="${k}">${n}</button>`).join('')}</div>`;
+  if(c==='lib'){const br=L.groups.flat().filter(id=>TM(id).div<=2);
+    return btn+`<h2>Libertadores ${S.year}</h2><p class="small muted" style="margin-top:0">32 clubes em 8 grupos; passam os 2 primeiros. Mata-mata em jogo único e final em campo neutro, com prorrogação e pênaltis. Brasileiros: ${br.map(id=>esc(TM(id).name)).join(', ')}. Campeão leva R$ 80 mi e vai ao Mundial de Clubes.</p>
+    ${L.champ!=null?`<p class="trophy">Campeão: ${tbox(L.champ)} · Vice: ${tbox(L.vice)}</p>`:''}
+    ${koList(L.ko,['Oitavas de final','Quartas de final','Semifinal','Final'])}
+    <div class="cols" style="margin-top:8px">${L.groups.map((g,i)=>`<div><h3 style="margin-top:0">Grupo ${GL[i]}</h3>${miniTable(sortTb(g,L.tb),L.tb,k=>k<2?'zone-l':'')}</div>`).join('')}</div>`;}
+  if(c==='ucl'){const o=sortTb(U.teams,U.tb);
+    return btn+`<h2>Champions League</h2><p class="small muted" style="margin-top:0">36 clubes na fase de liga, 8 jogos cada. Os 8 primeiros vão direto às oitavas; do 9º ao 24º disputam o playoff. Clubes europeus não disputam o Brasileirão, mas os jogadores deles estão no mercado.</p>
+    ${U.champ!=null?`<p class="trophy">Campeão: ${tbox(U.champ)} · Vice: ${tbox(U.vice)}</p>`:''}
+    ${koList(U.ko,['Playoff','Oitavas de final','Quartas de final','Semifinal','Final'])}
+    <h3>Fase de liga</h3>${miniTable(o,U.tb,k=>k<8?'zone-l':k<24?'zone-up':'zone-dn')}`;}
+  const past=S.history.filter(h=>h.mun!=null);
+  return btn+`<h2>Mundial de Clubes</h2><p class="small muted" style="margin-top:0">Final única em campo neutro, no fim da temporada, entre o campeão da Libertadores e o campeão da Champions League.</p>
+   ${S.mun.fx?`<div class="scroll sunk"><table class="grid"><tbody>${fxRow(S.mun.fx)}</tbody></table></div>`:'<p>Os finalistas saem das finais da Libertadores e da Champions.</p>'}
+   ${S.mun.champ!=null?`<p class="trophy">Campeão do mundo: ${tbox(S.mun.champ)}</p>`:''}
+   ${past.length?`<h3>Campeões anteriores</h3><p>${past.map(h=>`${h.y}: ${tbox(h.mun,'sm')}`).join(' · ')}</p>`:''}`;}
+function tabFor(ev){return ev.t==='C'?'copa':(ev.t==='X'||ev.t==='M')?'continental':ev.t==='W'?(ev.s<3?'grupos':'mata'):'rodada';}
+// data em que seu time não joga: simula na hora e mostra os resultados
+function quickSim(){const ev=curEv();startMatchday(true);finishMatchday(true);UI.screen='hub';UI.tab=tabFor(ev);save();render();afterModals();toast(`${evLabel(ev)}: resultados prontos.`);}
+function wcStartHTML(){const sv=loadWC();const sel=UI.wcPick!=null?NAT[UI.wcPick]:null;
+  return `<div class="grp"><span class="lg">Copa do Mundo 2026</span>
+   <p class="small" style="margin-top:0">Escolha uma seleção e dispute a Copa com as 48 classificadas, nos grupos do sorteio real. Passam os 2 primeiros de cada grupo e os 8 melhores terceiros. Mata-mata com prorrogação e pênaltis.</p>
+   ${sv&&!sv.wc.done?`<div class="row" style="margin-bottom:8px"><span>Copa em andamento: ${esc(sv.mgr[0].name)} · ${esc(sv.teams[sv.mgr[0].tid].name)} · ${esc(WCST[Math.min(sv.md,7)])}</span><button class="btn go" data-a="wcload">CONTINUAR COPA</button></div>`:''}
+   <div class="wcg">${[...GL].map(g=>`<div><div class="lbl">Grupo ${g}</div>${NAT.map((x,i)=>({x,i})).filter(o=>o.x[7]===g).map(o=>`<button class="tb ${UI.wcPick===o.i?'sel':''}" data-a="wcpick" data-v="${o.i}" style="background:${o.x[2]};color:${o.x[3]};${o.x[4]?`box-shadow:inset 5px 0 0 ${o.x[4]}`:''}">${esc(o.x[1])}</button>`).join('')}</div>`).join('')}</div>
+   <div class="row" style="margin-top:10px;justify-content:space-between"><div class="small">${sel?`<b>${esc(sel[0])}</b> · Grupo ${sel[7]} · força ${sel[5]}`:'Toque numa seleção para escolher.'}</div>
+    <button class="btn go" data-a="wcbegin" ${UI.wcPick==null?'disabled':''}>DISPUTAR A COPA</button></div></div>`;}
+const WCTABS=[['elenco','Elenco'],['grupos','Grupos'],['jogos','Jogos'],['mata','Mata-mata'],['artilharia','Artilharia'],['caixa','Notícias'],['opcoes','Opções']];
+function wcHubHTML(){const t=UT();const ev=curEv();const mg=ME();const fx=fixtureOf(t.id,ev);const g=S.wc.groups[GL.indexOf(t.grp)];
+  const gpos=sortTb(g,Object.fromEntries(g.map(id=>[id,TM(id).tb]))).indexOf(t.id)+1;
+  let next;if(!ev)next=`<div class="lbl">Copa encerrada</div><div class="small">Campeã: ${tbox(S.wc.champ,'sm')}</div>`;
+  else if(fx)next=`<div class="lbl">${esc(evLabel(ev))}</div><div class="vs">${tbox(fx.h)} <span>x</span> ${tbox(fx.a)}</div><div class="small muted">Campo neutro${fx.ko?' · mata-mata':''}</div>`;
+  else next=`<div class="lbl">${esc(evLabel(ev))}</div><div class="small">Sua seleção não joga nesta fase.</div>`;
+  return `<div class="win"><div class="tbar"><span class="logo">FUTEBOL BRASIL</span><span>Copa do Mundo 2026</span></div>
+   <div class="stat"><div><div class="row">${tbox(t.id)}<span class="lbl">Grupo ${t.grp}</span></div>
+     <div class="kv" style="margin-top:6px"><span class="lbl">Técnico</span><b>${esc(mg.name)}</b></div>
+     <div class="kv"><span class="lbl">No grupo</span><b>${gpos}º</b><span class="small muted">${t.tb.pts} pts em ${t.tb.j} jogos</span></div></div>
+    <div><div class="kv"><span class="lbl">Situação</span><b>${esc(wcResultTxt(t.id))}</b></div><div class="small muted" style="margin-top:6px">Sede: Estados Unidos, Canadá e México</div></div>
+    <div class="next">${next}<button class="btn go" data-a="play" ${ev?'':'disabled'}>${!ev?'ENCERRADA':fx?'JOGAR ▶':'SIMULAR FASE ▶'}</button></div></div>
+   <nav class="menu">${WCTABS.map(([k,n])=>`<button class="btn ${UI.tab===k?'on':''}" data-a="tab" data-v="${k}">${n}</button>`).join('')}</nav>
+   <div class="content">${tabHTML()}</div>
+   <div class="sbar"><span>${ev?esc(evLabel(ev)):'Copa encerrada'}</span><span>Fase ${Math.min(S.md+1,8)} de 8</span><span>${UI.saved===false?'Não foi possível salvar neste navegador':'Salvo automaticamente'}</span></div></div>`;}
+function wcTbMap(g){return Object.fromEntries(g.map(id=>[id,TM(id).tb]));}
+function wcGroupsHTML(){if(!S.wc)return '';return `<h2>Fase de grupos</h2><p class="small muted" style="margin-top:0">Verde: classificados (1º e 2º). Azul: 3º lugar, que avança se estiver entre os 8 melhores terceiros.</p>
+  <div class="cols">${S.wc.groups.map((g,i)=>`<div><h3 style="margin-top:0">Grupo ${GL[i]}</h3>${miniTable(sortTb(g,wcTbMap(g)),wcTbMap(g),k=>k<2?'zone-l':k===2?'zone-up':'','Seleção')}</div>`).join('')}</div>`;}
+function wcJogosHTML(){if(!S.wc)return '';const out=[];for(let st=7;st>=0;st--){const f=wcFix(st);if(f&&f.length)out.push(`<h3>${WCST[st]}</h3><div class="scroll sunk"><table class="grid"><tbody>${f.map(fxRow).join('')}</tbody></table></div>`);}return `<h2>Jogos</h2>${out.join('')}`;}
+function wcMataHTML(){if(!S.wc)return '';const W=S.wc;if(!W.ko.length)return '<h2>Mata-mata</h2><p>O chaveamento sai ao fim da fase de grupos.</p>';
+  return `<h2>Mata-mata</h2>${W.champ!=null?`<p class="trophy">Campeã: ${tbox(W.champ)} · Vice: ${tbox(W.vice)} · 3º lugar: ${tbox(W.third)}</p>`:''}${koList(W.ko,['16 avos de final','Oitavas de final','Quartas de final','Semifinais','Final e disputa de 3º lugar'])}`;}
+function showWCSummary(){const s=S.lastSummary;const u=ME().tid;
+  showModal('Fim da Copa do Mundo 2026',`<div class="banner" style="margin:-12px -12px 10px">${tbox(u,'sm')} ${esc(wcResultTxt(u))}</div>
+   <div class="row" style="margin:4px 0"><span class="lbl" style="min-width:120px">Campeã</span>${tbox(s.champ)}</div>
+   <div class="row" style="margin:4px 0"><span class="lbl" style="min-width:120px">Vice</span>${tbox(s.vice)}</div>
+   <div class="row" style="margin:4px 0"><span class="lbl" style="min-width:120px">3º lugar</span>${tbox(s.third)}</div>
+   <p>Artilheiro: <b>${esc(s.top)}</b></p>`,`<button class="btn" data-a="sumok">VER TABELAS</button><button class="btn go" data-a="wcend">NOVA COPA</button>`,true);}
+
 /* ---------- ao vivo ---------- */
 function liveShell(){const L=UI.live;const comps=[...new Set(L.ms.map(m=>m.comp))];
   return `<div class="win"><div class="tbar"><span class="logo">FUTEBOL BRASIL</span><span>${esc(evLabel(L.ev))} · ${S.year}</span></div>
   <div id="lv-ban"></div><div style="padding:10px" id="lv-top"></div>
   <div class="row" style="padding:0 10px 8px" id="lv-ctl"></div>
-  <div class="menu">${comps.map(c=>`<button class="btn ${L.tab===c?'on':''}" data-a="ltab" data-v="${c}">${c===3?'Copa do Brasil':DIVN[c]}</button>`).join('')}</div>
+  <div class="menu">${comps.map(c=>`<button class="btn ${L.tab===c?'on':''}" data-a="ltab" data-v="${c}">${COMPN[c]}</button>`).join('')}</div>
   <div style="padding:10px"><div class="mlist" id="lv-list"></div></div></div>`;}
-function evIcon(t){return {goal:'GOL',yc:'CA',rc:'CV',inj:'LES',sub:'SUB',pen:'PÊN'}[t];}
+function evIcon(t){return {goal:'GOL',yc:'CA',rc:'CV',inj:'LES',sub:'SUB',pen:'PÊN',et:'PRO'}[t];}
 function renderLive(){const L=UI.live;if(!L||UI.screen!=='live')return;const mine=L.ms.find(m=>m.mine);const rv=ONLINE()?rival():null;const rvm=rv?L.ms.find(m=>!m.mine&&(m.fx.h===rv.tid||m.fx.a===rv.tid)):null;
   $('#lv-ban').innerHTML=L.banner?`<div class="banner">${esc(L.banner)}</div>`:'';
-  const minTxt=L.done?'Encerrado':L.min===0?'Aguardando apito':L.min<=45?`${L.min}' · 1º tempo`:`${L.min}' · 2º tempo`;
+  const minTxt=L.done?'Encerrado':L.min===0?'Aguardando apito':L.min<=45?`${L.min}' · 1º tempo`:L.min<=90?`${L.min}' · 2º tempo`:`${L.min}' · prorrogação`;
   if(mine){const ms=mine.s[mine.s[0].user?0:1];$('#lv-top').innerHTML=`<div class="board"><div class="side">${tbox(mine.fx.h)}<span class="small">${esc(TM(mine.fx.h).std)}</span></div>
      <div><div class="sc">${mine.g[0]} : ${mine.g[1]}</div><div class="mn">${minTxt}${mine.pen?` · pên. ${mine.pen[0]}x${mine.pen[1]}`:''}</div></div>
      <div class="side r">${tbox(mine.fx.a)}<span class="small">Postura: ${POSTS[ms.post]} · trocas ${ms.subs}/5</span></div></div>
@@ -944,19 +1270,19 @@ function pModal(pid){const p=PL(pid);if(!p)return;const t=TM(p.t);const mine=p.t
     <tr><td>Carreira (no jogo)</td><td>${p.tj||0} jogos · ${p.tgj||0} gols</td><td>Média na carreira</td><td><b>${avgTxt(p.tgj||0,p.tj||0)}</b> gol/jogo</td></tr></tbody></table></div>
    <div class="grp"><span class="lg">Corrigir nome</span><div class="row"><input id="rn" value="${esc(p.n)}" maxlength="30"><button class="btn sm" data-a="rename" data-v="${pid}">Salvar nome</button></div></div>
    ${rv?'<p class="small muted">Este jogador é do clube do seu amigo e não está à venda.</p>':''}
-   ${!mine&&!rv&&UT()&&!ME().fired?`<div class="grp"><span class="lg">Proposta de compra</span><div class="row"><label for="bid">Valor (R$ mi)</label><input id="bid" type="number" min="0" step="0.05" value="${(v/1e6).toFixed(2)}" style="width:110px"><button class="btn" data-a="bid" data-v="${pid}">Enviar proposta</button></div>
+   ${!mine&&!rv&&UT()&&!ME().fired&&S.mode!=='wc'&&isDom(UT())?`<div class="grp"><span class="lg">Proposta de compra</span><div class="row"><label for="bid">Valor (R$ mi)</label><input id="bid" type="number" min="0" step="0.05" value="${(v/1e6).toFixed(2)}" style="width:110px"><button class="btn" data-a="bid" data-v="${pid}">Enviar proposta</button></div>
      <p class="small muted" style="margin-bottom:0">Seu caixa: ${money(UT().cash)}. Titulares importantes custam mais caro. Novo salário ≈ ${money(Math.round(Math.max(p.sal,salFor(p))*1.1/1000)*1000)}/mês.</p>
      ${ct?`<div class="row" style="margin-top:6px"><span>O ${esc(t.name)} pede <b>${money(ct.amt)}</b>.</span><button class="btn go" data-a="bidc" data-v="${pid}">Pagar ${money(ct.amt)}</button></div>`:''}
      <div id="bidmsg" class="small" style="margin-top:4px"></div></div>`:''}`;
-  const foot=mine?`<button class="btn" data-a="sale" data-v="${pid}">${p.sale?'Tirar da lista de venda':'Colocar à venda'}</button>${UI.confirm==='rel'+pid?`<button class="btn warn" data-a="rel2" data-v="${pid}">Confirmar dispensa (multa ${money(p.sal*3)})</button>`:`<button class="btn warn" data-a="rel" data-v="${pid}">Dispensar</button>`}<button class="btn" data-a="close">Fechar</button>`:`<button class="btn" data-a="close">Fechar</button>`;
+  const foot=mine&&S.mode!=='wc'?`<button class="btn" data-a="sale" data-v="${pid}">${p.sale?'Tirar da lista de venda':'Colocar à venda'}</button>${UI.confirm==='rel'+pid?`<button class="btn warn" data-a="rel2" data-v="${pid}">Confirmar dispensa (multa ${money(p.sal*3)})</button>`:`<button class="btn warn" data-a="rel" data-v="${pid}">Dispensar</button>`}<button class="btn" data-a="close">Fechar</button>`:`<button class="btn" data-a="close">Fechar</button>`;
   showModal('Ficha do jogador',body,foot);}
-function showSummary(){const s=S.lastSummary;if(!s)return;const me=s.per[UI.me]||{};
+function showSummary(){const s=S.lastSummary;if(!s)return;if(s.wc){showWCSummary();return;}const me=s.per[UI.me]||{};
   const line=(lab,ids)=>`<div class="row" style="margin:3px 0"><span class="lbl" style="min-width:150px">${lab}</span>${ids.map(id=>tbox(id,'sm')).join(' ')}</div>`;
   showModal(`Fim da temporada ${s.y}`,`
    <div class="banner" style="margin:-12px -12px 10px">${me.pos?`Seu clube terminou em ${me.pos}º na ${DIVN[me.div]}. `:''}${esc(me.verdict||'')}</div>
    ${S.mgr.length>1?S.mgr.map((m,k)=>k===UI.me?'':`<p class="small" style="margin-top:0">${esc(m.name)}: ${s.per[k].pos?`${s.per[k].pos}º na ${DIVN[s.per[k].div]}`:'sem clube'}.</p>`).join(''):''}
    ${line('Campeão Série A',[s.champ[0]])}${line('Campeão Série B',[s.champ[1]])}${line('Campeão Série C',[s.champ[2]])}
-   ${s.cup!=null?line('Copa do Brasil',[s.cup]):''}
+   ${s.cup!=null?line('Copa do Brasil',[s.cup]):''}${s.lib!=null?line('Libertadores',[s.lib]):''}${s.ucl!=null?line('Champions League',[s.ucl]):''}${s.mun!=null?line('Mundial de Clubes',[s.mun]):''}
    ${line('Rebaixados da A',s.dn0)}${line('Sobem para a A',s.up1)}${line('Rebaixados da B',s.dn1)}${line('Sobem para a B',s.up2)}
    <h3>Artilheiros</h3><div class="small">${s.scorers.map((x,i)=>`${DIVN[i]}: ${esc(x)}`).join('<br>')}</div>
    <p class="small muted">${s.retired} jogadores se aposentaram. Os elencos envelheceram um ano e as categorias de base revelaram novos atletas.</p>`,
@@ -977,7 +1303,7 @@ const ACT={
   sdiv:v=>{nameIn();UI.startDiv=+v;UI.pickTid=null;render();},
   pick:v=>{nameIn();UI.pickTid=+v;render();},
   begin:()=>{const n=nameIn()||'Professor';stopOnline();UI.me=0;newGame(n,UI.pickTid);UI.screen='hub';UI.tab='elenco';save();render();},
-  load:()=>{const s=loadSaved();if(s){stopOnline();S=s;UI.me=0;UI.screen='hub';UI.tab='elenco';render();afterModals();}},
+  load:()=>{const s=loadSaved();if(s){stopOnline();S=upgradeSolo(s);UI.me=0;UI.screen='hub';UI.tab='elenco';render();afterModals();}},
   import:()=>{const o=importCode(($('#imp')||{}).value||'');if(!o){toast('Código inválido.');return;}stopOnline();S=o;UI.me=0;save();UI.screen='hub';render();},
   ocreate:()=>{const n=nameIn();if(!n){toast('Digite seu nome primeiro.');$('#mgr').focus();return;}createOnline(n);},
   ojoin:v=>{const n=nameIn();if(!n){toast('Digite seu nome primeiro.');$('#mgr').focus();return;}joinOnline(v,n);},
@@ -990,7 +1316,13 @@ const ACT={
   fshow:()=>showFired(),
   tab:v=>{UI.tab=v;UI.confirm=null;render();},
   div:v=>{UI.div=+v;render();},rdiv:v=>{UI.resDiv=+v;render();},adiv:v=>{UI.artDiv=+v;render();},
-  play:()=>{if(!UT()||ME().fired){toast('Você precisa de um clube.');return;}startMatchday(false);},
+  play:()=>{if(!UT()||ME().fired){toast('Você precisa de um clube.');return;}const ev=curEv();if(!ev){afterModals();return;}if(!ONLINE()&&!fixtureOf(myTid(),ev)){quickSim();return;}startMatchday(false);},
+  ctab:v=>{UI.ctab=v;render();},
+  wcpick:v=>{nameIn();UI.wcPick=+v;render();},
+  wcbegin:()=>{const n=nameIn()||'Professor';stopOnline();UI.me=0;newWC(n,UI.wcPick);UI.screen='hub';UI.tab='elenco';save();render();},
+  wcload:()=>{const s=loadWC();if(s){stopOnline();S=s;UI.me=0;UI.screen='hub';UI.tab='elenco';render();afterModals();}},
+  wcend:()=>{lsDel(WC_KEY);closeModal();S=null;UI.screen='start';UI.wcPick=null;render();},
+  wcquit:()=>{save();S=null;UI.screen='start';render();},
   cyc:v=>{if(!canEdit())return;const t=UT();const id=+v;const p=PL(id);if(t.xi.includes(id)){t.xi=t.xi.filter(x=>x!==id);if(t.bench.length<7)t.bench.push(id);}
     else if(t.bench.includes(id)){t.bench=t.bench.filter(x=>x!==id);}
     else{if(!avail(p)){toast(`${p.n} está indisponível.`);return;}if(t.xi.length<11)t.xi.push(id);else if(t.bench.length<7){t.bench.push(id);toast('Já há 11 titulares. Jogador foi para o banco.');}else{toast('Titulares e banco estão completos.');return;}}
@@ -1013,7 +1345,7 @@ const ACT={
   jacc:v=>{const r=doAct({k:'job',tid:+v});UI.tab='elenco';render();if(r.msg)toast(r.msg);},
   jrej:v=>{doAct({k:'jrej',tid:+v});render();},
   fpick:v=>{const r=doAct({k:'fpick',tid:+v});if(r.ok===false){if(r.msg)toast(r.msg);showFired();return;}closeModal();UI.tab='elenco';render();},
-  sumok:()=>{UI.seenSum=S.lastSummary.y;lsSet(sumKey(),S.lastSummary.y);closeModal();render();if(ME().fired)showFired();},
+  sumok:()=>{UI.seenSum=sumTag(S.lastSummary);lsSet(sumKey(),sumTag(S.lastSummary));closeModal();render();if(ME().fired)showFired();},
   tk:v=>{doAct({k:'tk',v:UT().ticket+(+v)});render();},
   loan:()=>{doAct({k:'loan'});render();},
   repay:()=>{doAct({k:'repay'});render();},
