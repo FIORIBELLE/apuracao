@@ -241,7 +241,7 @@ function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt
 function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch(e){return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
-const UI={screen:'start',tab:'elenco',div:null,artDiv:null,resDiv:null,startDiv:0,pickTid:null,mkt:{pos:'',div:'',max:'',q:'',amin:'',amax:'',fmin:'',sort:'f'},el:{pos:'',sort:'pos'},live:null,counter:null,confirm:null,me:0,on:null,lobby:[],mine:[],pool:'A',timer:120};
+const UI={screen:'start',tab:'elenco',div:null,artDiv:null,resDiv:null,startDiv:0,pickTid:null,mkt:{pos:'',div:'',max:'',q:'',amin:'',amax:'',fmin:'',sort:'f',can:true},el:{pos:'',sort:'pos'},live:null,counter:null,confirm:null,me:0,on:null,lobby:[],mine:[],pool:'A',timer:120};
 const CFG=Object.assign({speed:1,halfStop:true},lsGet('fb_cfg')||{});
 const saveCfg=()=>lsSet('fb_cfg',CFG);
 const TM=id=>S.teams[id];
@@ -488,12 +488,14 @@ function movePlayer(pid,to,fee){const p=PL(pid);const from=TM(p.t),dest=TM(to);
   S.mgr.forEach(mg=>mg.offers=mg.offers.filter(o=>o.pid!==pid));
   if(kf<0&&from.pids.length<18){const used=new Set(from.pids.map(i=>PL(i).n));youth(from,used);}
 }
-function evalBid(mg,p,amt){const t=TM(p.t),u=TM(mg.tid);const v=value(p);
-  const rank=t.pids.map(PL).sort((a,b)=>b.f-a.f).indexOf(p);const top=rank<3;
+// quanto o clube vendedor quer e se o jogador aceita ir para o seu clube
+function askInfo(p,u){const t=TM(p.t);const v=value(p);const rank=t.pids.map(PL).sort((a,b)=>b.f-a.f).indexOf(p);const top=rank<3;
+  const need=v*(top?1.35:1.05)*(t.div<u.div&&t.div<=2?1.1:1)*(t.div===4?1.5:1);return {need,ask:Math.ceil(need/1e4)*1e4,top,refuse:t.rep-u.rep>22&&(p.id*7+S.year)%10<6};}
+function evalBid(mg,p,amt){const t=TM(p.t),u=TM(mg.tid);const A=askInfo(p,u);
   if(u.pids.length>=32)return {ok:false,msg:'Seu elenco já tem 32 jogadores. Venda ou dispense alguém antes.'};
   if(u.cash<amt)return {ok:false,msg:`Caixa insuficiente. Você tem ${money(u.cash)}.`};
-  if(t.rep-u.rep>22&&(p.id*7+S.year)%10<6)return {ok:false,msg:`${p.n} não quer jogar no ${u.name} agora.`};
-  const need=v*(top?1.35:1.05)*(t.div<u.div&&t.div<=2?1.1:1)*(t.div===4?1.5:1);
+  if(A.refuse)return {ok:false,msg:`${p.n} não quer jogar no ${u.name} agora.`};
+  const need=A.need;
   if(amt>=need)return {ok:true};
   if(amt>=need*.72)return {ok:false,counter:Math.ceil(need/1e4)*1e4,msg:`O ${t.name} recusou, mas aceita negociar.`};
   return {ok:false,msg:`O ${t.name} considerou a proposta muito baixa.`};}
@@ -1276,7 +1278,9 @@ function artHTML(){if(S.mode==='wc'){const list=Object.values(S.P).filter(p=>p.g
 function mktHTML(){const t=UT();if(!t||ME().fired)return noClub();const f=UI.mkt;const mx=parseFloat(f.max)||0;const q=(f.q||'').toLowerCase();
   const amin=parseInt(f.amin)||0,amax=parseInt(f.amax)||0,fmin=parseInt(f.fmin)||0;
   let list=Object.values(S.P).filter(p=>p.t!==t.id&&!isHuman(p.t)&&(!f.pos||p.p===f.pos)&&(f.div===''||TM(p.t).div===+f.div)&&(!mx||value(p)<=mx*1e6)&&(!amin||p.a>=amin)&&(!amax||p.a<=amax)&&(!fmin||p.f>=fmin)&&(!q||p.n.toLowerCase().includes(q)||TM(p.t).name.toLowerCase().includes(q)));
-  list.sort(SORTS[f.sort][1]);const total=list.length;list=list.slice(0,80);const anyF=f.q||f.pos||f.div!==''||f.max||f.amin||f.amax||f.fmin||f.sort!=='f';
+  const AQ=new Map();const aq=p=>{let a=AQ.get(p.id);if(!a){a=askInfo(p,t);AQ.set(p.id,a);}return a;};
+  if(f.can)list=list.filter(p=>{const a=aq(p);return !a.refuse&&a.ask<=t.cash;});
+  if(f.sort==='ask')list.sort((a,b)=>aq(a).ask-aq(b).ask||b.f-a.f);else list.sort(SORTS[f.sort][1]);const total=list.length;list=list.slice(0,80);const anyF=f.q||f.pos||f.div!==''||f.max||f.amin||f.amax||f.fmin||f.sort!=='f';
   const mine=t.pids.map(PL).filter(p=>p.sale);
   return `<div class="row" style="margin-bottom:8px">
    <label for="mq">Buscar</label><input id="mq" data-c="mq" value="${esc(f.q)}" placeholder="Jogador ou clube" style="width:160px">
@@ -1288,12 +1292,13 @@ function mktHTML(){const t=UT();if(!t||ME().fired)return noClub();const f=UI.mkt
    <label for="mamin">Idade de</label><input id="mamin" data-c="mamin" type="number" min="16" max="45" value="${esc(f.amin)}" style="width:64px">
    <label for="mamax">até</label><input id="mamax" data-c="mamax" type="number" min="16" max="45" value="${esc(f.amax)}" style="width:64px">
    <label for="mfmin">Força mínima</label><input id="mfmin" data-c="mfmin" type="number" min="25" max="99" value="${esc(f.fmin)}" style="width:64px">
-   <label for="msort">Ordenar por</label><select id="msort" data-c="msort">${sortOpts(['f','gl','avg','cavg','a','cpj','les','safe','v','vd'],f.sort)}</select>
+   <label for="msort">Ordenar por</label><select id="msort" data-c="msort">${sortOpts(['f','gl','avg','cavg','a','cpj','les','safe','v','vd'],f.sort)}<option value="ask" ${f.sort==='ask'?'selected':''}>Preço pedido (mais barato)</option></select>
+   <button class="btn sm ${f.can?'on':''}" data-a="mcan" aria-pressed="${f.can}">${f.can?'✓ ':''}Só quem posso contratar</button>
    ${anyF?'<button class="btn sm" data-a="mclear">Limpar filtros</button>':''}
   </div>
-  <p class="small">Caixa disponível: <b>${money(t.cash)}</b> · ${total} jogadores encontrados${total>80?' (mostrando os 80 melhores)':''}. Toque num jogador para fazer proposta.${f.sort==='avg'?' Na ordenação por média da temporada, só entra no topo quem tem 3 jogos ou mais.':f.sort==='cavg'?' Na ordenação por média da carreira, só entra no topo quem tem 5 jogos ou mais.':''} Média carreira = gols ÷ jogos desde o início do jogo; o número entre parênteses é a quantidade de jogos.${ONLINE()?' Os jogadores do clube do seu amigo não aparecem aqui. Se vocês dois comprarem o mesmo jogador na mesma rodada, vale a compra de quem criou a partida.':''}</p>
-  <div class="scroll sunk"><table class="grid"><thead><tr><th>Pos</th><th>Jogador</th><th>Clube</th><th class="n">Força</th><th class="n">Idade</th><th class="n">J</th><th class="n">Gols</th><th class="n">Média temp.</th><th class="n">Média carreira</th><th class="n" title="Cartões ÷ jogos na carreira">CA/J</th><th class="n" title="Lesões na carreira e rodadas perdidas">Lesões</th><th class="n">Valor</th><th class="n">Salário</th><th>Situação</th></tr></thead><tbody>
-  ${list.length?list.map(p=>`<tr class="click" data-a="pinfo" data-v="${p.id}"><td>${posTag(p.p)}</td><td>${esc(p.n)}</td><td>${tbox(p.t,'sm')}</td><td class="n"><b>${p.f}</b></td><td class="n">${p.a}</td><td class="n">${p.gm}</td><td class="n">${p.gl}</td><td class="n">${avgTxt(p.gl,p.gm)}</td><td class="n">${avgTxt(p.tgj||0,p.tj||0)}${p.tj?`<span class="small muted"> (${p.tj}j)</span>`:''}</td><td class="n">${cpjTxt(p)}</td><td class="n">${injTxt(p)}</td><td class="n">${money(value(p))}</td><td class="n">${money(p.sal)}</td><td>${pStatus(p)}</td></tr>`).join(''):'<tr><td colspan="14">Nenhum jogador com esses filtros.</td></tr>'}
+  <p class="small">Caixa disponível: <b>${money(t.cash)}</b> · ${total} jogadores encontrados${total>80?' (mostrando os 80 primeiros)':''}. ${f.can?'Mostrando só quem aceita vir e cujo preço pedido cabe no seu caixa. ':''}Toque num jogador para ver o preço pedido e fazer proposta.${f.sort==='avg'?' Na ordenação por média da temporada, só entra no topo quem tem 3 jogos ou mais.':f.sort==='cavg'?' Na ordenação por média da carreira, só entra no topo quem tem 5 jogos ou mais.':''} Média carreira = gols ÷ jogos desde o início do jogo; o número entre parênteses é a quantidade de jogos.${ONLINE()?' Os jogadores do clube do seu amigo não aparecem aqui. Se vocês dois comprarem o mesmo jogador na mesma rodada, vale a compra de quem criou a partida.':''}</p>
+  <div class="scroll sunk"><table class="grid"><thead><tr><th>Pos</th><th>Jogador</th><th>Clube</th><th class="n">Força</th><th class="n">Idade</th><th class="n">J</th><th class="n">Gols</th><th class="n">Média temp.</th><th class="n">Média carreira</th><th class="n" title="Cartões ÷ jogos na carreira">CA/J</th><th class="n" title="Lesões na carreira e rodadas perdidas">Lesões</th><th class="n">Valor</th><th class="n" title="Quanto o clube dele pede para vender">Pedido</th><th class="n">Salário</th><th>Situação</th></tr></thead><tbody>
+  ${list.length?list.map(p=>`<tr class="click" data-a="pinfo" data-v="${p.id}"><td>${posTag(p.p)}</td><td>${esc(p.n)}</td><td>${tbox(p.t,'sm')}</td><td class="n"><b>${p.f}</b></td><td class="n">${p.a}</td><td class="n">${p.gm}</td><td class="n">${p.gl}</td><td class="n">${avgTxt(p.gl,p.gm)}</td><td class="n">${avgTxt(p.tgj||0,p.tj||0)}${p.tj?`<span class="small muted"> (${p.tj}j)</span>`:''}</td><td class="n">${cpjTxt(p)}</td><td class="n">${injTxt(p)}</td><td class="n">${money(value(p))}</td><td class="n">${(()=>{const a=aq(p);return a.refuse?'<span class="small muted">não vem</span>':`<b style="color:${a.ask>t.cash?'var(--alerta)':'inherit'}">${money(a.ask)}</b>`;})()}</td><td class="n">${money(p.sal)}</td><td>${pStatus(p)}</td></tr>`).join(''):`<tr><td colspan="15">Nenhum jogador com esses filtros.${f.can?' O filtro "Só quem posso contratar" está ligado: desligue para ver todos.':''}</td></tr>`}
   </tbody></table></div>
   <h3>Seus jogadores à venda</h3>${mine.length?`<p>${mine.map(p=>`<a href="#" data-a="pinfo" data-v="${p.id}">${esc(p.n)}</a> (${money(value(p))})`).join(' · ')}</p>`:'<p class="small muted">Nenhum. Abra a ficha de um jogador do seu elenco e coloque à venda para receber propostas.</p>'}`;}
 function finHTML(){const t=UT();const mg=ME();if(!t||mg.fired)return noClub();const F=mg.fin,L=mg.finLast;const rows=[['Bilheteria','bil'],['Cotas de TV','tv'],['Patrocínio','pat'],['Venda de jogadores','ven'],['Premiações','pre'],['Compra de jogadores','com'],['Salários','sal'],['Manutenção do estádio','man'],['Obras','obr'],['Juros do empréstimo','jur']];
@@ -1461,8 +1466,8 @@ function pModal(pid){const p=PL(pid);if(!p)return;const t=TM(p.t);const mine=p.t
    ${S.v>=4&&S.mode!=='wc'?(()=>{const r=riskF(p);const pc=x=>{const d=Math.round((x-1)*100);return d===0?'0%':(d>0?'+':'')+d+'%';};return `<div class="small muted" style="margin-top:4px">Efeito no preço: lesões ${pc(r.fi)} · cartões ${pc(r.fc)} · desempenho ${pc(r.fp)}. Valor considera todos os torneios.</div>`;})():''}
    <div class="grp"><span class="lg">Corrigir nome</span><div class="row"><input id="rn" value="${esc(p.n)}" maxlength="30"><button class="btn sm" data-a="rename" data-v="${pid}">Salvar nome</button></div></div>
    ${rv?'<p class="small muted">Este jogador é do clube do seu amigo e não está à venda.</p>':''}
-   ${!mine&&!rv&&UT()&&!ME().fired&&S.mode!=='wc'&&isDom(UT())?`<div class="grp"><span class="lg">Proposta de compra</span><div class="row"><label for="bid">Valor (R$ mi)</label><input id="bid" type="number" min="0" step="0.05" value="${(v/1e6).toFixed(2)}" style="width:110px"><button class="btn" data-a="bid" data-v="${pid}">Enviar proposta</button></div>
-     <p class="small muted" style="margin-bottom:0">Seu caixa: ${money(UT().cash)}. Titulares importantes custam mais caro. Novo salário ≈ ${money(Math.round(Math.max(p.sal,salFor(p))*1.1/1000)*1000)}/mês.</p>
+   ${!mine&&!rv&&UT()&&!ME().fired&&S.mode!=='wc'&&isLeague(UT())?(()=>{const A=askInfo(p,UT());const cash=UT().cash;const full=UT().pids.length>=32;return A.refuse?`<div class="grp"><span class="lg">Proposta de compra</span><p style="margin:0">${esc(p.n)} não aceita jogar no ${esc(UT().name)} agora: o ${esc(t.name)} tem muito mais prestígio. Tente outro jogador ou volte quando seu clube crescer.</p></div><div hidden>`:`<div class="grp"><span class="lg">Proposta de compra</span><p style="margin:0 0 6px">O ${esc(t.name)} pede <b>${money(A.ask)}</b>${A.top?' (é um dos 3 melhores do elenco)':''}. Seu caixa: <b>${money(cash)}</b>.${A.ask>cash?` <span style="color:var(--alerta)">Faltam ${money(A.ask-cash)}: venda jogadores ou pegue empréstimo em Finanças.</span>`:''}${full?' <span style="color:var(--alerta)">Seu elenco está cheio (32).</span>':''}</p>`;})()+`<div class="row"><label for="bid">Valor (R$ mi)</label><input id="bid" type="number" min="0" step="0.05" value="${(askInfo(p,UT()).ask/1e6).toFixed(2)}" style="width:110px"><button class="btn" data-a="bid" data-v="${pid}">Enviar proposta</button></div>
+     <p class="small muted" style="margin-bottom:0">Oferta abaixo do pedido pode render contraproposta. Novo salário ≈ ${money(Math.round(Math.max(p.sal,salFor(p))*1.1/1000)*1000)}/mês.</p>
      ${ct?`<div class="row" style="margin-top:6px"><span>O ${esc(t.name)} pede <b>${money(ct.amt)}</b>.</span><button class="btn go" data-a="bidc" data-v="${pid}">Pagar ${money(ct.amt)}</button></div>`:''}
      <div id="bidmsg" class="small" style="margin-top:4px"></div></div>`:''}`;
   const foot=mine&&S.mode!=='wc'?`<button class="btn" data-a="sale" data-v="${pid}">${p.sale?'Tirar da lista de venda':'Colocar à venda'}</button>${UI.confirm==='rel'+pid?`<button class="btn warn" data-a="rel2" data-v="${pid}">Confirmar dispensa (multa ${money(p.sal*3)})</button>`:`<button class="btn warn" data-a="rel" data-v="${pid}">Dispensar</button>`}<button class="btn" data-a="close">Fechar</button>`:`<button class="btn" data-a="close">Fechar</button>`;
@@ -1520,7 +1525,8 @@ const ACT={
     else{if(!avail(p)){toast(`${p.n} está indisponível.`);return;}if(t.xi.length<11)t.xi.push(id);else if(t.bench.length<7){t.bench.push(id);toast('Já há 11 titulares. Jogador foi para o banco.');}else{toast('Titulares e banco estão completos.');return;}}
     persistSoon();render();},
   elpos:v=>{UI.el.pos=v||'';render();},
-  mclear:()=>{UI.mkt={pos:'',div:'',max:'',q:'',amin:'',amax:'',fmin:'',sort:'f'};render();},
+  mclear:()=>{UI.mkt={pos:'',div:'',max:'',q:'',amin:'',amax:'',fmin:'',sort:'f',can:UI.mkt.can};render();},
+  mcan:()=>{UI.mkt.can=!UI.mkt.can;render();},
   auto:()=>{if(!canEdit())return;autoLineup(UT());persistSoon();render();toast('Time escalado pelo auxiliar técnico.');},
   pinfo:(v,el,e)=>{e.preventDefault();UI.counter=null;UI.confirm=null;pModal(+v);},
   rename:v=>{const n=(($('#rn')||{}).value||'').trim();if(!n)return;doAct({k:'rename',pid:+v,n});render();pModal(+v);toast('Nome atualizado.');},
