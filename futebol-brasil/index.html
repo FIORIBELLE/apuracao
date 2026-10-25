@@ -339,7 +339,7 @@ function lsGet(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):nul
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
 function lsDel(k){try{localStorage.removeItem(k);}catch(e){}}
 const UI={navLast:{},screen:'start',tab:'elenco',div:null,artDiv:null,resDiv:null,startDiv:0,pickTid:null,mkt:{pos:'',div:'',max:'',q:'',amin:'',amax:'',fmin:'',sort:'f',can:true,view:'res'},el:{pos:'',sort:'pos',view:'res'},live:null,counter:null,confirm:null,me:0,on:null,lobby:[],mine:[],pool:'A',timer:120};
-const CFG=Object.assign({speed:1,halfStop:true},lsGet('fb_cfg')||{});
+const CFG=Object.assign({speed:1,halfStop:true,youth:1},lsGet('fb_cfg')||{});
 const saveCfg=()=>lsSet('fb_cfg',CFG);
 const TM=id=>S.teams[id];
 const PL=id=>S.P[id];
@@ -1455,7 +1455,7 @@ function elencoHTML(){const t=UT();if(!t||ME().fired)return noClub();if(V6())nor
   const avgS=k=>{const x=t.xi.map(PL).filter(p=>p&&(k==null||sec(p)===k||(k==='D'&&sec(p)==='G')));return x.length?x.reduce((a,p)=>a+ef(p),0)/x.length:0;};
   const tools=`<div class="row" style="margin-bottom:10px"><label for="form">Esquema</label><select id="form" data-c="form">${Object.keys(FORMS).map(f=>`<option ${f===t.form?'selected':''}>${f}</option>`).join('')}</select>
    <label for="post">Postura</label><select id="post" data-c="post">${POSTS.map((p,i)=>`<option value="${i}" ${i===t.post?'selected':''}>${p}</option>`).join('')}</select>
-   <button class="btn sm" data-a="auto">Escalar automático</button></div>`;
+   <button class="btn sm" data-a="auto">Escalar automático</button></div>${V6()?`<div class="row" style="margin:-2px 0 10px"><span class="lbl">Formar jogadores</span>${viewsHTML(YMODE.map((y,i)=>[String(i),y[0]]),String(CFG.youth|0),'ymode')}<span class="small muted" style="flex-basis:100%">${YMODE[CFG.youth|0][1]} Vale para o Escalar automático e o modo automático. Promessa: até 23 anos e potencial 6 ou mais acima da força.</span></div>`:''}`;
   return `${bad.length?`<div class="banner" style="margin-bottom:12px">${bad.length===1?'1 titular está indisponível':bad.length+' titulares estão indisponíveis'} (${bad.map(p=>esc(p.n)).join(', ')}). Troque agora ou o auxiliar troca na hora do jogo.</div>`:''}
   <div class="lineup">
    <div class="card">${tools}${V6()?fieldHTML(t):`<p class="small muted">Use os botões T/R da lista abaixo para escalar.</p>`}</div>
@@ -1469,11 +1469,11 @@ function elencoHTML(){const t=UT();if(!t||ME().fired)return noClub();if(V6())nor
   <div class="row" style="margin-bottom:10px">${(V6()?PGROUPS.map(g=>[g[0],g[1]]):[['','Todos'],['G','Goleiros'],['D','Defensores'],['M','Meio-campo'],['A','Atacantes']]).map(([k,n])=>`<button class="btn sm ${E.pos===k?'on':''}" data-a="elpos" data-v="${k}">${n} ${all.filter(p=>inGroup(p,k)).length}</button>`).join('')}
     <label for="elsort" class="small" style="margin-left:auto">Ordenar</label><select id="elsort" data-c="elsort">${sortOpts(['pos','f','a','gl','avg','cavg','gm','cpj','les','safe','vd'].concat(V6()?['pot']:[]),E.sort)}</select></div>
   <div class="scroll sunk"><table class="grid"><thead><tr><th class="c" title="T titular, R reserva">Esc.</th><th>Pos</th><th>Jogador</th><th>Força</th><th class="n">Idade</th>${thC(cols)}</tr></thead><tbody>
-   ${ps.map(p=>{const k=t.xi.includes(p.id)?'T':t.bench.includes(p.id)?'R':'';return `<tr class="${k&&!avail(p)?'warn':''}"><td class="c"><button class="st ${k}" data-a="cyc" data-v="${p.id}" aria-label="Alternar escalação de ${esc(p.n)}">${k||'·'}</button></td><td>${posTag2(p)}</td><td><a href="#" data-a="pinfo" data-v="${p.id}" style="font-weight:${p.f>=80?700:500}">${esc(p.n)}</a>${p.gem?' <span class="tag gem">joia</span>':''}</td><td>${fBar(p)}</td><td class="n">${p.a}</td>${tdC(cols,p)}</tr>`;}).join('')}
+   ${ps.map(p=>{const k=t.xi.includes(p.id)?'T':t.bench.includes(p.id)?'R':'';return `<tr class="${k&&!avail(p)?'warn':''}"><td class="c"><button class="st ${k}" data-a="cyc" data-v="${p.id}" aria-label="Alternar escalação de ${esc(p.n)}">${k||'·'}</button></td><td>${posTag2(p)}</td><td><a href="#" data-a="pinfo" data-v="${p.id}" style="font-weight:${p.f>=80?700:500}">${esc(p.n)}</a>${p.gem?' <span class="tag gem">joia</span>':''}${formTag(t,p)}</td><td>${fBar(p)}</td><td class="n">${p.a}</td>${tdC(cols,p)}</tr>`;}).join('')}
    </tbody></table></div>`;}
 function evoHTML(){const t=UT();if(!t||ME().fired)return noClub();const all=t.pids.map(PL);const v7=V7();
   const young=all.filter(p=>canGrow(p)).sort((a,b)=>(b.pot-b.f)-(a.pot-a.f)||a.a-b.a);const peak=all.filter(p=>!canGrow(p)).sort((a,b)=>b.f-a.f);
-  const row=p=>{const r=p.rt!=null?p.rt:t.xi.includes(p.id)?1:t.bench.includes(p.id)?.4:0;const ps=perSeason(p,r);return `<tr class="click" data-a="pinfo" data-v="${p.id}"><td>${posTag2(p)}</td><td><b>${esc(p.n)}</b>${p.gem?' <span class="tag gem">joia</span>':''}</td><td class="n">${p.a}</td><td>${fBar(p)}</td><td><b>${p.pot}</b> <span class="small muted">(faltam ${p.pot-p.f})</span></td><td>${gainTag(p)}</td><td>${rateTxt(r)}</td><td>${v7?`+${dec1(Math.min(ps,p.pot-p.f))} por temporada`:'—'}</td></tr>`;};
+  const row=p=>{const r=p.rt!=null?p.rt:t.xi.includes(p.id)?1:t.bench.includes(p.id)?.4:0;const ps=perSeason(p,r);return `<tr class="click" data-a="pinfo" data-v="${p.id}"><td>${posTag2(p)}</td><td><b>${esc(p.n)}</b>${p.gem?' <span class="tag gem">joia</span>':''}${formTag(t,p)}</td><td class="n">${p.a}</td><td>${fBar(p)}</td><td><b>${p.pot}</b> <span class="small muted">(faltam ${p.pot-p.f})</span></td><td>${gainTag(p)}</td><td>${rateTxt(r)}</td><td>${v7?`+${dec1(Math.min(ps,p.pot-p.f))} por temporada`:'—'}</td></tr>`;};
   return `<div class="cols">
    <div class="help"><b style="font-size:15px">Como um jogador evolui</b>
     <ul style="margin:8px 0 0;padding-left:18px;display:grid;gap:5px">
@@ -1486,6 +1486,7 @@ function evoHTML(){const t=UT();if(!t||ME().fired)return noClub();const all=t.pi
     <p style="margin:8px 0 6px">Vale, se o jogador for <b>jovem</b> e tiver <b>potencial bem acima da força</b>, e se você der minutos para ele.</p>
     <p style="margin:0 0 6px">Exemplo: um jogador de 19 anos com força 66 e potencial 82, jogando como titular, ganha cerca de <b>6 pontos por temporada</b> e chega a 80 em 2 a 3 temporadas. No banco, leva o dobro do tempo.</p>
     <p style="margin:0 0 10px">O preço dele sobe junto com a força. Comprar antes de evoluir sai mais barato.</p>
+    <p style="margin:0 0 10px">Para a promessa não ficar no banco atrás de um veterano, use <b>Formar jogadores</b> em Escalação: hoje está <b>${YMODE[CFG.youth|0][0].toLowerCase()}</b>.</p>
     <button class="btn sm go" data-a="mpre" data-v="prom">Ver promessas no mercado</button></div>
   </div>
   <h2 style="margin-top:18px">Ainda podem evoluir · ${young.length}</h2>
@@ -1694,7 +1695,23 @@ function bestLineup(t){if(!t)return;if(!V6()){autoLineup(t);return;}
   const cur=t.form;let best=null;
   const score=()=>{const m=slotMap(t);const ps=t.xi.map(PL);return ps.length?ps.reduce((a,p)=>a+effF(p,m[p.id]),0)/11:0;};
   for(const f of [cur,...Object.keys(FORMS).filter(x=>x!==cur)]){t.form=f;t.sl=null;autoLineup(t);const v=score();if(!best||v>best.v+.05)best={f,v};}
-  t.form=best.f;t.sl=null;autoLineup(t);return best;}
+  t.form=best.f;t.sl=null;autoLineup(t);applyYouth(t);return best;}
+/* formar jogadores: o auxiliar dá a vaga à promessa quando a diferença de força é pequena */
+const YMODE=[['Desligado','Sempre escala o mais forte.'],['Equilibrado','Promessa entra se estiver até 5 pontos abaixo do titular. Até 2 promessas; em jogo de copa contra time de divisão inferior, até 4.'],['Formar jogadores','Promessa entra se estiver até 8 pontos abaixo do titular. Até 4 promessas.']];
+const isProm=p=>p&&p.pot!=null&&p.a<=23&&p.pot-p.f>=6;
+function youthRule(t){const m=CFG.youth|0;if(!m||!V6())return null;if(m===2)return {thr:8,max:4};
+  const ev=curEv();const fx=ev&&fixtureOf(t.id,ev);let max=2;
+  if(ev&&ev.t==='C'&&fx){const o=TM(fx.h===t.id?fx.a:fx.h);if(o.div<=2&&t.div<=2&&o.div>t.div)max=4;}return {thr:5,max};}
+function applyYouth(t){const rule=youthRule(t);if(!rule)return 0;normSlots(t);const slots=slotsOf(t);
+  let n=t.sl.filter(id=>id!=null&&isProm(PL(id))).length;let put=0;
+  const cands=t.pids.map(PL).filter(p=>avail(p)&&isProm(p)&&!t.sl.includes(p.id)).sort((a,b)=>(b.pot-b.f)-(a.pot-a.f)||a.a-b.a||a.id-b.id);
+  for(const p of cands){if(n>=rule.max)break;let best=null;
+    slots.forEach((pos,i)=>{if(fit(p,pos)<.92)return;const q=PL(t.sl[i]);if(q&&isProm(q))return;const d=(q?effF(q,pos):0)-effF(p,pos);if(d<=rule.thr&&(!best||d<best.d))best={i,d};});
+    if(best){t.sl[best.i]=p.id;n++;put++;}}
+  if(put){t.xi=t.sl.filter(x=>x!=null);const rest=t.pids.map(PL).filter(p=>avail(p)&&!t.xi.includes(p.id)).sort((a,b)=>b.f-a.f||a.id-b.id);const bench=[];const g=rest.find(p=>p.dp==='GOL');if(g)bench.push(g.id);
+    for(const p of rest){if(bench.length>=7)break;if(!bench.includes(p.id))bench.push(p.id);}t.bench=bench;}
+  return put;}
+const formTag=(t,p)=>CFG.youth&&V6()&&isProm(p)&&t&&t.xi.includes(p.id)?' <span class="tag up">em formação</span>':'';
 function autoOff(msg){AUTO.on=false;clearTimeout(AUTO.timer);AUTO.timer=null;if(S&&(UI.screen==='hub'||UI.screen==='live'))render();if(msg)toast(msg);}
 function bigOffer(){const mg=ME();return (mg.offers||[]).find(o=>!AUTO.seen.has(o.id)&&PL(o.pid)&&o.amt>value(PL(o.pid)));}
 function autoNext(ms){clearTimeout(AUTO.timer);if(AUTO.on)AUTO.timer=setTimeout(autoStep,ms);}
@@ -1710,7 +1727,7 @@ function autoStep(){if(!AUTO.on)return;clearTimeout(AUTO.timer);
   if(ONLINE()){if(!UI.on.sent){bestLineup(t);sendReady();}return;}
   if(t&&fixtureOf(t.id,curEv()))bestLineup(t);
   ACT.play();autoNext(400);}
-function autoBoxHTML(){return AUTO.on?`<div class="autobox"><span class="dot"></span><div style="flex:1;min-width:0"><b>Auxiliar no comando</b><div class="small muted">Data ${S.md+1} de ${S.cal.length} · escala o melhor time e joga até o fim da ${S.mode==='wc'?'Copa':'temporada'}</div></div><button class="btn sm warn" data-a="automode">Parar</button></div>`
+function autoBoxHTML(){return AUTO.on?`<div class="autobox"><span class="dot"></span><div style="flex:1;min-width:0"><b>Auxiliar no comando</b><div class="small muted">Data ${S.md+1} de ${S.cal.length} · escala o melhor time${CFG.youth&&V6()&&S.mode!=='wc'?` (${YMODE[CFG.youth][0].toLowerCase()})`:''} e joga até o fim da ${S.mode==='wc'?'Copa':'temporada'}</div></div><button class="btn sm warn" data-a="automode">Parar</button></div>`
   :`<button class="btn" data-a="automode" title="O auxiliar escala o melhor time disponível e joga todas as rodadas até o fim da temporada">Modo automático ▶▶</button>`;}
 function quickSim(){const ev=curEv();const n=autoRun()||(startMatchday(true),finishMatchday(true),1);UI.screen='hub';UI.tab=tabFor(ev);save();render();afterModals();toast(n>1?`${n} datas simuladas (seu time não jogou).`:`${evLabel(ev)}: resultados prontos.`);}
 function wcStartHTML(){const sv=loadWC();const sel=UI.wcPick!=null?NAT[UI.wcPick]:null;
@@ -1788,7 +1805,7 @@ function matchModal(idx){const m=UI.live.ms[idx];showModal(`${TM(m.fx.h).name} $
 function showModal(title,body,foot,locked){$('#modal').innerHTML=`<div class="ov" ${locked?'':'data-a="ovclose"'}><div class="win" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="tbar"><span>${esc(title)}</span>${locked?'':'<button class="x" data-a="close" aria-label="Fechar">×</button>'}</div><div class="body">${body}</div><div class="foot">${foot||''}</div></div></div>`;}
 function closeModal(){$('#modal').innerHTML='';UI.counter=null;if(UI.confirm!=='reset')UI.confirm=null;}
 function pModal(pid){const p=PL(pid);if(!p)return;const t=TM(p.t);const mine=p.t===myTid();const v=value(p);const ct=UI.counter&&UI.counter.pid===pid?UI.counter:null;const rv=!mine&&isHuman(p.t);
-  const body=`<div class="pcard"><div class="ovr"><b>${p.f}</b><span>${V6()&&p.dp?p.dp:p.p}</span></div><div style="min-width:0"><h2>${esc(p.n)}</h2><div class="row">${tbox(p.t,'sm')}<span class="small muted">${p.a} anos · ${V6()&&p.dp?POSL[p.dp]:POSN[p.p]}${V6()&&(p.sp||[]).length?` · também ${p.sp.map(x=>POSL[x].toLowerCase()).join(', ')}`:''}</span>${p.gem?'<span class="tag gem">joia da base</span>':''}${pStatus(p)}</div></div></div>
+  const body=`<div class="pcard"><div class="ovr"><b>${p.f}</b><span>${V6()&&p.dp?p.dp:p.p}</span></div><div style="min-width:0"><h2>${esc(p.n)}</h2><div class="row">${tbox(p.t,'sm')}<span class="small muted">${p.a} anos · ${V6()&&p.dp?POSL[p.dp]:POSN[p.p]}${V6()&&(p.sp||[]).length?` · também ${p.sp.map(x=>POSL[x].toLowerCase()).join(', ')}`:''}</span>${p.gem?'<span class="tag gem">joia da base</span>':''}${mine?formTag(UT(),p):''}${pStatus(p)}</div></div></div>
    <div class="tiles">
     ${S.mode==='wc'?'':`<div class="tile"><div class="lbl">Valor de mercado</div><div class="v">${money(v)}</div><div class="h">salário ${money(p.sal)}/mês</div></div>`}
     <div class="tile"><div class="lbl">Gols na temporada</div><div class="v">${p.gl}</div><div class="h">${p.gm?`${golT(p.gl,p.gm)} · ${p.gm} jogos`:'ainda não jogou'}</div></div>
@@ -1893,7 +1910,8 @@ const ACT={
   mclear:()=>{UI.mkt={pos:'',div:'',max:'',q:'',amin:'',amax:'',fmin:'',grow:'',sort:'f',can:UI.mkt.can,view:UI.mkt.view,sec:UI.mkt.sec};render();},
   msec:()=>{UI.mkt.sec=!UI.mkt.sec;render();},
   mcan:()=>{UI.mkt.can=!UI.mkt.can;render();},
-  auto:()=>{if(!canEdit())return;autoLineup(UT());persistSoon();render();toast('Time escalado pelo auxiliar técnico.');},
+  auto:()=>{if(!canEdit())return;const t=UT();autoLineup(t);const y=applyYouth(t);persistSoon();render();toast(y?`Time escalado pelo auxiliar: ${y} ${y===1?'promessa ganhou':'promessas ganharam'} vaga.`:'Time escalado pelo auxiliar técnico.');},
+  ymode:v=>{CFG.youth=+v;saveCfg();render();},
   pinfo:(v,el,e)=>{e.preventDefault();UI.counter=null;UI.confirm=null;pModal(+v);},
   rename:v=>{const n=(($('#rn')||{}).value||'').trim();if(!n)return;doAct({k:'rename',pid:+v,n});render();pModal(+v);toast('Nome atualizado.');},
   sale:v=>{const p=PL(+v);doAct({k:'sale',pid:+v,on:!p.sale});render();pModal(+v);},
