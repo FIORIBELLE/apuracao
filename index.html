@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Apuração 2026</title>
+<title>Apuração 2026 · 2º turno</title>
 <meta name="theme-color" content="#18212e">
 <meta name="application-name" content="Apuração 2026">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -152,7 +152,7 @@ details.explanation summary{cursor:pointer;padding:6px 0}
 <body>
 <div class="wrap">
   <header>
-    <h1>Apuração 2026</h1>
+    <div><h1>Apuração 2026</h1><div class="notice" style="margin:4px 0 0"><strong>2º turno · 25 de outubro</strong></div></div>
     <div class="status" role="status"><span class="dot" id="dot"></span><span id="stamp">Carregando…</span></div>
   </header>
 
@@ -207,9 +207,11 @@ details.explanation summary{cursor:pointer;padding:6px 0}
 const BASE = "https://resultados.tse.jus.br/oficial/ele2026";
 const TURNOS = {
   1: {pres:"6257", est:"6259"},
-  2: {pres:"", est:""} // Preencher quando o TSE publicar os códigos oficiais do 2º turno.
+  2: {pres:"6258", est:"6260"} // Códigos oficiais: TSE, informações técnicas das eleições 2026.
 };
-const TURNO_ATIVO = 1;
+const TURNO_ATIVO = 2;
+const EST_PRIMEIRO_TURNO = TURNOS[1].est;
+const CONFIG_URL = "https://resultados.tse.jus.br/oficial/comum/config/ele-c.json";
 const CONFIG_TURNO = TURNOS[TURNO_ATIVO] || {};
 const PRES = CONFIG_TURNO.pres || "";
 const EST = CONFIG_TURNO.est || "";
@@ -230,7 +232,7 @@ const state = {
   uf:{},
   open:new Set(),
   tab:"br",
-  mgTab:"sen",
+  mgTab:"pres",
   regions:new Set(),
   dep:{federal:null,estadual:null},
   depTab:"federal",
@@ -239,7 +241,7 @@ const state = {
   depFilter:"all"
 };
 
-const url = (ele, uf, cargo) => `${BASE}/${ele}/dados/${uf}/${uf}-c${cargo}-e00${ele}-u.json`;
+const url = (ele, uf, cargo) => `${BASE}/${ele}/dados/${uf}/${uf}-c${cargo}-e${String(ele).padStart(6,"0")}-u.json`;
 const num = s => parseFloat(String(s||"0").replace(",", ".")) || 0;
 const fmt = n => n.toLocaleString("pt-BR");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -251,12 +253,22 @@ function tseTimestamp(data, hora){
   return new Date(`${m[3]}-${m[2]}-${m[1]}T${t[1]}:${t[2]}:${t[3]||"00"}-03:00`).getTime();
 }
 
+let tseBlockedUntil = 0;
+const unavailableUntil = new Map();
 async function get(u){
+  if(Date.now()<tseBlockedUntil) throw new Error("TSE limitou as consultas. Nova tentativa após o intervalo de 10 minutos.");
+  if(Date.now()<(unavailableUntil.get(u)||0)) throw new Error("Dados ainda indisponíveis no TSE. Nova consulta em alguns minutos.");
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
   try {
   const r = await fetch(u, {cache:"no-cache", signal:controller.signal});
-  if(!r.ok) throw new Error(r.status === 429 ? "TSE limitou as consultas, tentando de novo em seguida" : "Arquivo indisponível ("+r.status+")");
+  if(!r.ok){
+    const e = new Error(r.status === 429 ? "TSE limitou as consultas. Aguardando 10 minutos para tentar novamente." : r.status === 404 ? "Dados ainda indisponíveis no TSE. Nova consulta em alguns minutos." : "Arquivo indisponível ("+r.status+")");
+    e.status = r.status;
+    if(r.status === 429) tseBlockedUntil = Date.now()+10*60*1000;
+    if(r.status === 404) unavailableUntil.set(u,Date.now()+5*60*1000);
+    throw e;
+  }
   return await r.json();
   } catch(e) {
     if(e.name === "AbortError") throw new Error("TSE demorou a responder. Nova tentativa automática.");
@@ -265,15 +277,34 @@ async function get(u){
   } finally { clearTimeout(timer); }
 }
 
+// A mesma sinalização e="s" também marca classificados para o 2º turno.
+// A situação oficial (st) prevalece; não inferir vitória a partir da liderança.
+function elected(k,d){
+  const st=String(k.st||"").trim();
+  if(st) return /^eleito(?:$| por )/i.test(st);
+  return k.e==="s" && (String(d.t)==="2" || d.md==="e" || ![1,3,11].includes(Number(d.carg?.[0]?.cd)));
+}
+function validateResult(d,ele,uf,cargo){
+  const turno = [TURNOS[2].pres,TURNOS[2].est].includes(String(ele)) ? 2 : 1;
+  if(String(d.ele)!==String(ele) || Number(d.t)!==turno || d.f!=="o" ||
+     String(d.cdabr).toLowerCase()!==uf || Number(d.carg?.[0]?.cd)!==Number(cargo)){
+    throw new Error("O TSE retornou dados de outra eleição, turno ou cargo. A consulta foi descartada.");
+  }
+  return d;
+}
 function parse(d){
   if(!Array.isArray(d.carg) || !d.s) throw new Error("Resposta do TSE em formato inesperado.");
   const cands = [];
   (d.carg?.[0]?.agr || []).forEach(a => (a.par||[]).forEach(p => (p.cand||[]).forEach(k => {
-    cands.push({ id:String(k.n || k.sqcand || k.nmu || k.nm), valido:!k.dvt || k.dvt === "Válido", nome:k.nmu || k.nm, part:p.sg, votos:+k.vap || 0, pct:num(k.pvapn || k.pvap), eleito:k.e === "s", st:k.st || "" });
+    cands.push({ id:String(k.n || k.sqcand || k.nmu || k.nm), valido:!k.dvt || k.dvt === "Válido", nome:k.nmu || k.nm, part:p.sg, votos:+k.vap || 0, pct:num(k.pvapn || k.pvap), eleito:elected(k,d), st:k.st || "" });
   })));
   cands.sort((a,b) => b.votos - a.votos);
   return {
     cands,
+    turno:Number(d.t),
+    final:d.and === "f",
+    andamento:d.and,
+    divulgacao:d.dv !== "n",
     apurado: num(d.s?.pstn || d.s?.pst),
     eleitores: +(d.e?.te || 0),
     secoesTotal: +(d.s?.ts || 0),
@@ -318,7 +349,7 @@ function parseProporcional(d){
         grupoSigla:sigla,
         votos:+(k?.vap || 0),
         pct:num(k?.pvapn || k?.pvap),
-        eleito:k?.e === "s",
+        eleito:elected(k,d),
         st:String(k?.st || ""),
         dvt:String(k?.dvt || "")
       });
@@ -328,6 +359,8 @@ function parseProporcional(d){
   cands.sort((a,b) => b.votos-a.votos || a.nome.localeCompare(b.nome,"pt-BR"));
   return {
     cands,
+    turno:Number(d.t),
+    final:d.and === "f",
     grupos,
     federacoes,
     vagas:+(cargo.nv || 0),
@@ -353,7 +386,12 @@ function candRows(list, limit){
     </div>`).join("");
 }
 
-const notice = d => d?.stale ? `<div class="notice">${esc(d.stale)} Exibindo a última consulta recebida.</div>` : "";
+const notice = d => d?.stale ? `<div class="notice" role="status">${esc(d.stale)} Exibindo a última consulta recebida.</div>` : "";
+const resultLabel = d => d?.final ? "Totalização final do TSE" : "Resultado parcial";
+function waitingPanel(d){
+  return d && !d.error && (d.andamento === "n" || !d.cands.some(c=>c.votos>0))
+    ? '<div class="block"><h2>Aguardando apuração do 2º turno</h2><div class="sub">Ainda não há votos divulgados nesta consulta. O painel atualiza automaticamente; zero votos não é resultado final.</div></div>' : "";
+}
 
 function meter(p, cap){
   return `<div class="meter">
@@ -388,7 +426,7 @@ function overview(d,title,senate=false,showVoteStats=false){
   if(!c.length || !c.some(k=>k.votos>0)) return "";
   const leaders = c.filter(k=>k.votos === c[0].votos);
   const lead = leaders.length > 1 ? "Empate na liderança" : esc(c[0].nome);
-  return `<div class="block overview"><div class="overview-title">${esc(title)} · Resumo da parcial</div>
+  return `<div class="block overview"><div class="overview-title">${esc(title)} · ${resultLabel(d)}</div>
     <div class="overview-lead">${lead}</div>
     <div class="sub">${leaders.length > 1 ? leaders.map(k=>esc(k.nome)).join(" · ") : "Líder com " + percent(c[0].pct) + "% dos votos válidos"}</div>
     <div class="overview-grid">
@@ -402,22 +440,24 @@ function overview(d,title,senate=false,showVoteStats=false){
 }
 function runoffPanel(d,title){
   if(!d || d.error) return "";
-  const leader = d.cands.find(c=>c.valido !== false);
-  if(!leader || !d.cands.some(c=>c.valido !== false && c.votos > 0)) return `<div class="block scenario"><h2>Vai ter segundo turno? · ${esc(title)}</h2><div class="sub">Aguardando votos válidos divulgados.</div></div>`;
-  const pct = leader.pct, above = pct > 50;
-  return `<div class="block scenario">
-    <h2>Vai ter segundo turno? · ${esc(title)}</h2>
-    <div class="scenario-result">${above ? "Líder acima de 50% na parcial" : "Nenhum candidato acima de 50% na parcial"}</div>
-    <div class="sub">${esc(leader.nome)}: <strong>${percent(pct)}%</strong> · ${Math.abs(pct-50).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:4})} ponto(s) percentual(is) ${above ? "acima" : pct < 50 ? "abaixo" : "de distância"} de 50%.</div>
-    <div class="threshold" aria-hidden="true"><div class="threshold-fill" style="width:${Math.max(0,Math.min(100,pct))}%"></div><span class="threshold-mark"></span></div>
-    <div class="threshold-labels"><span>0%</span><span>50% dos votos</span><span>100%</span></div>
-    <div class="sub">${above ? "Se mantiver esse percentual até o resultado final, vence no primeiro turno." : "Se ninguém superar 50% no resultado final, haverá segundo turno."}</div>
-    <details class="explanation"><summary>Entenda o cálculo</summary>
-      <p><strong>Probabilidade de segundo turno: não estimada.</strong> A ordem da apuração varia entre regiões. O percentual parcial não é uma amostra aleatória e os votos restantes podem mudar o cenário.</p>
-      <p>Uma probabilidade numérica exige um modelo validado. É necessário mais de 50% dos votos válidos para vencer no primeiro turno; brancos e nulos ficam fora do cálculo.</p>
-      <p>Este painel mostra a condição atual. Confira a confirmação no <a href="https://resultados.tse.jus.br" target="_blank" rel="noopener">TSE</a>.</p>
-    </details>
-  </div>`;
+  const valid=d.cands.filter(c=>c.valido!==false), leader=valid[0], winner=valid.find(c=>c.eleito);
+  const round=d.turno || TURNO_ATIVO;
+  let headline,detail;
+  if(winner){
+    headline=winner.nome+" · eleito conforme o TSE";
+    detail=d.final ? "Totalização final divulgada pelo TSE." : "Eleição definida pelo TSE; a totalização das seções continua.";
+  } else if(!leader || !valid.some(c=>c.votos>0)){
+    headline="Aguardando votos divulgados";
+    detail="O painel será atualizado automaticamente quando o TSE divulgar a apuração.";
+  } else if(d.final){
+    headline="Totalização encerrada";
+    detail=round===1 && valid.some(c=>/2º turno/i.test(c.st)) ? "Segundo turno confirmado na situação dos candidatos pelo TSE." : "Ainda sem indicação de eleito nesta consulta. Consulte a situação oficial dos candidatos.";
+  } else {
+    const tied=valid.filter(c=>c.votos===leader.votos).length>1;
+    headline=tied ? "Empate na parcial" : leader.nome+" lidera a parcial";
+    detail="A liderança pode mudar. A indicação de eleito só aparece quando informada pelo TSE.";
+  }
+  return `<div class="block scenario"><h2>${round}º turno · ${esc(title)}</h2><div class="scenario-result">${esc(headline)}</div><div class="sub">${esc(detail)}</div></div>`;
 }
 
 
@@ -527,13 +567,13 @@ function renderBR(){
   const d = state.br;
   if(!d){ el.innerHTML = '<div class="err">Buscando dados do TSE…</div>'; return; }
   if(d.error){ el.innerHTML = `<div class="err">${esc(d.error)}</div>`; return; }
-  el.innerHTML = notice(d) + overview(d, "Presidente · Brasil", false, true) + historyPanel("br",d) +
-    `<div class="block"><h2>Presidente</h2><div class="sub">Votos válidos, totalização das ${esc(d.hora)}</div>${candRows(d)}</div>` + runoffPanel(d, "Presidente");
+  el.innerHTML = notice(d) + waitingPanel(d) + overview(d, "Presidente · Brasil · 2º turno", false, true) + historyPanel("br",d) +
+    `<div class="block"><h2>Presidente · 2º turno</h2><div class="sub">${percent(d.apurado)}% das seções apuradas · Dados do TSE: ${esc(d.hora)}</div>${candRows(d)}</div>` + runoffPanel(d, "Presidente");
 }
 
 
 function renderSenators(d){
-  const title = "Senadores de Minas";
+  const title = "Senadores de Minas · 1º turno";
   if(!d) return `<div class="block"><h2>${title}</h2><div class="err">Buscando dados do TSE…</div></div>`;
   if(d.error) return `<div class="block"><h2>${title}</h2><div class="err">${esc(d.error)}</div></div>`;
   const hasVotes = d.cands.some(c => c.votos > 0);
@@ -564,6 +604,8 @@ function renderMG(){
   if(!d) h += '<div class="err">Buscando dados do TSE…</div>';
   else if(d.error) h += `<div class="err">${esc(d.error)}</div>`;
   else {
+    h += `<div class="notice"><strong>${d.turno || (key==="sen"?1:2)}º turno</strong>${key==="gov" && d.turno===1 ? " · Minas não tem disputa de governador no 2º turno, conforme a configuração do TSE. Resultado do 1º turno." : key==="sen" ? " · Senado não tem segundo turno." : key==="pres" ? " · Presidente em Minas Gerais." : " · Governador em Minas Gerais."}</div>`;
+    if(key==="pres") h += waitingPanel(d);
     h += notice(d) + overview(d,title + " · Minas Gerais",key==="sen",key==="gov");
     if(key === "sen") h += historyPanel("senMG",d,true);
     h += key === "sen" ? renderSenators(d) : `<div class="block"><h2>${title} em Minas</h2><div class="sub">Dados de ${esc(d.hora)}</div>${candRows(d)}</div>`;
@@ -626,7 +668,7 @@ function renderDeputados(){
   const el = document.getElementById("tab-dep");
   const meta = deputyCargoMeta();
   const d = state.dep[meta.key];
-  let h = `<div class="cargo-tabs" aria-label="Cargo de deputado em Minas"><button type="button" data-dep-cargo="federal" aria-pressed="${meta.key==="federal"}">Federal</button><button type="button" data-dep-cargo="estadual" aria-pressed="${meta.key==="estadual"}">Estadual</button></div>`;
+  let h = `<div class="notice"><strong>Resultado do 1º turno · 4 de outubro</strong><br>Deputados não disputam segundo turno.</div><div class="cargo-tabs" aria-label="Cargo de deputado em Minas"><button type="button" data-dep-cargo="federal" aria-pressed="${meta.key==="federal"}">Federal</button><button type="button" data-dep-cargo="estadual" aria-pressed="${meta.key==="estadual"}">Estadual</button></div>`;
   if(!d) h += '<div class="err">Abra esta aba para buscar os dados do TSE.</div>';
   else if(d.error) h += `<div class="err">${esc(d.error)}</div>`;
   else {
@@ -764,28 +806,29 @@ function shareSummary(){
   const br=state.br, gov=state.mg.gov, sen=state.mg.sen;
   if(!br || br.error) return "";
   const leader=br.cands.find(c=>c.valido !== false && c.votos>0);
-  const runoff=leader ? (leader.pct>50
-    ? "Líder acima de 50% na parcial; se mantiver, vence no 1º turno."
-    : "Nenhum candidato acima de 50% na parcial; se isso continuar, haverá 2º turno.") : "Aguardando votos.";
+  const winner=br.cands.find(c=>c.eleito);
+  const tied=leader && br.cands.filter(c=>c.valido!==false && c.votos===leader.votos).length>1;
+  const runoff=winner ? winner.nome+" eleito conforme o TSE." : !leader ? "Aguardando votos divulgados pelo TSE." : br.final ? "Totalização encerrada; sem indicação de eleito nesta consulta." : tied ? "Empate na parcial. Aguarde a confirmação do TSE." : leader.nome+" lidera a parcial. Isso ainda não confirma a eleição.";
   const lines=[
-    "APURAÇÃO 2026 · PARCIAL",
+    "APURAÇÃO 2026 · 2º TURNO · "+(br.final?"TOTALIZAÇÃO FINAL":"PARCIAL"),
     "",
-    "PRESIDENTE · BRASIL",
+    "PRESIDENTE · BRASIL · 2º TURNO",
     ...topLines(br,2),
     "Apuração: "+percent(br.apurado)+"% das seções",
     runoff,
+    ...(br.stale?["ATENÇÃO: falha na atualização; dados da consulta anterior."]:[]),
     "Dados do TSE: "+br.hora,
     ""
   ];
   if(gov && !gov.error){
-    lines.push("GOVERNADOR · MINAS",...topLines(gov,2),"Apuração: "+percent(gov.apurado)+"% das seções","Dados do TSE: "+gov.hora,"");
+    lines.push("GOVERNADOR · MINAS · "+gov.turno+"º TURNO",...topLines(gov,2),"Apuração: "+percent(gov.apurado)+"% das seções","Dados do TSE: "+gov.hora,"");
   }
   if(sen && !sen.error){
-    lines.push("SENADO · MINAS · 2 VAGAS",...topLines(sen,3),"Apuração: "+percent(sen.apurado)+"% das seções","Dados do TSE: "+sen.hora,"");
+    lines.push("SENADO · MINAS · 1º TURNO · 2 VAGAS",...topLines(sen,3),"Apuração: "+percent(sen.apurado)+"% das seções","Dados do TSE: "+sen.hora,"");
   }
-  lines.push(...deputyShareLines(state.dep.federal,"DEPUTADO FEDERAL · MINAS"));
-  lines.push(...deputyShareLines(state.dep.estadual,"DEPUTADO ESTADUAL · MINAS"));
-  lines.push("LÍDER POR REGIÃO",...regionLeaderLines(),"","Resultado parcial. Fonte: TSE",canonicalURL());
+  lines.push(...deputyShareLines(state.dep.federal,"DEPUTADO FEDERAL · MINAS · 1º TURNO"));
+  lines.push(...deputyShareLines(state.dep.estadual,"DEPUTADO ESTADUAL · MINAS · 1º TURNO"));
+  lines.push("LÍDER POR REGIÃO",...regionLeaderLines(),"","Fonte: TSE. Cada cargo tem seu turno e horário indicados. Liderança parcial não confirma eleição.",canonicalURL());
   return lines.join("\n");
 }
 function canonicalURL(){
@@ -796,7 +839,7 @@ function canonicalURL(){
 async function shareResults(){
   const text=shareSummary(), note=document.getElementById("share-note");
   if(!text) return;
-  const data={title:"Apuração 2026 · Parcial",text};
+  const data={title:"Apuração 2026 · 2º turno",text};
   try {
     if(navigator.share){
       await navigator.share(data);
@@ -821,7 +864,7 @@ async function shareResults(){
 }
 function updateShareButton(){
   const button=document.getElementById("share");
-  button.disabled=!state.br || !!state.br.error || !state.br.cands?.some(c=>c.votos>0);
+  button.disabled=!state.br || !!state.br.error;
 }
 
 function renderConfigMessage(){
@@ -840,6 +883,7 @@ function render(){
 }
 function tseAgeLabel(){
   const timestamp = state.br?.timestampTSE || state.mg.gov?.timestampTSE || state.mg.sen?.timestampTSE || state.dep[state.depTab]?.timestampTSE || 0;
+  if(state.br?.andamento === "n") return "aguardando apuração do 2º turno";
   if(!timestamp) return "";
   const minutes = Math.max(0,Math.floor((Date.now()-timestamp)/60000));
   return "dados do TSE há " + minutes + " min";
@@ -865,18 +909,38 @@ function setBusy(b){
 
 async function update(target, key, ele, uf, cargo){
   try {
-    target[key] = parse(await get(url(ele,uf,cargo)));
+    target[key] = parse(validateResult(await get(url(ele,uf,cargo)),ele,uf,cargo));
     if(ele === PRES && uf === "br" && cargo === "0001") recordHistory("br",target[key]);
-    if(ele === EST && uf === "mg" && cargo === "0005") recordHistory("senMG",target[key]);
+    if(ele === EST_PRIMEIRO_TURNO && uf === "mg" && cargo === "0005") recordHistory("senMG",target[key]);
   }
   catch(e){ target[key] = target[key] && !target[key].error ? {...target[key],stale:e.message} : {error:e.message}; }
 }
 
+let governorConfig = null;
+let governorConfigPromise = null;
+async function governorElection(){
+  if(governorConfig && Date.now()-governorConfig.at<10*60*1000) return governorConfig.election;
+  if(governorConfigPromise) return governorConfigPromise;
+  governorConfigPromise=(async()=>{
+    const config=await get(CONFIG_URL);
+    const election=config.pl?.filter(p=>p.c==="ele2026").flatMap(p=>p.e||[]).find(e=>String(e.cd)===EST && String(e.t)==="2");
+    if(config.f!=="o" || !election || !Array.isArray(election.abr)) throw new Error("Não foi possível confirmar no TSE o turno de governador em Minas. Nova tentativa automática.");
+    const participates=election.abr.some(a=>String(a.cd).toLowerCase()==="mg" && a.cp?.some(c=>Number(c.cd)===3));
+    const selected=participates?EST:EST_PRIMEIRO_TURNO;
+    governorConfig={election:selected,at:Date.now()};
+    return selected;
+  })();
+  try{return await governorConfigPromise;}finally{governorConfigPromise=null;}
+}
+async function loadGovernor(){
+  try {await update(state.mg,"gov",await governorElection(),"mg","0003");}
+  catch(e){state.mg.gov=state.mg.gov && !state.mg.gov.error?{...state.mg.gov,stale:e.message}:{error:e.message};}
+}
 async function loadMain(){
   await Promise.all([
     update(state,"br",PRES,"br","0001"),
-    update(state.mg,"gov",EST,"mg","0003"),
-    update(state.mg,"sen",EST,"mg","0005"),
+    loadGovernor(),
+    update(state.mg,"sen",EST_PRIMEIRO_TURNO,"mg","0005"),
     update(state.uf,"mg",PRES,"mg","0001")
   ]);
   render();
@@ -896,7 +960,7 @@ async function loadStates(){
 async function loadDeputies(){
   const meta = deputyCargoMeta();
   try {
-    state.dep[meta.key] = parseProporcional(await get(url(EST,"mg",meta.cargo)));
+    state.dep[meta.key] = parseProporcional(validateResult(await get(url(EST_PRIMEIRO_TURNO,"mg",meta.cargo)),EST_PRIMEIRO_TURNO,"mg",meta.cargo));
   } catch(e){
     const old = state.dep[meta.key];
     state.dep[meta.key] = old && !old.error ? {...old,stale:e.message} : {error:e.message};
@@ -1048,7 +1112,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!document.getElemen
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;updateInstallCard();});
 window.addEventListener("appinstalled",()=>{installPrompt=null;updateInstallCard();});
 updateInstallCard();
-if("serviceWorker" in navigator) navigator.serviceWorker.register("apuracao-sw.js").catch(()=>{});
+if("serviceWorker" in navigator) navigator.serviceWorker.register("apuracao-sw.js",{updateViaCache:"none"}).then(reg=>reg.update()).catch(()=>{});
 document.addEventListener("visibilitychange", () => {
   if(document.hidden){ stopTimers(); return; }
   startTimers();
@@ -1060,3 +1124,4 @@ document.addEventListener("visibilitychange", () => {
 </script>
 </body>
 </html>
+

@@ -1,4 +1,4 @@
-const CACHE="apuracao-2026-shell-v2";
+const CACHE="apuracao-2026-shell-v3-turno2";
 const CACHE_PREFIX="apuracao-2026-shell-";
 const SHELL=["./index.html","./apuracao-2026.webmanifest","./apuracao-icon.svg","./apuracao-icon-180.png","./apuracao-icon-192.png","./apuracao-icon-512.png"];
 
@@ -50,3 +50,4 @@ self.addEventListener("fetch",event=>{
     event.respondWith(caches.match(request).then(cached=>cached||fetch(request)));
   }
 });
+
