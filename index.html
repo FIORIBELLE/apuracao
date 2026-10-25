@@ -389,7 +389,7 @@ function candRows(list, limit){
 const notice = d => d?.stale ? `<div class="notice" role="status">${esc(d.stale)} Exibindo a última consulta recebida.</div>` : "";
 const resultLabel = d => d?.final ? "Totalização final do TSE" : "Resultado parcial";
 function waitingPanel(d){
-  return d && !d.error && (d.andamento === "n" || !d.cands.some(c=>c.votos>0))
+  return d && !d.error && !d.final && (d.andamento === "n" || !d.cands.some(c=>c.votos>0))
     ? '<div class="block"><h2>Aguardando apuração do 2º turno</h2><div class="sub">Ainda não há votos divulgados nesta consulta. O painel atualiza automaticamente; zero votos não é resultado final.</div></div>' : "";
 }
 
@@ -587,7 +587,7 @@ function renderSenators(d){
     ${notice(d)}
     <div class="sub"><strong>2 vagas em disputa</strong> · ${d.apurado.toFixed(2).replace(".",",")}% das seções totalizadas</div>
     <div class="sub">Dados de ${esc(d.hora)} · Ordenado do mais votado ao menos votado.</div>
-    <div class="sub">Os dois primeiros estão em destaque na parcial. A posição pode mudar até o fim da apuração; a confirmação de eleição é do TSE.</div>
+    <div class="sub">${d.final ? "Totalização final do TSE. A situação oficial de cada candidato aparece abaixo." : "Os dois primeiros estão em destaque na parcial. A posição pode mudar até o fim da apuração; a confirmação de eleição é do TSE."}</div>
     ${candRows(ranked)}
     <div class="sub">Cada eleitor pode votar em dois candidatos ao Senado. Os percentuais são sobre votos válidos, não sobre eleitores. Não há segundo turno para senador.</div>
   </div>`;
@@ -627,7 +627,7 @@ function deputyPartyRows(d){
   const max = Math.max(1,...d.grupos.map(g=>g.vagas));
   return d.grupos.map((g,i) => `<div class="row${i===0?" lead":""}">
     <div class="row-top"><span class="name">${esc(g.nome)}${g.sigla && g.sigla!==g.nome ? `<em>${esc(g.sigla)}</em>`:""}</span><span class="dep-party-vacancies">${fmt(g.vagas)} ${g.vagas===1?"vaga":"vagas"}</span></div>
-    <div class="votes">${fmt(g.votos)} votos totais · vagas na parcial</div>
+    <div class="votes">${fmt(g.votos)} votos totais · ${d.final ? "distribuição final do TSE" : "vagas na parcial"}</div>
     <div class="bar"><span style="width:${100*g.vagas/max}%"></span></div>
   </div>`).join("");
 }
@@ -674,11 +674,11 @@ function renderDeputados(){
   else {
     const filterOptions = d.grupos.map(g=>`<option value="${esc(g.key)}"${state.depFilter===g.key?" selected":""}>${esc(g.nome)}</option>`).join("");
     h += `${notice(d)}<div class="block dep-summary"><h2>Minas Gerais · ${fmt(d.vagas)} vagas</h2>
-      <div class="overview-grid"><div class="overview-stat"><strong>${percent(d.apurado)}%</strong><span>das seções totalizadas</span></div><div class="overview-stat"><strong>${fmt(d.vagas)}</strong><span>vagas na parcial</span></div></div>
+      <div class="overview-grid"><div class="overview-stat"><strong>${percent(d.apurado)}%</strong><span>das seções totalizadas</span></div><div class="overview-stat"><strong>${fmt(d.vagas)}</strong><span>${d.final ? "vagas na totalização final" : "vagas na parcial"}</span></div></div>
       <div class="overview-grid"><div class="overview-stat"><strong>${fmt(d.quociente)}</strong><span>quociente eleitoral</span></div><div class="overview-stat"><strong>${esc(d.hora || "Aguardando")}</strong><span>dados do TSE</span></div></div>
       <div class="sub">Quociente eleitoral é a quantidade de votos que vale uma vaga.</div>
     </div>
-    <div class="block"><h2>Vagas por partido/federação</h2><div class="sub">Ordenado por vagas e depois por votos. As vagas exibidas são da parcial.</div>${deputyPartyRows(d)}</div>
+    <div class="block"><h2>Vagas por partido/federação</h2><div class="sub">Ordenado por vagas e depois por votos. ${d.final ? "Totalização final do TSE." : "As vagas exibidas são da parcial."}</div>${deputyPartyRows(d)}</div>
     <div class="block"><h2>Candidatos mais votados</h2>
       <input class="dep-search" id="dep-search" type="search" inputmode="search" autocomplete="off" placeholder="Buscar por nome ou número" value="${esc(state.depQuery)}">
       <div class="tools dep-tools"><div><label for="dep-filter">Partido ou federação</label><select id="dep-filter"><option value="all">Todos</option>${filterOptions}</select></div></div>
