@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Futebol Brasil</title>
+<title>Futebol Brasil · correção 27/10</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -234,10 +234,36 @@ label{color:var(--muted);font-size:13px}
   .slot b{font-size:12px}.slot{padding:4px 2px}
   .crest h1{font-size:20px}
 }
+
+/* Manual override stays outside the frequently repainted match controls. */
+[hidden]{display:none!important}
+button,input,select,a{touch-action:manipulation}
+#auto-stop{position:fixed;inset:0 0 auto;z-index:120;display:flex;gap:12px;align-items:center;justify-content:center;background:#facc15;color:#182113;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));font-weight:700}
+#auto-stop .btn{background:#101b2d;color:#fff;min-height:46px}
+body.auto-active{padding-top:calc(76px + env(safe-area-inset-top))}
+#work-status{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:80;background:var(--acc);color:var(--acc-ink);padding:10px;text-align:center}
+body.auto-active #work-status{top:calc(66px + env(safe-area-inset-top))}
+body.simulating #app{pointer-events:none;opacity:.8}
+body.simulating #app [data-a=autostop]{pointer-events:auto}
+@media(max-width:640px){
+ .btn,.btn.sm,.st,.x,select,input:not([type=checkbox]){min-height:44px}
+ input,select,textarea{font-size:16px;max-width:100%}
+ #auto-stop{font-size:12px;justify-content:space-between}
+ #lv-ctl{position:fixed;inset:auto 0 0;z-index:35;padding:10px 10px calc(10px + env(safe-area-inset-bottom))!important;background:#0b1222;border-top:1px solid var(--line);gap:6px}
+ #lv-ctl .btn{flex-grow:1}body[data-screen=live]{padding-bottom:calc(170px + env(safe-area-inset-bottom))}
+ body[data-screen=live] .menu{flex-wrap:nowrap;overflow-x:auto}.menu .btn{flex-shrink:0}
+ .board{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:6px;padding:10px 6px}
+ .board .tb{white-space:normal;font-size:12px;max-width:100%}.board .sc{font-size:34px}.board .side .small{font-size:10px;overflow-wrap:anywhere}
+ .ov .win{max-height:90dvh}.ov select[size]{max-height:210px}.toast{bottom:calc(175px + env(safe-area-inset-bottom));pointer-events:none}
+}
+.toast{pointer-events:none}
+@media(max-width:640px){body[data-screen=live] .toast{bottom:calc(175px + env(safe-area-inset-bottom));border-radius:12px}.tbar .logo{white-space:nowrap;font-size:15px}}
 </style>
 
 </head>
 <body>
+<div id="auto-stop" role="region" aria-label="Controle do modo automático" hidden><span id="auto-stop-label"></span><button type="button" class="btn" data-a="autostop">Voltar ao manual</button></div>
+<div id="work-status" role="status" aria-live="polite" hidden></div>
 <div class="app" id="app"></div>
 <div id="modal"></div>
 <div id="toast" class="toast" hidden></div>
@@ -548,6 +574,7 @@ function startMatchday(headless){
   if(S.v>=6)ms.forEach(m=>{const fx=m.fx;if(fx.pub==null)fx.pub=m.neu?ri(38000,80000):attendance(TM(fx.h),fx.a);});
   const mine=ms.find(m=>m.mine);
   UI.live={ms,min:0,paused:false,done:false,tab:mine?mine.comp:(ms[0]?ms[0].comp:0),ev,timer:null,banner:''};
+  if(headless==='prepare')return;
   if(headless){const L=UI.live;while(L.min<(L.end||90)||L.min<90){stepMin(L);ms.forEach(m=>{m.injPause=null;});}endLive();return;}
   UI.backup=JSON.stringify(S);UI.screen='live';render();autoNext(300);
 }
@@ -562,12 +589,30 @@ function tick(){const L=UI.live;if(!L||L.paused||L.done)return;
   if(L.min===90&&L.end===120&&L.ms.some(m=>m.mine&&m.inET)&&!L.done){L.paused=true;L.banner='Fim do tempo normal. Prorrogação de 30 minutos e, se continuar empatado, pênaltis.';}
   if(L.min>=(L.end||90))endLive();
   renderLive();scheduleTick();}
-function skipLive(){const L=UI.live;clearTimeout(L.timer);while(L.min<(L.end||90)||L.min<90){stepMin(L);L.ms.forEach(m=>{m.injPause=null;});}L.ms.forEach(m=>m.flash=0);endLive();L.paused=false;renderLive();}
+const yieldUI=()=>new Promise(resolve=>setTimeout(resolve,0));
+function working(on,label){UI.busy=on;document.body.classList.toggle('simulating',on);const el=$('#work-status');if(el){el.hidden=!on;el.textContent=label||'Calculando rodada…';}syncAutoControl();}
+async function runRemaining(L,autoEpoch=null){
+ const interrupted=()=>autoEpoch!==null&&(!AUTO.on||AUTO.epoch!==autoEpoch);
+ while(UI.live===L&&(L.min<(L.end||90)||L.min<90)){
+  if(interrupted()){L.paused=true;return false;}
+  const until=performance.now()+8;let minutes=0;do{stepMin(L);L.ms.forEach(m=>{m.injPause=null;});minutes++;}while((L.min<(L.end||90)||L.min<90)&&minutes<4&&performance.now()<until);
+  if(L.min<(L.end||90))await yieldUI();
+ }
+ if(UI.live!==L)return false;if(interrupted()&&L.min<(L.end||90)){L.paused=true;return false;}
+ L.ms.forEach(m=>m.flash=0);endLive();L.paused=false;return true;
+}
+async function skipLive(autoEpoch=null){if(UI.busy)return false;const L=UI.live;if(!L||L.done)return true;clearTimeout(L.timer);working(true,'Simulando o restante da partida…');try{await yieldUI();return await runRemaining(L,autoEpoch);}finally{working(false);renderLive();}}
+async function simHeadless(){startMatchday('prepare');const L=UI.live;if(await runRemaining(L))finishMatchday(true);}
+
+async function autoRunMobile(){let n=0;const y=S.year,startedAuto=AUTO.on,epoch=AUTO.epoch;const inbox=()=>S.mgr.reduce((a,m)=>a+m.jobs.length+m.offers.length,0);while(S.mode!=='wc'&&curEv()&&!humanPlays(curEv())&&!S.mgr.some(m=>m.fired)&&S.year===y&&n<80){const before=inbox();await simHeadless();n++;await yieldUI();if(inbox()>before||!ONLINE()&&startedAuto&&(!AUTO.on||AUTO.epoch!==epoch))break;}return n;}
+async function completeSoloDay(ev){working(true,'Preparando a próxima rodada…');try{const n=await autoRunMobile();await save();UI.screen='hub';if(n&&!AUTO.on)setTimeout(()=>toast(`${n} data(s) sem jogo do seu time simulada(s).`),300);}finally{working(false);render();afterModals();autoNext(450);}}
+
+
 function endLive(){const L=UI.live;if(L.done)return;L.done=true;L.banner='Fim de jogo.';
   L.ms.forEach(m=>{if(m.ko&&m.g[0]===m.g[1]){m.pen=penalties(m);addEv(m,90,'pen',m.pen[0]>m.pen[1]?0:1,`Pênaltis ${m.pen[0]} x ${m.pen[1]}`);}});}
 
 function finishMatchday(headless){
-  const L=UI.live;const ev=L.ev;const res=S.mgr.map(()=>null);
+  const L=UI.live;if(!L||!L.done||L.finalized)return;L.finalized=true;const ev=L.ev;const res=S.mgr.map(()=>null);
   L.ms.forEach(m=>m.s.forEach(sd=>sd.served.forEach(id=>{const p=PL(id);if(p)p.sus=Math.max(0,p.sus-1);})));
   Object.values(S.P).forEach(p=>{if(p.inj>0)p.inj--;if(p.ps){p.sus+=p.ps;p.ps=0;}});
   for(const m of L.ms){const fx=m.fx;fx.hg=m.g[0];fx.ag=m.g[1];fx.ev=m.ev.filter(e=>e.type==='goal'||e.type==='rc'||e.type==='pen').map(e=>[e.m,e.side,e.type,e.txt]);
@@ -605,8 +650,8 @@ function finishMatchday(headless){
   UI.live=null;
   if(headless)return;
   UI.screen='hub';UI.tab=ev.t==='C'?'copa':(ev.t==='X'||ev.t==='M')?'continental':ev.t==='W'?(ev.s<3?'grupos':'mata'):'rodada';UI.resDiv=null;
-  if(ONLINE())onlineTurnDone();else{const n=autoRun();if(n&&!AUTO.on)setTimeout(()=>toast(`${n} data(s) sem jogo do seu time simulada(s) automaticamente.`),300);save();}
-  render();afterModals();autoNext(450);
+  if(ONLINE()){onlineTurnDone();render();afterModals();autoNext(450);}
+  else return completeSoloDay(ev);
 }
 function attendance(t,opp){const fans=t.rep*t.rep*9;const pts=t.tb.f.reduce((s,x)=>s+(x==='V'?3:x==='E'?1:0),0);const form=.75+.5*(t.tb.f.length?pts/(t.tb.f.length*3):.5);
   const oppF=1+(TM(opp).rep-50)/150;const ref=LGP(t.div).tk;const pf=clamp(Math.pow(ref/Math.max(1,t.ticket),1.15),.12,1.6);
@@ -1278,7 +1323,7 @@ async function sendReady(auto){const o=UI.on;if(o.sent)return;const mg=ME();if(m
     if(!ok)toast('Seu tempo tinha acabado: a rodada começou com o time da rodada anterior.');}
   catch(e){o.sent=false;o.sentAt=null;updateOnlineBox();toast(dbErr(e));}
 }
-function stopOnline(){if(UI.on&&UI.on.unsub)UI.on.unsub();if(UI.on&&UI.on.gunsub)UI.on.gunsub();if(UI.live&&UI.live.timer)clearTimeout(UI.live.timer);UI.on=null;}
+function stopOnline(){autoOff();if(UI.on&&UI.on.unsub)UI.on.unsub();if(UI.on&&UI.on.gunsub)UI.on.gunsub();if(UI.live&&UI.live.timer)clearTimeout(UI.live.timer);UI.on=null;}
 const TIMERS=[[0,'Sem limite'],[60,'1 minuto'],[120,'2 minutos'],[180,'3 minutos'],[300,'5 minutos'],[600,'10 minutos']];
 let GRACE_MS=15000;
 function timerOpts(v){return TIMERS.map(([s,n])=>`<option value="${s}" ${+v===s?'selected':''}>${n}</option>`).join('');}
@@ -1312,14 +1357,14 @@ function updateOnlineBox(){const el=$('#onl');if(el&&ONLINE()){el.innerHTML=onli
 function tbox(tid,cls){const t=TM(tid);const c=t.c;const me=tid===myTid()?' me':'';
   return `<span class="tb${me} ${cls||''}" style="background:${c[0]};color:${c[1]};${c[2]?`box-shadow:inset 5px 0 0 ${c[2]}`:''}">${esc(t.short)}</span>`;}
 function posTag(p){return `<span class="pos ${p}">${p}</span>`;}
-function render(){const root=$('#app');
+function render(){syncAutoControl();document.body.dataset.screen=UI.screen;const root=$('#app');
   if(UI.screen==='wait'){root.innerHTML=waitHTML();return;}
   if(!S||UI.screen==='start'){root.innerHTML=startHTML();return;}
   if(UI.screen==='live'){root.innerHTML=liveShell();renderLive();return;}
   root.innerHTML=hubHTML();
 }
 function onlineStartHTML(){
-  if(!DB)return `<div class="grp"><span class="lg">Jogar online com um amigo</span><p class="small" style="margin:0">O modo online funciona quando a página é aberta no claude.ai, com conta conectada. Neste modo de visualização ele não está disponível.</p></div>`;
+  if(!DB)return `<div class="grp"><span class="lg">Jogar online com um amigo</span><p class="small" style="margin:0">Online indisponível nesta página. Esta versão precisa do banco de dados e das permissões da página original no Claude. Abrir ou publicar só este HTML no GitHub Pages permite jogar solo, mas não conecta dois aparelhos.</p></div>`;
   const open=UI.lobby.filter(g=>g.host!==UID);const mineWait=UI.lobby.filter(g=>g.host===UID);
   return `<div class="grp"><span class="lg">Jogar online com um amigo</span>
    ${CANW===false?'<p class="small" style="margin-top:0;color:var(--alerta)">Você só pode ver esta página. Para jogar online, o dono precisa te convidar como Editor.</p>':''}
@@ -1689,7 +1734,7 @@ function autoRun(){let n=0;const y=S.year;const stop=(!S.online||S.v>=5);const i
   while(S.mode!=='wc'&&curEv()&&!humanPlays(curEv())&&!S.mgr.some(m=>m.fired)&&S.year===y&&n<80){const b=inbox();startMatchday(true);finishMatchday(true);n++;if(stop&&inbox()>b)break;}return n;}
 /* ====================== MODO AUTOMÁTICO (auxiliar técnico) ====================== */
 // fica só neste aparelho: não entra no estado do jogo, então não muda nada para o amigo no online
-const AUTO={on:false,timer:null,y:null,seen:null};
+const AUTO={on:false,timer:null,y:null,seen:null,epoch:0};
 // testa todos os esquemas e fica com o de maior força média dos titulares (empate: mantém o atual)
 function bestLineup(t){if(!t)return;if(!V6()){autoLineup(t);return;}
   const cur=t.form;let best=null;
@@ -1712,24 +1757,59 @@ function applyYouth(t){const rule=youthRule(t);if(!rule)return 0;normSlots(t);co
     for(const p of rest){if(bench.length>=7)break;if(!bench.includes(p.id))bench.push(p.id);}t.bench=bench;}
   return put;}
 const formTag=(t,p)=>CFG.youth&&V6()&&isProm(p)&&t&&t.xi.includes(p.id)?' <span class="tag up">em formação</span>':'';
-function autoOff(msg){AUTO.on=false;clearTimeout(AUTO.timer);AUTO.timer=null;if(S&&(UI.screen==='hub'||UI.screen==='live'))render();if(msg)toast(msg);}
+function syncAutoControl(){const el=$('#auto-stop'),label=$('#auto-stop-label');if(el)el.hidden=!AUTO.on;if(label)label.textContent=AUTO.remaining==null?'Auxiliar no comando':`Automático · ${AUTO.remaining} jogo(s)`;document.body.classList.toggle('auto-active',AUTO.on);}
+function syncLiveAutomation(){
+ // Online substitutions remain deterministic on both devices. Solo follows
+ // the user's injury-substitution preference when the assistant is stopped.
+ if(!UI.live||S.online)return;
+ UI.live.ms.forEach(m=>m.s.forEach(sd=>{if(sd.user)sd.auto=AUTO.on||!!ME().autoSub;}));
+}
+function autoOff(msg){
+ AUTO.on=false;AUTO.epoch++;clearTimeout(AUTO.timer);AUTO.timer=null;
+ const L=UI.live;
+ if(L&&!L.done){clearTimeout(L.timer);L.timer=null;L.paused=true;L.banner='Partida pausada. Você está no comando.';syncLiveAutomation();}
+ syncAutoControl();
+ if(UI.busy){const el=$('#work-status');if(el)el.textContent='Voltando ao manual…';}
+ else if(S&&(UI.screen==='hub'||UI.screen==='live'&&L))render();
+ if(msg)toast(msg);
+}
 function bigOffer(){const mg=ME();return (mg.offers||[]).find(o=>!AUTO.seen.has(o.id)&&PL(o.pid)&&o.amt>value(PL(o.pid)));}
-function autoNext(ms){clearTimeout(AUTO.timer);if(AUTO.on)AUTO.timer=setTimeout(autoStep,ms);}
-function autoStep(){if(!AUTO.on)return;clearTimeout(AUTO.timer);
+function autoNext(ms){
+ clearTimeout(AUTO.timer);AUTO.timer=null;
+ if(AUTO.on){const epoch=AUTO.epoch;AUTO.timer=setTimeout(()=>{if(AUTO.on&&AUTO.epoch===epoch)autoStep();},ms);}
+}
+function simulationError(error){console.error(error);autoOff('A simulação parou por um erro. Nenhuma nova rodada será iniciada.');}
+async function autoStep(){
+ if(!AUTO.on)return;
+ if(UI.busy||AUTO.running){autoNext(100);return;}
+ clearTimeout(AUTO.timer);AUTO.timer=null;AUTO.running=true;const epoch=AUTO.epoch;
+ try{
   if(!S||(UI.screen!=='hub'&&UI.screen!=='live')){autoOff();return;}
   const mg=ME();
-  if(UI.screen==='live'){const L=UI.live;if(!L)return;if(!L.done)skipLive();AUTO.timer=setTimeout(()=>{if(AUTO.on&&UI.screen==='live'&&UI.live&&UI.live.done)finishMatchday(false);},900);return;}
-  if(mg.fired){autoOff('Você foi demitido. O modo automático parou: escolha seu novo clube.');return;}
-  if(S.year!==AUTO.y||!curEv()){autoOff(S.mode==='wc'?'Copa encerrada. O auxiliar devolveu o comando.':'Temporada encerrada. O auxiliar devolveu o comando.');return;}
-  const big=bigOffer();if(big){const p=PL(big.pid);AUTO.seen.add(big.id);UI.tab='caixa';autoOff(`Proposta de ${money(big.amt)} por ${p.n} (vale ${money(value(p))}). Decida na Caixa de entrada.`);return;}
+  if(UI.screen==='live'){
+   const L=UI.live;if(!L)return;
+   if(!L.done)await skipLive(epoch);
+   if(!AUTO.on||AUTO.epoch!==epoch||UI.live!==L)return;
+   AUTO.timer=setTimeout(()=>{
+    if(AUTO.on&&AUTO.epoch===epoch&&UI.screen==='live'&&UI.live===L&&L.done)
+     Promise.resolve().then(()=>finishMatchday(false)).catch(simulationError);
+   },1200);return;
+  }
+  if(mg.fired){autoOff('Você foi demitido. Escolha seu novo clube.');return;}
+  if(S.year!==AUTO.y||!curEv()){autoOff('Temporada encerrada. Você está no comando.');return;}
+  const big=bigOffer();if(big){const p=PL(big.pid);AUTO.seen.add(big.id);UI.tab='caixa';autoOff(`Proposta de ${money(big.amt)} por ${p.n}. Decida na Caixa de entrada.`);return;}
   if($('#modal').innerHTML)closeModal();
   const t=UT();
-  if(ONLINE()){if(!UI.on.sent){bestLineup(t);sendReady();}return;}
+  if(ONLINE()){if(!UI.on.sent){bestLineup(t);await sendReady();}return;}
   if(t&&fixtureOf(t.id,curEv()))bestLineup(t);
-  ACT.play();autoNext(400);}
-function autoBoxHTML(){return AUTO.on?`<div class="autobox"><span class="dot"></span><div style="flex:1;min-width:0"><b>Auxiliar no comando</b><div class="small muted">Data ${S.md+1} de ${S.cal.length} · escala o melhor time${CFG.youth&&V6()&&S.mode!=='wc'?` (${YMODE[CFG.youth][0].toLowerCase()})`:''} e joga até o fim da ${S.mode==='wc'?'Copa':'temporada'}</div></div><button class="btn sm warn" data-a="automode">Parar</button></div>`
-  :`<button class="btn" data-a="automode" title="O auxiliar escala o melhor time disponível e joga todas as rodadas até o fim da temporada">Modo automático ▶▶</button>`;}
-function quickSim(){const ev=curEv();const n=autoRun()||(startMatchday(true),finishMatchday(true),1);UI.screen='hub';UI.tab=tabFor(ev);save();render();afterModals();toast(n>1?`${n} datas simuladas (seu time não jogou).`:`${evLabel(ev)}: resultados prontos.`);}
+  await ACT.play();
+  if(AUTO.on&&AUTO.epoch===epoch)autoNext(400);
+ }catch(error){simulationError(error);}finally{AUTO.running=false;}
+}
+function autoBoxHTML(){return AUTO.on?'<button type="button" class="btn" data-a="autostop">Voltar ao manual</button>':'<button class="btn" data-a="automode">Modo automático ▶▶</button>';}
+async function quickSim(){if(UI.busy)return;const ev=curEv();working(true,'Simulando os jogos desta data…');try{await yieldUI();let n=await autoRunMobile();if(!n){await simHeadless();n=1;}UI.screen='hub';UI.tab=tabFor(ev);await save();toast(n>1?`${n} datas simuladas (seu time não jogou).`:`${evLabel(ev)}: resultados prontos.`);}finally{working(false);render();afterModals();}}
+
+
 function wcStartHTML(){const sv=loadWC();const sel=UI.wcPick!=null?NAT[UI.wcPick]:null;
   return `<div class="grp"><span class="lg">Copa do Mundo 2026</span>
    <p class="small" style="margin-top:0">Escolha uma seleção e dispute a Copa com as 48 classificadas, nos grupos do sorteio real. Passam os 2 primeiros de cada grupo e os 8 melhores terceiros. Mata-mata com prorrogação e pênaltis.</p>
@@ -1773,6 +1853,7 @@ function liveShell(){const L=UI.live;const comps=[...new Set(L.ms.map(m=>m.comp)
   <div class="menu">${comps.map(c=>`<button class="btn ${L.tab===c?'on':''}" data-a="ltab" data-v="${c}">${compName(c)}</button>`).join('')}</div>
   <div style="padding:10px"><div class="mlist" id="lv-list"></div></div></div>`;}
 function evIcon(t){return {goal:'GOL',yc:'CA',rc:'CV',inj:'LES',sub:'SUB',pen:'PÊN',et:'PRO'}[t];}
+function setLiveHTML(selector,html){const el=$(selector);if(el&&el._html!==html){el.innerHTML=html;el._html=html;}}
 function renderLive(){const L=UI.live;if(!L||UI.screen!=='live')return;const mine=L.ms.find(m=>m.mine);const rv=ONLINE()?rival():null;const rvm=rv?L.ms.find(m=>!m.mine&&(m.fx.h===rv.tid||m.fx.a===rv.tid)):null;
   $('#lv-ban').innerHTML=L.banner?`<div class="banner">${esc(L.banner)}</div>`:'';
   const minTxt=L.done?'Encerrado':L.min===0?'Aguardando apito':L.min<=45?`${L.min}' · 1º tempo`:L.min<=90?`${L.min}' · 2º tempo`:`${L.min}' · prorrogação`;
@@ -1782,11 +1863,11 @@ function renderLive(){const L=UI.live;if(!L||UI.screen!=='live')return;const min
      ${rvm?`<div class="small" style="margin-top:6px">Seu amigo: ${tbox(rvm.fx.h,'sm')} <b>${rvm.g[0]} x ${rvm.g[1]}</b> ${tbox(rvm.fx.a,'sm')}</div>`:''}
      <div class="feed sunk" style="margin-top:6px">${mine.ev.length?mine.ev.slice().reverse().map(e=>`<div><span class="ev ${e.type}">${evIcon(e.type)}</span>${e.m}' ${esc(e.txt)} <span class="muted">(${esc(TM(mine.s[e.side].tid).name)})</span></div>`).join(''):'<div class="muted">Sem lances ainda.</div>'}</div>`;}
   else $('#lv-top').innerHTML=`<div class="board"><div class="side"><span class="lbl" style="color:#9fe0b4">Rodada sem o seu clube</span></div><div><div class="mn">${minTxt}</div></div><div></div></div>`;
-  $('#lv-ctl').innerHTML=AUTO.on?autoBoxHTML():L.done?`<button class="btn go" data-a="lcont">CONTINUAR ▶</button>`:
+  setLiveHTML('#lv-ctl',AUTO.on?autoBoxHTML():L.done?`<button class="btn go" data-a="lcont">CONTINUAR ▶</button>`:
    `${L.min===0?`<button class="btn go" data-a="lstart">APITO INICIAL ▶</button>`:`<button class="btn ${L.paused?'go':''}" data-a="lpause">${L.paused?'Retomar':'Pausar'}</button>`}
     ${mine&&!ONLINE()?`<button class="btn" data-a="lsubs">Substituições</button>`:''}
     <span class="small">Velocidade</span>${['1','2','3','4'].map((n,i)=>`<button class="btn sm ${CFG.speed===i?'on':''}" data-a="lspd" data-v="${i}">${n}</button>`).join('')}
-    <button class="btn" data-a="lskip">Ir para o fim</button>`;
+    <button class="btn" data-a="lskip">Ir para o fim</button>`);
   const list=L.ms.filter(m=>m.comp===L.tab);
   $('#lv-list').innerHTML=list.map(m=>{const last=m.ev.filter(e=>e.type==='goal'||e.type==='rc'||e.type==='pen').slice(-1)[0];const c=m.mine?'mine':(isHuman(m.fx.h)||isHuman(m.fx.a))?'rvm':'';
     return `<div class="mrow ${c} ${m.flash>0?'flash':''}" data-a="lmatch" data-v="${L.ms.indexOf(m)}" tabindex="0">${tbox(m.fx.h)}<span class="sc">${m.g[0]} - ${m.g[1]}</span>${tbox(m.fx.a)}<span class="last">${m.fx.pub?`<span class="pubc">${num(m.fx.pub)} pag.</span> `:''}${last?`${last.m}' ${evIcon(last.type)} ${esc(last.txt)}`:''}${m.pen?` · pên. ${m.pen[0]}x${m.pen[1]}`:''}</span></div>`;}).join('');
@@ -1870,9 +1951,11 @@ const ACT={
   wback:()=>{if(UI.waitUnsub){UI.waitUnsub();UI.waitUnsub=null;}UI.screen='start';render();},
   oleave:()=>{stopOnline();S=null;UI.me=0;UI.screen='start';render();},
   ready:()=>sendReady(),
+  autostop:()=>autoOff(ONLINE()&&UI.on.sent?'Automático desligado. A rodada já confirmada continua aguardando o amigo.':'Automático desligado. Você está no comando.'),
   automode:()=>{if(AUTO.on){autoOff('Modo automático desligado. Você está no comando.');return;}
     if(!UT()||ME().fired){toast('Você precisa de um clube.');return;}if(!curEv()){toast('Não há mais jogos nesta temporada.');return;}
-    AUTO.on=true;AUTO.y=S.year;AUTO.seen=new Set((ME().offers||[]).map(o=>o.id));closeModal();
+    if(UI.busy)return;
+    AUTO.on=true;AUTO.epoch++;AUTO.y=S.year;AUTO.seen=new Set((ME().offers||[]).map(o=>o.id));syncLiveAutomation();closeModal();
     toast('Modo automático ligado: o auxiliar joga até o fim da temporada.');render();autoNext(300);},
   fshow:()=>showFired(),
   tab:v=>{UI.tab=v;UI.confirm=null;UI.navLast=UI.navLast||{};UI.navLast[navOf(v)[0]]=v;render();},
@@ -1883,7 +1966,7 @@ const ACT={
     if(v==='prom'){const t=UT();UI.mkt.amax='23';UI.mkt.grow='8';UI.mkt.sort=V6()?'pot':'f';UI.mkt.view='res';if(t)UI.mkt.max=String(Math.max(.5,Math.round(t.cash*.4/1e5)/10));}else if(v==='pront'){UI.mkt.fmin='75';UI.mkt.sort='f';}else if(v==='bar'){UI.mkt.max='2';UI.mkt.sort='f';}
     UI.mkt.pre=v;UI.tab='mercado';render();},
   div:v=>{UI.div=+v;render();},rdiv:v=>{UI.resDiv=+v;render();},adiv:v=>{UI.artDiv=+v;render();},
-  play:()=>{if(!UT()||ME().fired){toast('Você precisa de um clube.');return;}const ev=curEv();if(!ev){afterModals();return;}if(!ONLINE()&&!fixtureOf(myTid(),ev)){quickSim();return;}startMatchday(false);},
+  play:()=>{if(!UT()||ME().fired){toast('Você precisa de um clube.');return;}const ev=curEv();if(!ev){afterModals();return;}if(!ONLINE()&&!fixtureOf(myTid(),ev))return quickSim();startMatchday(false);},
   ctab:v=>{UI.ctab=v;render();},
   rk:v=>{UI.rk=v;render();},
   ftab:v=>{UI.ftab=v;render();},
@@ -1941,7 +2024,7 @@ const ACT={
   close:()=>closeModal(),
   ovclose:(v,el,e)=>{if(e.target===el)closeModal();},
   // ao vivo
-  lstart:()=>{UI.live.banner='';tick();},
+  lstart:()=>{const L=UI.live;if(!L||L.done||L.min>0)return;L.paused=false;L.banner='';clearTimeout(L.timer);tick();},
   lpause:()=>{const L=UI.live;L.paused=!L.paused;if(!L.paused){L.banner='';scheduleTick();}renderLive();},
   lsubs:()=>{const L=UI.live;if(!L.done&&L.min>0){L.paused=true;clearTimeout(L.timer);renderLive();}subsModal();},
   lspd:v=>{CFG.speed=+v;saveCfg();renderLive();if(!UI.live.paused&&UI.live.min>0)scheduleTick();},
@@ -1953,9 +2036,9 @@ const ACT={
     if(!o||!n){toast('Escolha quem sai e quem entra.');return;}if(m.s[i].subs>=5){toast('Limite de 5 trocas.');return;}doSub(m,i,o,n,L.min);renderLive();subsModal();},
   closesub:()=>{const L=UI.live;const m=L.ms.find(x=>x.mine);const i=m.s[0].user?0:1;const ps=$('#spost');if(ps){m.s[i].post=+ps.value;UT().post=m.s[i].post;}closeModal();if(L.min>0&&!L.done){L.paused=false;L.banner='';scheduleTick();}renderLive();},
 };
-document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a;if(ACT[a]){if(el.tagName==='A')e.preventDefault();ACT[a](el.dataset.v,el,e);}});
-document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.classList&&e.target.classList.contains('mrow'))ACT.lmatch(e.target.dataset.v);if(e.key==='Escape'&&$('#modal').innerHTML&&$('#modal .ov[data-a]'))closeModal();});
-document.addEventListener('change',e=>{const c=e.target.dataset.c;if(!c)return;const v=e.target.value;
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el)return;const a=el.dataset.a;if(ACT[a]){if(el.disabled||UI.busy&&a!=='autostop'&&!(a==='automode'&&AUTO.on))return;if(el.tagName==='A')e.preventDefault();try{Promise.resolve(ACT[a](el.dataset.v,el,e)).catch(simulationError);}catch(error){simulationError(error);}}});
+document.addEventListener('keydown',e=>{if(UI.busy)return;if(e.key==='Enter'&&e.target.classList&&e.target.classList.contains('mrow'))ACT.lmatch(e.target.dataset.v);if(e.key==='Escape'&&$('#modal').innerHTML&&$('#modal .ov[data-a]'))closeModal();});
+document.addEventListener('change',e=>{if(UI.busy)return;const c=e.target.dataset.c;if(!c)return;const v=e.target.value;
   if(c==='form'){if(!canEdit()){render();return;}const t=UT();t.form=v;autoLineup(t);persistSoon();render();toast(`Esquema ${v}: time reescalado.`);}
   else if(c==='post'){if(!canEdit()){render();return;}UT().post=+v;persistSoon();render();}
   else if(c==='half'){CFG.halfStop=e.target.checked;saveCfg();}
@@ -1969,6 +2052,8 @@ document.addEventListener('change',e=>{const c=e.target.dataset.c;if(!c)return;c
   else if(c==='mp'){UI.mkt.pos=v;render();}else if(c==='md'){UI.mkt.div=v;render();}else if(c==='mm'){UI.mkt.max=v;render();}});
 let mqT;document.addEventListener('input',e=>{if(e.target.dataset.c==='mq'){UI.mkt.q=e.target.value;clearTimeout(mqT);mqT=setTimeout(()=>{render();const i=$('#mq');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},350);}
   else if(e.target.id==='mgr'){UI.mgr=e.target.value;}});
+
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)return;if(AUTO.on)autoOff('Automático pausado ao sair do jogo.');const L=UI.live;if(L&&!L.done){L.paused=true;clearTimeout(L.timer);L.banner='Partida pausada. Você está no comando.';renderLive();}});
 
 /* ====================== INÍCIO ====================== */
 function start(data){
