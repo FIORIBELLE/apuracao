@@ -1,0 +1,11 @@
+{
+  "name": "futebol-brasil-regression",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/regression.cjs",
+    "test:webkit": "FB_BROWSER=webkit node --test tests/regression.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  }
+}
